@@ -1,0 +1,51 @@
+// 底部距离
+.mb-05 {
+  margin-bottom: 5px;
+}
+
+// 文档表格样式
+.doc-table {
+  width: 100%;
+  // background-color: #bfc;
+
+  table,
+  thead,
+  tbody tr {
+    width: 100% !important;
+  }
+
+  th,
+  td {
+    width: 300px;
+  }
+}
+
+// 3列表格
+.doc-table.column3 {
+  tr {
+    :nth-child(1) {
+      width: 20% !important;
+    }
+
+    :nth-child(2) {
+      width: 52% !important;
+    }
+  }
+}
+
+// 4列表格
+.doc-table.column4 {
+  tr {
+    :nth-child(1) {
+      width: 22% !important;
+    }
+
+    :nth-child(3) {
+      width: 10% !important;
+    }
+
+    :last-child {
+      width: 13% !important;
+    }
+  }
+}

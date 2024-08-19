@@ -1,0 +1,14 @@
+/dist/*
+.local
+.output.js
+/node_modules/**
+
+**/*.svg
+**/*.sh
+
+/public/*
+/assets/*
+/bin/**
+/html/**
+README.md
+/.husky/*

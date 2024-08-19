@@ -1,0 +1,38 @@
+// 覆盖主题颜色
+:root {
+  --vp-c-indigo-1: #42b983;
+  // --vp-c-indigo-1: #da5583
+}
+
+// 覆盖主题样式
+.VPDoc.has-aside .content-container {
+  max-width: 888px !important;
+}
+
+.vp-doc {
+
+  h1,
+  h2 {
+    color: #606266;
+  }
+
+  h2 {
+    margin: 0 0 16px;
+    border-top: none;
+  }
+
+  // 表格样式调整
+  th,
+  td {
+    border-left: none;
+    border-right: none;
+  }
+
+  th {
+    background-color: transparent;
+  }
+
+  tr:nth-child(2n) {
+    background-color: transparent;
+  }
+}

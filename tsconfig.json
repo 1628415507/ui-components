@@ -1,0 +1,34 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "useDefineForClassFields": true,
+    // 解决打包报错:Could not find a declaration file for module ... implicitly has an 'any' type.
+    "noImplicitAny": false, // 隐式具有“any”类型//如果选择true，就意味着除了要改后缀为.ts，还需要做一个变量的正确声明
+    "module": "ESNext",
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "skipLibCheck": true,
+
+    /* Bundler mode */
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "preserve",
+
+    /* Linting */
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "baseUrl": ".", // 解析非相对模块名的基准目录
+    // 模块名到基于 baseUrl的路径映射的列表。
+    // 引入的时候，文件要加上.vue后缀
+    "paths": {
+      "@": ["src"],
+      "@/*": ["src/*"]
+    }
+  },
+  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.vue", "components.d.ts"],
+  "references": [{ "path": "./tsconfig.node.json" }]
+}

@@ -1,0 +1,15 @@
+{
+  "name": "zf-ui-comp",
+  "version": "0.0.1",
+  "description": "z-组件库 vue3 20240331",
+  "main": "z-ui-comp.es.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "前端",
+    "UI框架"
+  ],
+  "author": "hzf",
+  "license": "ISC"
+}
