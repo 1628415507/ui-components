@@ -24,7 +24,6 @@ dist-ssr
 *.sw?
 
 # vitepress的忽略目录
-docs/.vitepress/.temp
-docs/.vitepress/cache
-docs/.vitepress/cache/deps/
-docs/.vitepress/dist
+cache
+.cache
+.temp
