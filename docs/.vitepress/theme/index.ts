@@ -1,7 +1,7 @@
 /*
  * @Description: 全局配置
  * @Date: 2024-06-26 16:30:11
- * @LastEditTime: 2024-08-19 09:46:12
+ * @LastEditTime: 2024-08-22 16:10:14
  */
 import DefaultTheme from 'vitepress/theme'// https://vitepress.dev/guide/custom-theme
 import { h } from 'vue'
@@ -16,10 +16,11 @@ import zhCn from 'element-plus/dist/locale/zh-cn.mjs'
 import * as ElementPlusIconsVue from '@element-plus/icons-vue'// 图标并进行全局注册
 // ===== 引入自定义组件 ===== 
 // 本地调试
-// import ZUiComp from '../../../src/index.ts'// 引入自定义组件库中的所有组件
+import ZUiComp from '../../../src/index.ts'// 引入自定义组件库中的所有组件
+import '../../../src/style.css'
 // 包测试：以下方式需要运行npm run build:zip打包才能引用到
-import ZUiComp from 'z-ui-comp'// 引入自定义组件库中的所有组件
-import 'z-ui-comp/style.css'
+// import ZUiComp from 'z-ui-comp'// 引入自定义组件库中的所有组件
+// import 'z-ui-comp/style.css'
 
 import { ExampleContainer } from '../customMdContainer'// 引入自定义md容器组件
 
