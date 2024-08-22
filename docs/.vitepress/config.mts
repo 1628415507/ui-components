@@ -1,7 +1,7 @@
 /*
  * @Description: markdown配置
  * @Date: 2024-06-26 16:30:11
- * @LastEditTime: 2024-08-19 16:26:45
+ * @LastEditTime: 2024-08-22 16:25:10
  */
 import { defineConfig } from 'vitepress'
 import { mdPlugin } from './config/plugins'  // 引入插件
@@ -9,7 +9,7 @@ import { nav, sidebar } from './menu'  // 菜单
 
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
-  base: '/z-docs/',//基本路径
+  base: '/ui-components/',//基本路径
   title: "UI-COMPONENTS",
   description: "组件库文档",
   head: [
