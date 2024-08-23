@@ -1,7 +1,7 @@
 /*
  * @Description:
  * @Date: 2024-06-27 16:50:06
- * @LastEditTime: 2024-08-23 16:23:34
+ * @LastEditTime: 2024-08-23 17:52:34
  */
 import { DefaultTheme } from 'vitepress';
 
@@ -31,7 +31,7 @@ export const nav: DefaultTheme.NavItem[] = [
       //   link: '/blogs/css' // 对应docs/column/Algorithm下的idnex.md文件
       // },
       {
-        text: '场景应用',
+        text: '业务场景',
         link: '/blogs/business' // 对应docs/column/Algorithm下的idnex.md文件
       },
 
