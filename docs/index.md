@@ -6,7 +6,7 @@ layout: home
 
 
 hero:
-  name: "ZF-COMPONENTS"
+  name: "UI-COMPONENTS"
   text: "Vue3组件库"
   tagline: 基于Vue3+Element-plus二次封装基础组件文档
   #  image:

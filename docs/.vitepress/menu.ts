@@ -1,7 +1,7 @@
 /*
  * @Description:
  * @Date: 2024-06-27 16:50:06
- * @LastEditTime: 2024-08-19 09:16:02
+ * @LastEditTime: 2024-08-22 17:14:25
  */
 import { DefaultTheme } from 'vitepress';
 
@@ -35,10 +35,11 @@ export const sidebar = {
         // { text: 'Readme', link: '/readme' },
         { text: '安装', link: '/guide/installation.md' },
         { text: '使用', link: '/guide/quickstart.md' },
+        { text: 'Github Pages发布', link: '/guide/github-pages.md' },
         { text: 'Markdown 语法', link: '/guide/markdown-examples' },
         { text: 'API Examples', link: '/guide/api-examples' },
       ]
-    },
+    }
   ],
   // 组件示例
   '/examples': [

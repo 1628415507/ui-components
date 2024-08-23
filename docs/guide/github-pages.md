@@ -1,7 +1,32 @@
+# Github Pages 发布
+
+> 参考地址：
+>
+> 1. [VitePress 学习指南 | 部署篇](https://juejin.cn/post/7361629576416739369)
+> 2. [VitePress 官方文档](https://vitepress.dev/guide/deploy#github-pages)
+
+## 前置准备
+
+- 创建 docs 项目
+- 在`docs/.vitepress/config.mts`中设置`base`路径
+- `docs/.vitepress/theme/index.ts`中 ZUiComp 的引用路径需改成引用本项目的相对路径，否则打包发布的时候会报错
+- 路径内容需要和 github 的项目名称一致，否则发布后会出现资源找不到的问题
+
+```ts{3}
+// config.mts...
+export default defineConfig({
+  base: '/ui-components/',//基本路径
+  // ...
+})
+```
+
+## 创建 yml 文件
+
+- 在项目根目录创建 .github 文件夹，然后在其中创建 workflows 目录，新建 deploy.yml 文件。
+- 文件内容如下
+
+```yml{11,40,45,47,51}
 # 构建 VitePress 站点并将其部署到 GitHub Pages 的示例工作流程
-# 参考地址：
-# 1.https://juejin.cn/post/7361629576416739369
-# 2.https://vitepress.dev/guide/deploy#github-pages
 name: Deploy VitePress site to Pages
 
 on:
@@ -62,3 +87,15 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+```
+
+## GitHub 配置
+
+- 然后进入到 GitHub 中的 Settings 页面，点击左侧的 Pages 菜单，在 Build and deployment 标题下，选择 Source 为 GitHub Actions。
+  ![package.gif](./img/github-pages.png)<!-- 插入图片 -->
+- 配置成功后，当我们把本地代码推送到 GitHub 上的 master 分支时，就会触发 GitHub Actions 自动进入构建和部署工作流中。
+
+## 验证发布结果
+
+- 可以点击 Actions 选项，检查项目是否部署成功。成功后可点击 deploy 对应的路径进行访问
+  ![package.gif](./img/github-pages-actions.png)<!-- 插入图片 -->
