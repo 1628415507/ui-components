@@ -1,11 +1,11 @@
 /*
  * @Description: markdown配置
  * @Date: 2024-06-26 16:30:11
- * @LastEditTime: 2024-08-22 16:25:10
+ * @LastEditTime: 2024-08-23 15:35:38
  */
 import { defineConfig } from 'vitepress'
 import { mdPlugin } from './config/plugins'  // 引入插件
-import { nav, sidebar } from './menu'  // 菜单
+import menus from './menus/index'  // 菜单
 
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
@@ -19,8 +19,8 @@ export default defineConfig({
   themeConfig: {
     logo: '/tiger.png', // 左上角-logo
     // https://vitepress.dev/reference/default-theme-config
-    nav: nav,//顶部菜单
-    sidebar: sidebar,//左侧菜单
+    nav: menus.nav,//顶部菜单
+    sidebar: menus.sidebar,//左侧菜单
     i18nRouting: true,//开启多语言
     socialLinks: [
       { icon: 'github', link: 'https://gitee.com/sunshine365D/z-ui' }
