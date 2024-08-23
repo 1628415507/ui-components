@@ -1,16 +1,12 @@
 <!--
  * @Description: 根据路径匹配examples文件夹下的组件
  * @Date: 2024-06-27 09:40:26
- * @LastEditTime: 2024-06-27 14:05:44
+ * @LastEditTime: 2024-08-23 17:49:32
 -->
 <template>
   <ClientOnly>
     <div class="example-component">
-      <component
-        :is="dynamicComponent"
-        v-if="dynamicComponent"
-        v-bind="$attrs"
-      />
+      <component v-if="dynamicComponent" :is="dynamicComponent" v-bind="$attrs" />
       <div v-else class="example-component--spin">
         <div></div>
         <div></div>
@@ -32,10 +28,25 @@ let dynamicComponent = shallowRef(null)
 onBeforeMount(() => {
   // 匹配到的文件默认是懒加载的，通过动态导入实现，并会在构建时分离为独立的 chunk。
   // 如果你倾向于直接引入所有的模块（例如依赖于这些模块中的副作用首先被应用），你可以传入 { eager: true } 作为第二个参数：
-  const modules = import.meta.glob(`../../../../examples/*/*.vue`, {
-    eager: true,
-  })
-  // console.log('【 获取examples下的所有vue文件 】-40', modules) 
+  let modules: any
+  const pattern = new RegExp('/', 'g')
+  const matches = props.path.match(pattern)
+  const pathLevel = matches.length //获取examples目录下层级
+  console.log('【 matches 】-35', matches.length)
+  if (pathLevel == 1) {
+    modules = import.meta.glob(`../../../../examples/*/*.vue`, {
+      eager: true
+    })
+  }
+  if (pathLevel == 2) {
+    modules = import.meta.glob(`../../../../examples/*/*/*.vue`, {
+      eager: true
+    })
+  }
+  // const modules = import.meta.glob(`../../../../examples/*/*/*.vue`, {
+  //   eager: true,
+  // })
+  // console.log('【 获取examples下的所有vue文件 】-40', modules)
   // 动态加载示列组件
   for (const modulesKey in modules) {
     const module = modules[modulesKey]
