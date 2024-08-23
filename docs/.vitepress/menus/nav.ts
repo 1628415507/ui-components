@@ -1,7 +1,7 @@
 /*
  * @Description:
  * @Date: 2024-06-27 16:50:06
- * @LastEditTime: 2024-08-23 15:09:57
+ * @LastEditTime: 2024-08-23 16:23:34
  */
 import { DefaultTheme } from 'vitepress';
 
@@ -23,22 +23,27 @@ export const nav: DefaultTheme.NavItem[] = [
   //     }
   //   ]
   // },
-  // {
-  //   text: '专栏',
-  //   items: [
-  //     {
-  //       text: 'CSS',
-  //       link: '/examples' // 对应docs/column/Algorithm下的idnex.md文件
-  //     },
-  //     {
-  //       text: 'JavaScript',
-  //       link: '/examples' // 对应docs/column/Algorithm下的idnex.md文件
-  //     },
-  //     {
-  //       text: '方法',
-  //       link: '/examples' // 对应docs/column/Algorithm下的idnex.md文件
-  //     }
-  //   ]
-  // },
+  {
+    text: '专栏',
+    items: [
+      // {
+      //   text: 'CSS',
+      //   link: '/blogs/css' // 对应docs/column/Algorithm下的idnex.md文件
+      // },
+      {
+        text: '场景应用',
+        link: '/blogs/business' // 对应docs/column/Algorithm下的idnex.md文件
+      },
+
+      // {
+      //   text: 'JavaScript',
+      //   link: '/examples' // 对应docs/column/Algorithm下的idnex.md文件
+      // },
+      // {
+      //   text: '方法',
+      //   link: '/examples' // 对应docs/column/Algorithm下的idnex.md文件
+      // }
+    ]
+  },
   // { text: '组件', link: '/markdown-examples' }
 ]
