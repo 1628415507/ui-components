@@ -1,16 +1,16 @@
 /*
- * @Description: 
+ * @Description:
  * @Date: 2024-08-23 15:19:18
  * @LastEditTime: 2024-08-23 15:34:35
  */
 
 export const sidebarExamples = [
-  {
-    text: '写在前面',
-    items: [
-      { text: 'Readme', link: '/readme' },
-    ]
-  },
+  // {
+  //   text: '写在前面',
+  //   items: [
+  //     { text: 'Readme', link: '/readme' },
+  //   ]
+  // },
   {
     text: 'Form 表单组件',
     items: [
