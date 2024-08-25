@@ -3,6 +3,7 @@
  * @Date: 2024-06-27 09:40:26
  * @LastEditTime: 2024-08-16 17:51:50
 -->
+<!-- 题库https://github.com/pro-collection/interview-question/issues -->
 
 ## 各分支说明
 
@@ -33,6 +34,8 @@
 │  ├─  ├─ config.mts            # markdown菜单配置
 │  └─ components                # 文档中使用的组件
 │  └─ examples                  # 组件示例代码、说明文档
+│  ├─  ├─ blogs                 # 专栏中文档引用的组件
+│  ├─  ├─ 其他                  # 组件库示例、文档
 │  └─ guide                     # 指南说明文档
 └─ ...
 ```
