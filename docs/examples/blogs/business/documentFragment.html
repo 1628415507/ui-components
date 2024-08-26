@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>DocumentFragment示例</title>
+    <style>
+    </style>
+</head>
+
+<body>
+    <div class="scroll-container">
+    </div>
+    <script>
+        // 创建 DocumentFragment
+        var fragment = document.createDocumentFragment();
+
+        // 创建多个节点或元素
+        var div = document.createElement("div");
+        div.innerHTML = 'div'
+        var p = document.createElement("p");
+        p.innerHTML = 'p'
+
+        // 将节点添加到 DocumentFragment 上
+        fragment.appendChild(div);
+        fragment.appendChild(p);
+
+        // 一次性将 DocumentFragment 添加到 DOM 的某个部分
+        var body = document.querySelector("body");
+        // 一旦整个 DocumentFragment 插入到 DOM 的一个永久节点上
+        body.appendChild(fragment);
+
+        // 这时 div 和 p 被添加至 body 元素，而不会触发额外的布局重排。
+    </script>
+</body>
+
+</html>
