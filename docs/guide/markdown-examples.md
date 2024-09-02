@@ -1,7 +1,7 @@
 <!--
  * @Description:
  * @Date: 2024-08-14 17:01:52
- * @LastEditTime: 2024-08-16 17:57:50
+ * @LastEditTime: 2024-09-02 17:07:29
 -->
 
 # Markdown Extension Examples
@@ -117,4 +117,9 @@ $$文字$$ 方程式 latex
 _斜体_
 `代码块`
 > 引用
+<!-- 自定义组件 -->
+<!-- <script setup>
+import demo from './components/custom-demo/demo.vue';
+</script>
 
+<demo /> -->

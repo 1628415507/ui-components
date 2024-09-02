@@ -1,7 +1,7 @@
 <!--
  * @Description: https://gitee.com/yanleweb/interview-question/issues/I7W2KU
  * @Date: 2024-08-23 16:04:10
- * @LastEditTime: 2024-08-23 17:58:30
+ * @LastEditTime: 2024-08-26 09:56:25
 -->
 
 # 业务场景
@@ -138,13 +138,31 @@
 ```
 
 ## 虚拟混动加载原理及实现
+### 前置知识点
+  | 分支 | 说明 | |
+  | ---------- | -------------------- | ------------------------------------- |
+  | clientHeight  | 获取屏幕可视区域的高度| |
+  | clientWidth | 获取屏幕可视区域的宽度 | |
+  | offsetTop | 元素相对于文档顶部的高度。 | |
+  | document.documentElement.scrollTop | 浏览器窗口顶部与文档顶部之间的距离，也就是滚动条滚动的距离。 | |
 
-- 虚拟滚动的核心原理是仅渲染用户可视范围内的列表项，以此减少 DOM 操作的数量和提高性能。
+![image.png](https://p0-xtjj-private.juejin.cn/tos-cn-i-73owjymdk6/9f4c4b681b2a49dbb1aa980fe8fc5f87~tplv-73owjymdk6-jj-mark-v1:0:0:0:0:5o6Y6YeR5oqA5pyv56S-5Yy6IEAg5bCP6I2J5byA6Iqx:q75.awebp?policy=eyJ2bSI6MywidWlkIjoiNjE2MjA1Mjg1MDY1MjA4In0%3D&rk3s=e9ecf3d6&x-orig-authkey=f32326d3454f2ac7e96d3d06cdbb035152127018&x-orig-expires=1724723528&x-orig-sign=%2BVkJnxWIB2JfM280LLZJJDzWGlw%3D)
+
+![image.png](https://p0-xtjj-private.juejin.cn/tos-cn-i-73owjymdk6/5bab161be9b749aeaac7e59c7b9091a3~tplv-73owjymdk6-jj-mark-v1:0:0:0:0:5o6Y6YeR5oqA5pyv56S-5Yy6IEAg5bCP6I2J5byA6Iqx:q75.awebp?policy=eyJ2bSI6MywidWlkIjoiNjE2MjA1Mjg1MDY1MjA4In0%3D&rk3s=e9ecf3d6&x-orig-authkey=f32326d3454f2ac7e96d3d06cdbb035152127018&x-orig-expires=1724723755&x-orig-sign=GgBBRBgMGC7a%2BOGhTrGKkZAoMjM%3D)
+
+![image.png](https://p0-xtjj-private.juejin.cn/tos-cn-i-73owjymdk6/84fd23b803b64ecb89c01fa78921b09c~tplv-73owjymdk6-jj-mark-v1:0:0:0:0:5o6Y6YeR5oqA5pyv56S-5Yy6IEAg5bCP6I2J5byA6Iqx:q75.awebp?policy=eyJ2bSI6MywidWlkIjoiNjE2MjA1Mjg1MDY1MjA4In0%3D&rk3s=e9ecf3d6&x-orig-authkey=f32326d3454f2ac7e96d3d06cdbb035152127018&x-orig-expires=1724723780&x-orig-sign=ivoR%2BcQjZXJBPRyBC55pcO6lhBY%3D)
+
+### 虚拟滚动的核心原理
+- 虚拟滚动的核心原理是**仅渲染用户可视范围内的列表项**，以此减少 DOM 操作的数量和提高性能。
 - 实现虚拟滚动
   - 监听滚动事件，了解当前滚动位置。
   - 根据滚动位置计算当前应该渲染哪些列表项目（即在视口内的项目）。
   - 只渲染那些项目 ，并用占位符（比如一个空的 div）占据其它项目应有的位置，保持滚动条大小不变。
   - 当用户滚动时，重新计算并渲染新的项目。
-    ::: example
-    blogs/business/watermark
-    :::
+
+
+<!-- 
+ ::: example
+  blogs/business/watermark
+ :::
+-->
