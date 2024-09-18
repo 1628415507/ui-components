@@ -1,7 +1,7 @@
 <!--
  * @Description: https://gitee.com/yanleweb/interview-question/issues/I7W2KU
  * @Date: 2024-08-23 16:04:10
- * @LastEditTime: 2024-09-18 14:29:32
+ * @LastEditTime: 2024-09-18 15:44:22
 -->
 
 # 业务场景
@@ -34,10 +34,110 @@
 
 ## 2. JS 执⾏ 100 万个任务， 如何保证浏览器不卡顿？
 
-- 浏览器主线程一次只能处理一个任务（任务按照队列执行）
-- web worker 是运行在 Main 线程之外的一个线程，叫做 worker 线程
+- 浏览器主线程一次只能处理一个任务（任务按照队列执行）,当遇到长任务（执行超过 50 毫秒，就会被称为长任务(Long Task)）时，需要等长任务执行完才能进行下一步操作，这个过程就会造成阻塞
 
-### 方案 1：web worker 灵巧越过主线程阻塞问题
+```html{25}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>普通长任务示例</title>
+    <style></style>
+  </head>
+  <body>
+    <script>
+      // 主线程代码
+      let body = document.querySelector('body') //获取某个真实的dom元素
+      const params = { start: 0, end: 100000 }
+      // --------------- 主线程长任务 Start---------------
+      function longTask() {
+        const { start, end } = params
+        let sum = 0
+        for (let i = start; i <= end; i++) {
+          console.log('【 主线程长任务... 】-39')
+          sum += i
+        }
+        let div = document.createElement('div')
+        div.innerHTML = '主线程长任务完成:' + sum
+        body.appendChild(div)
+      }
+      longTask() // 执行长任务
+      // --------------- 主线程长任务 End---------------
+      // -- 主线程任务
+      let mainDiv = document.createElement('div')
+      mainDiv.innerHTML = '主线程任务'
+      body.appendChild(mainDiv)
+    </script>
+  </body>
+</html>
+
+```
+
+### 方案 1：web worker 越过主线程阻塞问题
+
+- 详见`docs\examples\blogs\business\web-worker`
+- `web worker`是**运行在 Main 线程之外的一个线程**，叫做 worker 线程。我们可以把一些计算量大的任务放到 worker 中去处理。
+  ```html{14,16,18}
+  <!DOCTYPE html>
+  <html lang="en">
+    <head>
+      <meta charset="UTF-8" />
+      <title>web worker示例</title>
+      <style></style>
+    </head>
+    <body>
+      <script>
+        // 主线程代码
+        let body = document.querySelector('body') //获取某个真实的dom元素
+        const params = { start: 0, end: 100000 }
+        // --------------- worker Start ---------------
+        const worker = new Worker('./worker.js') // 创建一个新的Web Worker
+        // 向子线程通过 postMessage 发送消息，
+        worker.postMessage(params) //100000 向Web Worker发送消息
+        // 通过 onmessage 监听子线程返回的数据。
+        worker.onmessage = function (event) {
+          const result = event.data
+          let div = document.createElement('div')
+          div.innerHTML = '子线程任务完成：' + result
+          body.appendChild(div)
+          console.log('子线程任务完成：', result)
+        }
+        // --------------- worker End ---------------
+        // -- 主线程任务
+        let mainDiv = document.createElement('div')
+        mainDiv.innerHTML = '主线程任务'
+        body.appendChild(mainDiv)
+      </script>
+    </body>
+  </html>
+  ```
+- 适用于不需要实时通讯的场景
+  ```js{10}
+  // worker.js
+  onmessage = function (event) {
+    console.log('【 onmessage 】-2', '子线程任务开始')
+    const { start, end } = event.data
+    let sum = 0
+    for (let i = start; i <= end; i++) {
+      sum += i
+    }
+    setTimeout(() => {
+      postMessage(sum) // 任务完成向主线程发送消息
+    }, 3000)
+  }
+  ```
+- 如果需要实时通信结果，依然会被卡死
+  ```js{7}
+  // worker.js
+  onmessage = function (event) {
+  const { start, end } = event.data
+  let sum = 0
+    for (let i = start; i <= end; i++) {
+      sum = i + 1
+      postMessage(sum) // 实时向主线程发送消息，依然会被卡死
+    }
+  }
+  ```
 
 ### 方案 2：（推荐）利用 requestAnimationFrame 实现任务调度
 
@@ -138,13 +238,15 @@
 ```
 
 ## 3. 虚拟混动加载原理及实现
+
 ### 前置知识点
-  | 分支 | 说明 | |
-  | ---------- | -------------------- | ------------------------------------- |
-  | clientHeight  | 获取屏幕可视区域的高度| |
-  | clientWidth | 获取屏幕可视区域的宽度 | |
-  | offsetTop | 元素相对于文档顶部的高度。 | |
-  | document.documentElement.scrollTop | 浏览器窗口顶部与文档顶部之间的距离，也就是滚动条滚动的距离。 | |
+
+| 分支                               | 说明                                                         |     |
+| ---------------------------------- | ------------------------------------------------------------ | --- |
+| clientHeight                       | 获取屏幕可视区域的高度                                       |     |
+| clientWidth                        | 获取屏幕可视区域的宽度                                       |     |
+| offsetTop                          | 元素相对于文档顶部的高度。                                   |     |
+| document.documentElement.scrollTop | 浏览器窗口顶部与文档顶部之间的距离，也就是滚动条滚动的距离。 |     |
 
 ![image.png](https://p0-xtjj-private.juejin.cn/tos-cn-i-73owjymdk6/9f4c4b681b2a49dbb1aa980fe8fc5f87~tplv-73owjymdk6-jj-mark-v1:0:0:0:0:5o6Y6YeR5oqA5pyv56S-5Yy6IEAg5bCP6I2J5byA6Iqx:q75.awebp?policy=eyJ2bSI6MywidWlkIjoiNjE2MjA1Mjg1MDY1MjA4In0%3D&rk3s=e9ecf3d6&x-orig-authkey=f32326d3454f2ac7e96d3d06cdbb035152127018&x-orig-expires=1724723528&x-orig-sign=%2BVkJnxWIB2JfM280LLZJJDzWGlw%3D)
 
@@ -153,6 +255,7 @@
 ![image.png](https://p0-xtjj-private.juejin.cn/tos-cn-i-73owjymdk6/84fd23b803b64ecb89c01fa78921b09c~tplv-73owjymdk6-jj-mark-v1:0:0:0:0:5o6Y6YeR5oqA5pyv56S-5Yy6IEAg5bCP6I2J5byA6Iqx:q75.awebp?policy=eyJ2bSI6MywidWlkIjoiNjE2MjA1Mjg1MDY1MjA4In0%3D&rk3s=e9ecf3d6&x-orig-authkey=f32326d3454f2ac7e96d3d06cdbb035152127018&x-orig-expires=1724723780&x-orig-sign=ivoR%2BcQjZXJBPRyBC55pcO6lhBY%3D)
 
 ### 虚拟滚动的核心原理
+
 - 虚拟滚动的核心原理是**仅渲染用户可视范围内的列表项**，以此减少 DOM 操作的数量和提高性能。
 - 实现虚拟滚动
   - 监听滚动事件，了解当前滚动位置。
@@ -160,8 +263,7 @@
   - 只渲染那些项目 ，并用占位符（比如一个空的 div）占据其它项目应有的位置，保持滚动条大小不变。
   - 当用户滚动时，重新计算并渲染新的项目。
 
-
-<!-- 
+<!--
  ::: example
   blogs/business/watermark
  :::
@@ -194,11 +296,15 @@ DocumentFragment 是 Web API 中的一部分，它是 DOM （文档对象模型�
 - 避免内存泄漏：在某些情况下，它可以作为防止因移动节点而造成的内存泄漏的一个办法。
 
 ## 5. 在表单校验场景中， 如何实现⻚⾯视⼝滚动到报错的位置
+
 > 详见`docs\examples\blogs\business\validationForm.html`
+
 - 滚动指定位置：`element.scrollIntoView({ block: "center", behavior: "smooth" }); `
 
 ## 6. [检测网页是否为空闲状态](https://www.jb51.net/javascript/318807ud9.htm)
+
 > 详见`docs\examples\blogs\business\检测网页是否为空闲状态`
+
 1. 监听⿏标移动事件 `mousemove` ；
 2. 监听键盘按下事件 `mousedown` ；
 3. 监听页面隐藏情况 `visibilitychange` ；
