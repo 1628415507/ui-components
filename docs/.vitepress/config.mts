@@ -1,7 +1,7 @@
 /*
  * @Description: markdown配置
  * @Date: 2024-06-26 16:30:11
- * @LastEditTime: 2024-08-23 15:35:38
+ * @LastEditTime: 2024-09-18 17:45:35
  */
 import { defineConfig } from 'vitepress'
 import { mdPlugin } from './config/plugins'  // 引入插件
@@ -56,6 +56,7 @@ export default defineConfig({
     // }
   },
   markdown: {
+    lineNumbers: true,//代码显示行号
     headers: {
       level: [0, 0],
     },
