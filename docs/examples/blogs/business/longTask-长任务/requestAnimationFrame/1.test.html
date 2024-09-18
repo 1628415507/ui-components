@@ -12,6 +12,7 @@
     <script>
         // 执行下面的代码， 效果会非常非常的酸爽；页面一直处于卡顿，然后最后结果闪出来
         const $result = document.getElementById("result");
+        $result.innerText = '开始...';
 
         /* ==============================  长任务 - Start ============================== */
         const bigArray = Array.from({ length: 1000000 }, (_, i) => i + 1);
