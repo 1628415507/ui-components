@@ -1,7 +1,7 @@
 <!--
  * @Description: https://gitee.com/yanleweb/interview-question/issues/I7W2KU
  * @Date: 2024-08-23 16:04:10
- * @LastEditTime: 2024-09-18 13:17:17
+ * @LastEditTime: 2024-09-18 14:29:32
 -->
 
 # 业务场景
@@ -193,8 +193,13 @@ DocumentFragment 是 Web API 中的一部分，它是 DOM （文档对象模型�
 - 内容填充：在填充 DOM 元素内容之前，可以先创建一个 DocumentFragment 完成所有节点的添加和排序，然后把它添加到 DOM 树中。
 - 避免内存泄漏：在某些情况下，它可以作为防止因移动节点而造成的内存泄漏的一个办法。
 
-## 在表单校验场景中， 如何实现⻚⾯视⼝滚动到报错的位置
-
+## 5. 在表单校验场景中， 如何实现⻚⾯视⼝滚动到报错的位置
 > 详见`docs\examples\blogs\business\validationForm.html`
-
 - 滚动指定位置：`element.scrollIntoView({ block: "center", behavior: "smooth" }); `
+
+## 6. [检测网页是否为空闲状态](https://www.jb51.net/javascript/318807ud9.htm)
+> 详见`docs\examples\blogs\business\检测网页是否为空闲状态`
+1. 监听⿏标移动事件 `mousemove` ；
+2. 监听键盘按下事件 `mousedown` ；
+3. 监听页面隐藏情况 `visibilitychange` ；
+4. 在⽤⼾进⼊⽹⻚后，设置延时跳转，如果触发以上事件，则移除延时器，并重新开始。

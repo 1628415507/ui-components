@@ -1,0 +1,32 @@
+<!--
+ * @Description: 
+ * @Date: 2024-09-18 13:56:29
+ * @LastEditTime: 2024-09-18 14:25:02
+-->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>检测网页是否为空闲状态</title>
+    <style></style>
+    <script type="text/javascript" src="./index.js"></script>
+  </head>
+
+  <body>
+    <script>
+      // ============== 方法调用==============
+      const time = 3
+      let count = 1
+      let body = document.querySelector('body') //获取某个真实的dom元素
+      function callback() {
+        let str = '【 检测网页是否为空闲状态: 】' + time + '秒内未操作，' + count
+        count++
+        console.log(str)
+        let div = document.createElement('div')
+        div.innerHTML = str
+        body.appendChild(div) //  一旦整个 DocumentFragment 插入到 真实的dom元素在 DocumentFragment 内进行的更改将会触发 DOM 的重新渲染。
+      }
+      onIdleDetection(callback, time, true)
+    </script>
+  </body>
+</html>
