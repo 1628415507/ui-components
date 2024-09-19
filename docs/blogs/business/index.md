@@ -1,7 +1,7 @@
 <!--
  * @Description: https://gitee.com/yanleweb/interview-question/issues/I7W2KU
  * @Date: 2024-08-23 16:04:10
- * @LastEditTime: 2024-09-18 17:58:00
+ * @LastEditTime: 2024-09-19 16:54:48
 -->
 
 # 业务场景
@@ -175,16 +175,14 @@
 
 #### [使用 chunkSize 来对长任务进行切分](https://blog.csdn.net/qq_53109172/article/details/135320963).
 
-> 详见`docs\examples\blogs\business\longTask\requestAnimationFrame\3.processArrayWithDynamicChunkSize.html`
-
-- `requestAnimationFrame(callback)` **触发的时机是浏览器在下次重绘之前调用指定的回调函数更新动画**
-- requestAnimationFrame() 是一次性的
-- 在大多数遵循 W3C 建议的浏览器中，回调函数执行次数通常与浏览器屏幕刷新次数相匹配**60Hz（每秒 60 次）**
-- 取消 requestAnimationFrame 执行，可以通过 `cancelAnimationFrame` 方法
-- 每次 requestAnimationFrame 执行频次，**一秒钟执行 60 次**， 那么每次消耗时间是 16ms 左右
+- `requestAnimationFrame(callback)`触发的时机是**浏览器在下次重绘之前调用指定的回调函数更新动画**
+- `cancelAnimationFrame`：取消 requestAnimationFrame 执行
+- 在大多数遵循 W3C 建议的浏览器中，回调函数执行次数通常与浏览器屏幕刷新次数相匹配，这个时间取决于当前电脑的刷新率，如果为**60Hz（1s 执行 60 次，每次消耗时间是 16.7ms 左右）**，如果是 120Hz 那就是 8.3ms 执⾏⼀次
 - requestAnimationFrame() 运行在后台标签页或者隐藏的 `<iframe>` 里时，会被**暂停调用**以提升性能和电池寿命
+- requestAnimationFrame 也是个定时器，它的执行是一次性的，也属于**宏任务**，但不同于 setTimeout ，它的时间不需要⼈为指定，这个时间取决于当前电脑的刷新率，如果是 60Hz ，那么就是 16.7ms 执⾏⼀次，
 
 ```html{26,31,35,37,41}
+ <!-- 详见`docs\examples\blogs\business\longTask\requestAnimationFrame\3.processArrayWithDynamicChunkSize.html` -->
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -310,8 +308,10 @@ DocumentFragment 是 Web API 中的一部分，它是 DOM （文档对象模型�
 3. 监听页面隐藏情况 `visibilitychange` ；
 4. 在⽤⼾进⼊⽹⻚后，设置延时跳转，如果触发以上事件，则移除延时器，并重新开始。
 
-## 7. axios请求超时⾃动重新请求
+## 7. axios 请求超时⾃动重新请求
+
 - 详见`docs\examples\blogs\business\fetchWithRetries.ts`
+
 ```js{5,6,15,17,25,33}
 import axios from 'axios'
 const request = axios.create({

@@ -13,11 +13,7 @@
     </div>
     <script>
 
-        // - requestAnimationFrame 也是个定时器，不同于 setTimeout ，它的时间不需要我们⼈为指
-        //   定，这个时间取决于当前电脑的刷新率，如果是 60Hz ，那么就是 16.7ms 执⾏⼀次，如果是 120Hz 那
-        //   就是 8.3ms 执⾏⼀次
-        // - requestAnimationFrame 也是个宏任务
-        // https://www.cnblogs.com/anans/p/17701257.html
+          // https://www.cnblogs.com/anans/p/17701257.html
         let observer = new PerformanceObserver((list) => {
             for (const entry of list.getEntries()) {
                 console.log("Long Taskdetected:");
