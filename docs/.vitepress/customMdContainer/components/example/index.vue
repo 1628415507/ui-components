@@ -55,7 +55,6 @@ const props = defineProps<{
   path: string //组件路径
   description?: string
 }>()
-// console.log('【 props  】-61', props)
 
 const { copy, isSupported } = useClipboard({
   source: decodeURIComponent(props.rawSource),

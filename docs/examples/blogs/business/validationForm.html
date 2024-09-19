@@ -35,14 +35,14 @@
     // ⼀个假设的表单验证函数
     function validateInput(inputId) {// 调⽤此处的校验逻辑，返回是否存在错误
       // 这⾥以ID "inputId"来获取对应的DOM对象
-      var el = document.getElementById(inputId);// 此处只是⽰例, 实际上应根据具体的校验逻辑返回⼀个布尔类型
+      let el = document.getElementById(inputId);// 此处只是⽰例, 实际上应根据具体的校验逻辑返回⼀个布尔类型
       return el.value === "111";
     }
 
     function handleValidation() {
       let valid = true;
       ["name", "age"].forEach((key) => {// 进⾏校验判断
-        var element = document.getElementById(key);
+        let element = document.getElementById(key);
         if (!validateInput(key)) {
           console.error(`验证失败: ${key}`);
           // 标记校验失败

@@ -1,10 +1,11 @@
 /*
  * @Description:
  * @Date: 2024-06-27 16:50:06
- * @LastEditTime: 2024-08-23 17:52:34
+ * @LastEditTime: 2024-09-18 14:00:39
  */
+//
 import { DefaultTheme } from 'vitepress';
-
+// 博客目录参考： https://www.kancloud.cn/surahe/front-end-notebook/482370
 // 顶部菜单
 export const nav: DefaultTheme.NavItem[] = [
   { text: '首页', link: '/' },
@@ -26,19 +27,31 @@ export const nav: DefaultTheme.NavItem[] = [
   {
     text: '专栏',
     items: [
+       // {
+      //   text: 'HTML',
+      //   link: '/blogs/css' // 对应docs/column/Algorithm下的idnex.md文件
+      // },
       // {
       //   text: 'CSS',
       //   link: '/blogs/css' // 对应docs/column/Algorithm下的idnex.md文件
+      // },
+      // {
+      //   text: 'JavaScript',
+      //   link: '/examples' // 对应docs/column/Algorithm下的idnex.md文件
+      // },
+       // {
+      //   text: '进阶',//算法。浏览器‘正则表达式
+      //   link: '/examples' // 对应docs/column/Algorithm下的idnex.md文件
+      // },
+      // {
+      //   text: '服务端',//算法。浏览器‘正则表达式
+      //   link: '/examples' // 对应docs/column/Algorithm下的idnex.md文件
       // },
       {
         text: '业务场景',
         link: '/blogs/business' // 对应docs/column/Algorithm下的idnex.md文件
       },
 
-      // {
-      //   text: 'JavaScript',
-      //   link: '/examples' // 对应docs/column/Algorithm下的idnex.md文件
-      // },
       // {
       //   text: '方法',
       //   link: '/examples' // 对应docs/column/Algorithm下的idnex.md文件
