@@ -1,7 +1,7 @@
 <!--
  * @Description: https://gitee.com/yanleweb/interview-question/issues/I7W2KU
  * @Date: 2024-08-23 16:04:10
- * @LastEditTime: 2024-09-19 16:54:48
+ * @LastEditTime: 2024-09-23 17:22:01
 -->
 
 # 业务场景
@@ -261,11 +261,6 @@
   - 只渲染那些项目 ，并用占位符（比如一个空的 div）占据其它项目应有的位置，保持滚动条大小不变。
   - 当用户滚动时，重新计算并渲染新的项目。
 
-<!--
- ::: example
-  blogs/business/watermark
- :::
--->
 
 ## 4. [DocumentFragment](https://github.com/pro-collection/interview-question/issues/722)
 
@@ -350,3 +345,8 @@ request.interceptors.response.use(
   }
 )
 ```
+
+## 前端⽇志埋点 SDK 设计思路
+::: example
+blogs/business/SDK/index
+:::
