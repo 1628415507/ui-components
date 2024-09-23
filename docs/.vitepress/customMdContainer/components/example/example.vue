@@ -1,7 +1,7 @@
 <!--
  * @Description: 根据路径匹配examples文件夹下的组件
  * @Date: 2024-06-27 09:40:26
- * @LastEditTime: 2024-08-23 17:49:32
+ * @LastEditTime: 2024-09-23 16:52:09
 -->
 <template>
   <ClientOnly>
@@ -40,6 +40,11 @@ onBeforeMount(() => {
   }
   if (pathLevel == 2) {
     modules = import.meta.glob(`../../../../examples/*/*/*.vue`, {
+      eager: true
+    })
+  }
+  if (pathLevel == 3) {
+    modules = import.meta.glob(`../../../../examples/*/*/*/*.vue`, {
       eager: true
     })
   }
