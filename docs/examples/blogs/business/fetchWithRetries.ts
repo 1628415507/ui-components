@@ -1,3 +1,8 @@
+/*
+ * @Description: 超时重新请求
+ * @Date: 2024-09-19 16:04:31
+ * @LastEditTime: 2024-09-23 15:32:00
+ */
 interface InitWithRetries extends RequestInit {
   fetchTimeout?: number | null;
   retryDelays?: number[] | null;
@@ -8,41 +13,30 @@ const DEFAULT_RETRIES = [0, 0];
 
 const fetchWithRetries = (url: string, initWithRetries?: InitWithRetries): Promise<any> => {
   // fetchTimeout 请求超时时间
-  // 请求
   const { fetchTimeout, retryDelays, ...init } = initWithRetries || {};
-
   // 超时时间
   const _fetchTimeout = fetchTimeout != null ? fetchTimeout : DEFAULT_TIMEOUT;
-
   // 重复时间数组
   const _retryDelays = retryDelays != null ? retryDelays : DEFAULT_RETRIES;
-
   // 开始时间
   let requestStartTime = 0;
-
   // 重试请求索引
   let requestsAttempted = 0;
-
   return new Promise((resolve, reject) => {
     // 申明发送请求方法
     const sendTimedRequest = (): void => {
       // 自增索引与请求次数
       requestsAttempted++;
-
       // 发起请求时间
       requestStartTime = Date.now();
-
       // 是否需要处理后续请求
       let isRequestAlive = true;
-
       // 发起请求
       const request = fetch(url, init);
-
       // 请求超时情况
       const requestTimeout = setTimeout(() => {
         // 需要阻断正常的请求返回
         isRequestAlive = false;
-
         // 需要重新发起请求
         if (shouldRetry(requestsAttempted)) {
           console.warn("fetchWithRetries: HTTP timeout, retrying.");
@@ -86,10 +80,8 @@ const fetchWithRetries = (url: string, initWithRetries?: InitWithRetries): Promi
     const retryRequest = (): void => {
       // 重复请求 delay 时间
       const retryDelay = _retryDelays[requestsAttempted - 1];
-
       // 重复请求开始时间
       const retryStartTime = requestStartTime + retryDelay;
-
       // 延迟时间
       const timeout = retryStartTime - Date.now() > 0 ? retryStartTime - Date.now() : 0;
 
