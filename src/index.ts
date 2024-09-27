@@ -1,7 +1,7 @@
 /*
  * @Description: 
  * @Date: 2024-06-26 11:40:35
- * @LastEditTime: 2024-08-19 09:42:19
+ * @LastEditTime: 2024-09-27 15:42:41
  */
 // ============= 预览
 // import { createApp } from 'vue'
@@ -38,6 +38,10 @@ const install: any = (app: App, params?: any) => {
   // window['globalParams'] = params || { value: 'globalParams' }
   console.log('【  app.config 】-30', app.config)
   installComponents(app)//全局注册组件
+  // 渲染错误处理
+  app.config.errorHandler = ((error, vm, info) => {
+    console.error('【 全局-组件渲染报错处理 】-116', error, vm, info)
+  })
 }
 export default { install };
 // ============= 按需引入 =============

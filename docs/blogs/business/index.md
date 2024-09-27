@@ -1,7 +1,7 @@
 <!--
  * @Description: https://gitee.com/yanleweb/interview-question/issues/I7W2KU
  * @Date: 2024-08-23 16:04:10
- * @LastEditTime: 2024-09-27 14:04:57
+ * @LastEditTime: 2024-09-27 15:44:29
 -->
 
 # 业务场景
@@ -261,7 +261,6 @@
   - 只渲染那些项目 ，并用占位符（比如一个空的 div）占据其它项目应有的位置，保持滚动条大小不变。
   - 当用户滚动时，重新计算并渲染新的项目。
 
-
 ## 4. [DocumentFragment](https://github.com/pro-collection/interview-question/issues/722)
 
 > 详见`docs\examples\blogs\business\documentFragment.html`
@@ -348,14 +347,18 @@ request.interceptors.response.use(
 ```
 
 ## 8. [前端⽇志埋点 SDK 设计思路](https://zhuanlan.zhihu.com/p/497413927)
-### 数据发送方法 `navigator.sendBeacon()`
--  navigator.sendBeacon() ⽅法会在后台异步地发送数据，不会阻塞⻚⾯的其他操作,即使⻚⾯正在卸载或关闭，该⽅法也可以继续发送数据，确保数据的可靠性。
+
+### （1）StatisticSDK 方法实现
+
+#### 数据发送方法 `navigator.sendBeacon()`
+
+- navigator.sendBeacon() ⽅法会在后台异步地发送数据，不会阻塞⻚⾯的其他操作,即使⻚⾯正在卸载或关闭，该⽅法也可以继续发送数据，确保数据的可靠性。
 - navigator.sendBeacon() ⽅法⽀持**跨域**发送数据。
 - navigator.sendBeacon() ⽅法发送的数据是以 **POST 请求**的形式发送到服务
-器
-::: example
-blogs/business/SDK/index
-:::
+  器
+  ::: example
+  blogs/business/SDK/index
+  :::
 
 ```js{15,25,33,44,57}
 // StatisticSDK.js
@@ -429,4 +432,59 @@ class StatisticSDK {
   }
 }
 export default StatisticSDK
+```
+
+### （2）组件错误上报
+
+- 错误组件示例`ErrorCapturedDemo.vue`
+
+```vue{7}
+<template>
+  <div>
+    <div>我是子组件：组件渲染报错时会被父组件的onErrorCaptured捕获</div>
+  </div>
+</template>
+<script setup>
+handlePromiseError2() //运行未申明的方法
+</script>
+```
+
+#### 全局挂载挂载`errorHandler`
+
+```js{5,7,10}
+// src/index.ts
+// ...
+import { createApp } from 'vue'
+import App from '@/App.vue'
+import StatisticSDK from './StatisticSDK'
+
+window.insSDK = new StatisticSDK('sdk-12345') //全局挂载
+const app = createApp(App)
+// 渲染错误处理
+app.config.errorHandler = (error, vm, info) => {
+  window.insSDK.event('error', { remark: '全局-组件渲染报错' })
+  console.error('【 全局-组件渲染报错处理 】-116', error, vm, info)
+}
+```
+
+#### 组件内部处理`onErrorCaptured`
+
+- 当引用的**子组件**渲染错误时才会走 onErrorCaptured
+- 自身的渲染错误不会走 onErrorCaptured
+
+```vue{5,9}
+<template>
+  <ErrorCapturedDemo></ErrorCapturedDemo>
+</template>
+<script setup>
+import { onMounted, onErrorCaptured } from 'vue'
+import ErrorCapturedDemo from './ErrorCapturedDemo.vue'
+
+// 子组件渲染错误处理
+onErrorCaptured((error, vm, info) => {
+  console.error('【 子组件-渲染错误 】-47', error, vm, info)
+  window.insSDK.error('error', { ...error, remark: '子组件渲染错误' })
+  return false
+})
+</script>
 ```
