@@ -1,7 +1,7 @@
 <!--
  * @Description: https://gitee.com/yanleweb/interview-question/issues/I7W2KU
  * @Date: 2024-08-23 16:04:10
- * @LastEditTime: 2024-09-23 17:22:01
+ * @LastEditTime: 2024-09-27 14:04:57
 -->
 
 # 业务场景
@@ -305,7 +305,8 @@ DocumentFragment 是 Web API 中的一部分，它是 DOM （文档对象模型�
 
 ## 7. axios 请求超时⾃动重新请求
 
-- 详见`docs\examples\blogs\business\fetchWithRetries.ts`
+<!-- - 详见`docs\examples\blogs\business\fetchWithRetries.ts`
+https://zhuanlan.zhihu.com/p/668882474 -->
 
 ```js{5,6,15,17,25,33}
 import axios from 'axios'
@@ -346,7 +347,86 @@ request.interceptors.response.use(
 )
 ```
 
-## 前端⽇志埋点 SDK 设计思路
+## 8. [前端⽇志埋点 SDK 设计思路](https://zhuanlan.zhihu.com/p/497413927)
+### 数据发送方法 `navigator.sendBeacon()`
+-  navigator.sendBeacon() ⽅法会在后台异步地发送数据，不会阻塞⻚⾯的其他操作,即使⻚⾯正在卸载或关闭，该⽅法也可以继续发送数据，确保数据的可靠性。
+- navigator.sendBeacon() ⽅法⽀持**跨域**发送数据。
+- navigator.sendBeacon() ⽅法发送的数据是以 **POST 请求**的形式发送到服务
+器
 ::: example
 blogs/business/SDK/index
 :::
+
+```js{15,25,33,44,57}
+// StatisticSDK.js
+class StatisticSDK {
+  constructor(productID, baseURL) {
+    console.log('【 StatisticSDK-初始化 】-3', productID, baseURL)
+    this.productID = productID
+    this.baseURL = baseURL
+    this.performanceURL = '/sdk-performance' //接口路径 'http://performance/'
+    this.errorURL = '/sdk-error'
+    this.eventURL = '/sdk-event'
+    //
+    this.initErrorListenner() // 初始化错误监控
+    this.initPerformance() //初始化性能上报
+  }
+  // 1.数据发送:使⽤navigator.sendBeacon 来发送请求
+  send(query = {}, url) {
+    console.log('【 StatisticSDK-数据发送 】-9', query)
+    query.productID = this.productID
+    let data = new URLSearchParams()
+    for (const [key, value] of Object.entries(query)) {
+      data.append(key, value)
+    }
+    navigator.sendBeacon(url || this.baseURL, data)
+  }
+  // 2.⽤⼾⾏为与⽇志上报
+  event(key, value = {}) {
+    this.send({ event: key, ...value }, this.eventURL)
+  }
+  // PV（页面访问次数）、UV（页面访问人数）
+  pv() {
+    this.event('pv')
+  }
+  // 3.性能上报（比如页面加载时间、白屏时间等。）
+  initPerformance() {
+    // 页面首次渲染时间FP(firstPaint)：
+    // const {domLoading,navigationStart,domContentLoadedEventEnd,navigationStart}=performance.timing
+    // const fp = domLoading - navigationStart
+    // DOM加载完成：DCL(DOMContentEventLoad)
+    // const dcl = domContentLoadedEventEnd-navigationStart
+    // 图片、样式等外链资源加载完成：L(Load)=loadEventEnd-navigationStart
+    console.log('【 initPerformance 】-27', performance.timing)
+    this.send({ event: 'performance', performanceTiming: JSON.stringify(performance.timing) }, this.performanceURL)
+  }
+  // 4.错误上报
+  error(err, errInfo = {}) {
+    const { message, stack } = err
+    this.send(
+      {
+        event: 'error',
+        message,
+        stack,
+        ...errInfo
+      },
+      this.errorURL
+    )
+  }
+  // 4-1.错误上报分两类
+  initErrorListenner() {
+    // console.log('【 StatisticSDK-错误上报 】-41')
+    // ① 第1类：dom 操作错误与JS错误报警，也是常说的运⾏时报错，该类报错直接可以通过addEventListener('error')监控即可；
+    window.addEventListener('error', (error) => {
+      // console.log('【 StatisticSDK-运⾏时报错 】-44', error)
+      this.error(error)
+    })
+    // ② （待验证）第2类：Promise内部抛出的错误是⽆法被error捕获到的，这时需要⽤ unhandledrejection 事件。
+    window.addEventListener('unhandledrejection', (event) => {
+      console.log('【 StatisticSDK-Promise内部错误 】-44', event)
+      this.error(new Error(event.reason), { type: 'unhandledrejection' })
+    })
+  }
+}
+export default StatisticSDK
+```
