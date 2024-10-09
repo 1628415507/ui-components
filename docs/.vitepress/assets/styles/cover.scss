@@ -35,8 +35,14 @@
   tr:nth-child(2n) {
     background-color: transparent;
   }
+
+  blockquote {
+    border-left: 3px solid var(--vp-c-divider);
+    background:rgb(248, 247, 247);
+  }
 }
+
 // 代码高亮
-.line.highlighted{
+.line.highlighted {
   background-color: rgba(187, 255, 204, 0.464) !important;
 }
