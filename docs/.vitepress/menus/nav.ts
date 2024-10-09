@@ -1,7 +1,7 @@
 /*
  * @Description:
  * @Date: 2024-06-27 16:50:06
- * @LastEditTime: 2024-09-18 14:00:39
+ * @LastEditTime: 2024-10-09 18:08:51
  */
 //
 import { DefaultTheme } from 'vitepress';
@@ -16,11 +16,11 @@ export const nav: DefaultTheme.NavItem[] = [
   //   items: [
   //     {
   //       text: '指令',
-  //       link: '/examples' // 对应docs/column/Algorithm下的idnex.md文件
+  //       link: '/examples' // 对应docs/column/Algorithm下的index.md文件
   //     },
   //     {
   //       text: '方法',
-  //       link: '/examples' // 对应docs/column/Algorithm下的idnex.md文件
+  //       link: '/examples' // 对应docs/column/Algorithm下的index.md文件
   //     }
   //   ]
   // },
@@ -29,32 +29,32 @@ export const nav: DefaultTheme.NavItem[] = [
     items: [
        // {
       //   text: 'HTML',
-      //   link: '/blogs/css' // 对应docs/column/Algorithm下的idnex.md文件
+      //   link: '/blogs/css' // 对应docs/column/Algorithm下的index.md文件
       // },
-      // {
-      //   text: 'CSS',
-      //   link: '/blogs/css' // 对应docs/column/Algorithm下的idnex.md文件
-      // },
+      {
+        text: 'CSS',
+        link: '/blogs/css' // 对应docs/column/Algorithm下的index.md文件
+      },
       // {
       //   text: 'JavaScript',
-      //   link: '/examples' // 对应docs/column/Algorithm下的idnex.md文件
+      //   link: '/examples' // 对应docs/column/Algorithm下的index.md文件
       // },
        // {
       //   text: '进阶',//算法。浏览器‘正则表达式
-      //   link: '/examples' // 对应docs/column/Algorithm下的idnex.md文件
+      //   link: '/examples' // 对应docs/column/Algorithm下的index.md文件
       // },
       // {
       //   text: '服务端',//算法。浏览器‘正则表达式
-      //   link: '/examples' // 对应docs/column/Algorithm下的idnex.md文件
+      //   link: '/examples' // 对应docs/column/Algorithm下的index.md文件
       // },
       {
         text: '业务场景',
-        link: '/blogs/business' // 对应docs/column/Algorithm下的idnex.md文件
+        link: '/blogs/business' // 对应docs/column/Algorithm下的index.md文件
       },
 
       // {
       //   text: '方法',
-      //   link: '/examples' // 对应docs/column/Algorithm下的idnex.md文件
+      //   link: '/examples' // 对应docs/column/Algorithm下的index.md文件
       // }
     ]
   },

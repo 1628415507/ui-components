@@ -488,7 +488,7 @@ onErrorCaptured((error, vm, info) => {
 })
 </script>
 ```
-## indexedDB
+## [indexedDB](https://deepinout.com/javascript/javascript-questions/110_hk_1709940124.html)
 - open方法返回一个IDBOpenDBRequest对象，同时这是一个**异步**操作，open操作并不会立马打开数据库或者开启事务，我们可以通过监听`request`的事件来进行相应的处理。
 - `open(name,version)`：open方法传入两个参数，第一个参数是数据库的名字，第二个参数是数据库的版本号(**整数**)。
 - 当你创建或升级一个现有的数据库版本的时候，将会触发一个`onupgradeneeded`事件，并在事件中传入`IDBVersionChangeEvent`，我们可以通过event.target.result来获取到IDBDatabase对象，然后通过这个对象来进行数据库的版本升级操作

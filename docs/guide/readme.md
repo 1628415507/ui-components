@@ -1,9 +1,13 @@
 <!--
  * @Description: docs说明文档
  * @Date: 2024-06-27 09:40:26
- * @LastEditTime: 2024-08-16 17:51:50
+ * @LastEditTime: 2024-10-09 16:10:42
 -->
 <!-- 题库https://github.com/pro-collection/interview-question/issues -->
+## 网址资源
+- https://github.com/pro-collection/interview-question/issues
+- 组件库搭建：https://www.cnblogs.com/wp-leonard/p/17894496.html
+- 博客搭建：https://blog.csdn.net/WNX10086/article/details/137160521
 
 ## 各分支说明
 

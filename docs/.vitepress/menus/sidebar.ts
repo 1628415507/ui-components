@@ -6,20 +6,15 @@
 import { sidebarExamples } from './sidebar/examples'  // 左侧菜单
 import { sidebarGuide } from './sidebar/guide'  // 左侧菜单
 import blogsBusiness from './sidebar/business'  // 左侧菜单
+import blogsCss from './sidebar/css'  // 左侧菜单
 
 // 左侧菜单
 export const sidebar = {
-  '/guide': sidebarGuide,// 指南
-  '/examples': sidebarExamples, // 组件示例
+  // 指南
+  '/guide': sidebarGuide,
+  // 组件库示例
+  '/examples': sidebarExamples,
   // 专栏
-  '/blogs/css': [
-    {
-      text: '写在前面',
-      items: [
-        { text: 'Readme', link: '/readme' },
-        { text: '安装3', link: '/blogs/css/index.md' },
-      ]
-    }
-  ],
+  '/blogs/css': blogsCss,//CSS
   '/blogs/business': blogsBusiness,//应用场景
 }
