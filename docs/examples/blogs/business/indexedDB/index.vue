@@ -1,12 +1,14 @@
 <!--
- * @Description: 前端⽇志埋点 SDK 设计思路：https://zhuanlan.zhihu.com/p/497413927t
+ * @Description: https://deepinout.com/javascript/javascript-questions/110_hk_1709940124.html
  * @Date: 2024-08-23 16:49:49
- * @LastEditTime: 2024-10-08 18:01:43
+ * @LastEditTime: 2024-10-09 16:03:31
 -->
 <template>
   <div>
-    <el-button @click="openIndexedDB">打开或创建一个数据库</el-button>
-    <el-button @click="addIndexedDB">增加数据</el-button>
+    <el-button @click="openIndexedDB" type="primary">打开或创建一个数据库</el-button>
+    <el-button @click="addIndexedDBOfAutoIncrement">增加数据-自增主键</el-button>
+    <el-button @click="addIndexedDB">增加数据-非自增</el-button>
+    <el-button @click="delIndexedDB" type="danger">删除数据</el-button>
     <el-button @click="queryIndexedDB">查询数据</el-button>
   </div>
 </template>
@@ -20,6 +22,7 @@ const indexedDB = window.indexedDB || window.mozIndexedDB || window.webkitIndexe
 // window.IDBKeyRange = window.IDBKeyRange || window.webkitIDBKeyRange || window.msIDBKeyRange;
 const dbName = 'myDatabase'
 let dbVersion = 1
+
 // 打开或创建一个数据库
 function openIndexedDB() {
   return new Promise((resolve, reject) => {
@@ -31,23 +34,30 @@ function openIndexedDB() {
 
     request.onsuccess = function (event) {
       let db = event.target.result
+      // db.onsuccess = function (event) {
+      //   console.log('【成功  】-69')
+      // }
       resolve(db)
       console.log('【打开连接成功  】-69')
     }
     request.onupgradeneeded = function (event) {
-      console.log('Database onupgradeneeded successfully')
+      console.log('数据库创建或升级版本成功')
       let db = event.target.result
       resolve(db)
       // 创建了一个名为 customers 的对象存储空间，并指定了一个自增的键
-      const objectStore = db.createObjectStore('customers', {
+      db.createObjectStore('customers', {
         keyPath: 'id', //主键
         autoIncrement: true //自增
+      })
+      // 创建了一个名为 resources 的对象存储空间
+      db.createObjectStore('resources', {
+        keyPath: 'uniqueCode' //主键字段
       })
     }
   })
 }
 // 添加
-async function addIndexedDB() {
+async function addIndexedDBOfAutoIncrement() {
   const db = await openIndexedDB()
   const transaction = db.transaction(['customers'], 'readwrite') //通过 transaction() 方法创建一个事务
   const objectStore = transaction.objectStore('customers') //通过 objectStore() 方法获取到了名为 customers 的对象存储空间
@@ -60,28 +70,50 @@ async function addIndexedDB() {
     console.log('【 添加数据失败 】-84')
   }
 }
+// 添加
+async function addIndexedDB() {
+  const db = await openIndexedDB()
+  const transaction = db.transaction(['resources'], 'readwrite') //通过 transaction() 方法创建一个事务
+  const objectStore = transaction.objectStore('resources') //通过 objectStore() 方法获取到了名为 customers 的对象存储空间
+  const resourceItem = { uniqueCode: 'a', name: 'Alice', email: 'alice@example.com' }
+  const request = objectStore.add(resourceItem) //通过 add() 方法将该对象添加到对象存储空间中
+  request.onsuccess = function (event) {
+    console.log('【 添加数据成功 】-84')
+  }
+  request.onerror = function (event) {
+    console.log('【 添加数据失败 】-84')
+  }
+}
 // 查询
 async function queryIndexedDB() {
   const db = await openIndexedDB()
-  const transaction = db.transaction(['customers'], 'readonly')
-  const objectStore = transaction.objectStore('customers')
-  console.log('【 objectStore 】-64', objectStore)
-  const request = objectStore.get(1)//查询了键为 1 的数据项
+  const transaction = db.transaction(['customers', 'resources'], 'readonly')
+  // =====  查询customers ======
+  const customersObjectStore = transaction.objectStore('customers')
+  const request = customersObjectStore.get(1) //查询了键为 1 的数据项
   request.onsuccess = function (event) {
-    const customer = event.target.result
-    console.log(customer)
+    const res = event.target.result
+    console.log('【 customersObjectStore-res 】-77', res)
+  }
+  // =====   查询resources ======
+  const resourcesObjectStore = transaction.objectStore('resources')
+  const request2 = resourcesObjectStore.get('a') //查询了键为 1 的数据项
+  request2.onsuccess = function (event) {
+    const res = event.target.result
+    console.log('【 resourcesObjectStore-res 】-77', res)
   }
 }
 // 删除
 async function delIndexedDB() {
   const db = await openIndexedDB()
-  const transaction = db.transaction(['customers'], 'readonly')
+  const transaction = db.transaction(['customers'], 'readwrite')
   const objectStore = transaction.objectStore('customers')
-  console.log('【 objectStore 】-64', objectStore)
-  const request = objectStore.get(1)//查询了键为 1 的数据项
+  const request = objectStore.delete(1)
   request.onsuccess = function (event) {
-    const customer = event.target.result
-    console.log(customer)
+    console.log('Data deleted successfully')
+  }
+  request.onerror = function (event) {
+    console.log('Error deleting data')
   }
 }
 onMounted(() => {})
