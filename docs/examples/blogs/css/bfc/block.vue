@@ -1,7 +1,7 @@
 <!--
  * @Description: 阻止元素被浮动元素覆盖
  * @Date: 2024-10-09 16:28:17
- * @LastEditTime: 2024-10-09 17:53:44
+ * @LastEditTime: 2024-10-10 15:47:15
 -->
 <template>
   <div>
@@ -15,7 +15,7 @@
 <script setup></script>
 <style lang="scss" scoped>
 .content {
-  background: #ccc;
+  background: var(--box-bg);
 }
 .block {
   width: 100px;

@@ -1,7 +1,7 @@
 <!--
  * @Description: 清除浮动
  * @Date: 2024-10-09 16:28:17
- * @LastEditTime: 2024-10-09 17:36:31
+ * @LastEditTime: 2024-10-10 15:58:12
 -->
 <template>
   <div style="min-height: 150px">
@@ -23,7 +23,7 @@ const flag = ref(false)
 }
 
 .child {
-  border: 5px solid #ccc;
+  border: 5px solid var(--box-bg);
   width: 100px;
   height: 100px;
   float: left;

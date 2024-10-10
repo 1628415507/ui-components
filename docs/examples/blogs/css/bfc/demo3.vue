@@ -1,7 +1,7 @@
 <!--
  * @Description: 阻止外边距折叠
  * @Date: 2024-10-09 16:28:17
- * @LastEditTime: 2024-10-09 17:48:11
+ * @LastEditTime: 2024-10-10 15:57:37
 -->
 <template>
   <div style="min-height: 150px">
@@ -27,7 +27,7 @@ const flag = ref(false)
 <style lang="scss" scoped>
 p {
   color: var(--theme-color);
-  background: #ccc;
+  background: var(--box-bg);
   width: 200px;
   line-height: 20px;
   text-align: center;

@@ -1,7 +1,7 @@
 <!--
  * @Description: 阻止元素被浮动元素覆盖
  * @Date: 2024-10-09 16:28:17
- * @LastEditTime: 2024-10-09 17:23:11
+ * @LastEditTime: 2024-10-10 15:46:46
 -->
 <template>
   <div>
@@ -26,7 +26,7 @@ const flag = ref(false)
 
 .main {
   height: 200px;
-  background: #CCC;
+  background: var(--box-bg);
 }
 .bfc {
   .main {
