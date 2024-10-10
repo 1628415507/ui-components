@@ -1,10 +1,11 @@
 /*
  * @Description: 
  * @Date: 2024-10-09 16:08:42
- * @LastEditTime: 2024-10-10 15:31:05
+ * @LastEditTime: 2024-10-10 18:02:39
  */
 export default [
-  { text: 'TODO', link: '/blogs/css/index.md' },
+  { text: '汇总', link: '/blogs/css/index.md' },
+  { text: 'TODO', link: '/blogs/css/todo.md' },
   {
     text: 'HTML汇总',
     items: [
