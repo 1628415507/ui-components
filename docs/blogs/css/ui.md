@@ -26,3 +26,13 @@ blogs/css/ui/triangle
 ::: example
 blogs/css/ui/scrollbar
 ::: 
+
+
+## [画一条0.5px的边](https://juejin.cn/post/6844903582370643975)
+- 直接设置0.5（Chrome不支持，把0.5px四舍五入变成了1px）
+- 1.缩放：设置1px，然后`scale(0.5)`
+- 2.用线性渐变linear-gradient:渐变的角度从下往上，从白色#fff渐变到黑色#000，而且是线性的
+- 3.使用svg
+::: example
+blogs/css/ui/halfLine
+::: 
