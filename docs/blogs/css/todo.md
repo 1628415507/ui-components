@@ -1,29 +1,13 @@
 <!--
  * @Description: 
  * @Date: 2024-10-09 18:05:54
- * @LastEditTime: 2024-10-10 18:02:54
+ * @LastEditTime: 2024-10-11 15:45:07
 -->
 <!--
  * @Description: 
  * @Date: 2024-10-09 18:05:54
  * @LastEditTime: 2024-10-10 15:22:47
 -->
-# [CSS专栏](https://www.kancloud.cn/surahe/front-end-notebook/482352)
-
-
-## CSS3有哪些新特性？
-1.  RGBA和透明度
-0.  - background-image 
-    - background-origin(content-box/padding-box/border-box) 
-    - background-size 
-    - background-repeat
-0.  word-wrap（单词换行）：`word-wrap：break-word`
-0.  文字阴影（水平阴影，垂直阴影，模糊距离，阴影颜色）  
-    `text-shadow： 5px 5px 5px #FF0000;`
-0.  盒阴影：`box-shadow: 10px 10px 5px #888888`
-0.  font-face属性：定义自己的字体
-0.  圆角（边框半径）：`border-radius`
-0.  边框图片：`border-image: url(border.png) 30 30 round`
 
 ## 吸顶效果  
 
@@ -43,30 +27,7 @@
 | 执行顺序 | **从下至上**（儿子至祖宗）执行 | **从上至下**（祖宗到儿子）执行 |
 | 属性设置 | 在addEventListener中的第三属性设置为false（默认） | 在addEventListener中的第三属性设置为true|
 ## 8. CSS语法
--   [position的几个属性和含义](https://www.runoob.com/cssref/pr-class-position.html)
-
------
 -   css和js两种方式实现div右移1000px动画
-
-
 -   单行截断css
-
 -   transition、transform、translate的区别
-
 -   parent元素宽高不定，实现scale固定宽高比始终为4：3
-
-
-
-
-
--   响应式布局方案
-
-    -   [前端响应式布局原理与方案（详细版）](https://juejin.cn/post/6844903814332432397 "https://juejin.cn/post/6844903814332432397")
-
-
--   如何提高动画的渲染性能
-
-    -   [这样使用GPU动画](https://link.juejin.cn?target=https%3A%2F%2Fwww.w3cplus.com%2Fanimation%2Fgpu-animation-doing-it-right.html "https://www.w3cplus.com/animation/gpu-animation-doing-it-right.html")
-----
-> 参考链接：https://juejin.cn/post/7013953652578582558\
-
