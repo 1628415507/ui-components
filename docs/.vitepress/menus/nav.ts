@@ -35,10 +35,10 @@ export const nav: DefaultTheme.NavItem[] = [
         text: 'CSS',
         link: '/blogs/css' // 对应docs/column/Algorithm下的index.md文件
       },
-      // {
-      //   text: 'JavaScript',
-      //   link: '/examples' // 对应docs/column/Algorithm下的index.md文件
-      // },
+      {
+        text: 'JavaScript',
+        link: '/blogs/javaScript' // 对应docs/column/Algorithm下的index.md文件
+      },
        // {
       //   text: '进阶',//算法。浏览器‘正则表达式
       //   link: '/examples' // 对应docs/column/Algorithm下的index.md文件

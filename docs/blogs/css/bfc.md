@@ -6,7 +6,7 @@
 
 # [BFC（Block Formatting Contexts (块级格式化上下文)）](https://blog.csdn.net/DFF1993/article/details/80394150)
 
-## 1. 什么是 BFC？⭐⭐⭐⭐⭐
+## 1. 什么是 BFC？⚄
 
 - `BFC` 是 `Block Formatting Context`的缩写，即**块级格式化上下文**。
 - `BFC`是 CSS 布局的一个概念，是一个独立的渲染区域，规定了内部 box 如何布局，具有 BFC 特性的元素可以看做是隔离了的独立容器，**容器里面的子元素不会在布局上影响到外面的元素**;

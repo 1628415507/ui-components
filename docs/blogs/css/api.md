@@ -1,10 +1,10 @@
 <!--
  * @Description:
  * @Date: 2024-10-10 15:17:32
- * @LastEditTime: 2024-10-11 15:54:48
+ * @LastEditTime: 2024-10-11 16:22:38
 -->
 
-## css 优先级问题 ⭐⭐⭐⭐⭐
+## css 优先级问题 ⚄
 
 - important 无条件优先
 - 内联样式 1000
@@ -14,13 +14,13 @@
 
 ## 说一下盒模型
 
-怪异盒模型和标准盒模型的区别 ⭐⭐⭐⭐⭐
+怪异盒模型和标准盒模型的区别 ⚄
 | box-sizing |描述 | 总宽度 |
 | --- | --- | --- |
 | content-box | 标准盒模型 | width+padding+border+margin |
 | border-box | 怪异盒模型 | width（width 包含 padding + border）+margin|
 
-## CSS3 有哪些新特性？
+## [CSS3 有哪些新特性？](https://blog.csdn.net/weixin_45086164/article/details/136957847)
 
 1.  RGBA 和透明度
 
