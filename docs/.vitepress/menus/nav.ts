@@ -1,7 +1,7 @@
 /*
  * @Description:
  * @Date: 2024-06-27 16:50:06
- * @LastEditTime: 2024-10-09 18:08:51
+ * @LastEditTime: 2024-10-12 17:56:22
  */
 //
 import { DefaultTheme } from 'vitepress';
@@ -39,8 +39,8 @@ export const nav: DefaultTheme.NavItem[] = [
         text: 'JavaScript',
         link: '/blogs/javaScript' // 对应docs/column/Algorithm下的index.md文件
       },
-       // {
-      //   text: '进阶',//算法。浏览器‘正则表达式
+      //  {
+      //   text: '框架',//算法。浏览器‘正则表达式
       //   link: '/examples' // 对应docs/column/Algorithm下的index.md文件
       // },
       // {
