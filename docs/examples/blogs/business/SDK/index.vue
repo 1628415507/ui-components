@@ -5,6 +5,7 @@
 -->
 <template>
   <div>
+    <el-button @click="setSDK">全局挂载日志上报</el-button>
     <el-button @click="handleClick">⽤⼾⾏为与⽇志上报</el-button>
     <el-button @click="handleError">运行时错误上报</el-button>
     <!-- <el-button @click="handlePromiseError">Promise错误上报</el-button> -->
@@ -37,8 +38,11 @@ function handleError() {
 //   //   // window.insSDK.error(err)
 //   // })
 // }
-onMounted(() => {
+function setSDK() {
   window.insSDK = new StatisticSDK('sdk-12345') //初始化
+}
+onMounted(() => {
+  // window.insSDK = new StatisticSDK('sdk-12345') //初始化
 })
 // 3.子组件渲染错误处理
 onErrorCaptured((error, vm, info) => {
