@@ -1,7 +1,7 @@
 /*
  * @Description:
  * @Date: 2024-06-27 16:50:06
- * @LastEditTime: 2024-10-14 14:19:29
+ * @LastEditTime: 2024-10-14 17:08:25
  */
 //
 import { DefaultTheme } from 'vitepress';
@@ -39,10 +39,10 @@ export const nav: DefaultTheme.NavItem[] = [
         text: 'JavaScript',
         link: '/blogs/javaScript' // 对应docs/column/Algorithm下的index.md文件
       },
-      //  {
-      //   text: '框架',//算法。浏览器‘正则表达式
-      //   link: '/examples' // 对应docs/column/Algorithm下的index.md文件
-      // },
+       {
+        text: '前端框架',//算法。浏览器‘正则表达式
+        link: '/blogs/framework' // 对应docs/column/Algorithm下的index.md文件
+      },
       // {
       //   text: '服务端',//算法。浏览器‘正则表达式
       //   link: '/examples' // 对应docs/column/Algorithm下的index.md文件
@@ -51,7 +51,6 @@ export const nav: DefaultTheme.NavItem[] = [
         text: '业务场景',
         link: '/blogs/business' // 对应docs/column/Algorithm下的index.md文件
       },
-      
       // {
       //   text: '方法',
       //   link: '/examples' // 对应docs/column/Algorithm下的index.md文件
