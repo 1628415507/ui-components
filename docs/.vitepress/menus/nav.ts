@@ -1,7 +1,7 @@
 /*
  * @Description:
  * @Date: 2024-06-27 16:50:06
- * @LastEditTime: 2024-10-12 17:56:22
+ * @LastEditTime: 2024-10-14 14:19:29
  */
 //
 import { DefaultTheme } from 'vitepress';
@@ -51,7 +51,7 @@ export const nav: DefaultTheme.NavItem[] = [
         text: '业务场景',
         link: '/blogs/business' // 对应docs/column/Algorithm下的index.md文件
       },
-
+      
       // {
       //   text: '方法',
       //   link: '/examples' // 对应docs/column/Algorithm下的index.md文件
