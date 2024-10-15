@@ -2,7 +2,7 @@ import Axios from "axios";
 
 // 创建一个实例
 const service = Axios.create({
-  baseURL: process.env.VUE_APP_BASE_API,
+  // baseURL: process.env.VUE_APP_BASE_API,
   timeout: 1000,
 });
 

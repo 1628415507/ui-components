@@ -231,27 +231,30 @@ export default function createElement(vnode) {
 
 ### 2. diff 算法原理&逻辑
 
-**（1）原理：**
+#### （1）原理：
 
 - **key 作为节点的唯一标识**，告诉 diff 算法，在更改前后它们是同一个 DOM 节点。实现**最小量更新**；
 - **只进行同层比较，不会进行跨层比较**。即使是同一片虚拟节点，但是跨层了，diff 就是暴力删除旧的，然后插入新的；
 - **只有是同一个虚拟节点（`选择器相同且key相同则为同一个`），才进行精细化比较**（如：往 ul 中的 li 添加 li）\
   否则就是暴力删除旧的、插入新的（如：ul 中的 li 换到 ol 中去）\
   【源码中如何定义“同一个节点”?】
-  ![定义“同一个节点”](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/91fb0dde33e440fe8e7ec26998d8f634~tplv-k3u1fbpfcp-zoom-1.image#?w=1309&h=465&s=244309&e=png&b=fefefe)
+> -旧节点的key要和新节点的key相同，且旧节点的选择器要和新节点的选择器相同
+> ```ts
+> function sameVnode(vnode1: VNode, vnode2: VNode): boolean {
+>   return vnodel.key === vnode2.key && vnode1.sel === vnode2.sel
+> }
+> ```
 
-**（2）逻辑：**
-![image.png](https://p9-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/36487140f43e4f2485c9d207e4e69909~tplv-k3u1fbpfcp-watermark.image#?w=699&h=445&s=237494&e=png&b=faf9fa)
+#### （2）逻辑：
+![image.png](./img/patch.png)
 
 ### 3. diff 算法：新旧节点 非同一个节点（patch.js）
-
+> 暴力删除旧的、插入新的
 - **功能：**
   - 传入新旧 VNode，对比差异，把差异渲染到 DOM
   - 返回新的 VNode，作为下一次 patch() 的 oldVnode
 
-> 暴力删除旧的、插入新的
-
-```js
+```js{7,21,27,29,31}
 // ==================== patch.js ====================
 import vnode from './vnode'
 import createElement from './createElement'
@@ -286,33 +289,17 @@ export default function (oldVnode, newVnode) {
   }
 }
 ```
-
 **测试代码**
-
-```js
-import h from './my_snabbdom/h'
-import patch from './my_snabbdom/patch'
-
-let container = document.getElementById('container')
-let btn = document.getElementById('btn')
-const myVnode1 = h('h1', {}, '你好')
-// 上树
-patch(container, myVnode1)
-
-const myVnode2 = h('ul', {}, [h('li', {}, 'A'), h('li', {}, 'B'), h('li', {}, 'C'), h('li', {}, 'D')])
-btn.onclick = function () {
-  // 非同一节点
-  patch(myVnode1, myVnode2)
-}
-```
+::: example
+blogs/framework/vue-diff/test1
+:::
 
 ### 4. diff 算法：新旧节点 是同一个节点 —— 精细化比较
 
 #### &-1. 逻辑图
 
-双方是否都包含多个子节点，否则新节点替换子节点；
-双方都包含多个子节点，进行 diff
-![image.png](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/01096c8fcf2c4b54b320155b9b8e7727~tplv-k3u1fbpfcp-watermark.image#?w=952&h=648&s=230878&e=png&b=fcfcfc)
+双方是否都包含多个子节点，否则新节点替换子节点；是则进行diff
+![image.png](./img/diff2.png)
 
 #### &-2. 新旧节点不都是 children（patchVnode.js）
 
@@ -320,21 +307,22 @@ patchVnode.js：进行精细化比较
 
 - 判断 新旧 vnode 是否是同一个对象
 - 判断 新节点 是否为字符串（即有没有 text\`属性）
-  - 新节点为字符串（有 `text` 属性）\
+  - (1)新节点为字符串（有 `text` 属性）\
     判断 新节点 与 旧节点 的 **字符串是否相同**，
     - **不同则将 老节点的 text 替换成 新节点的 text**
-  - 新节点不是字符串，即包含多个子节点（有`children`属性）:\
+  - (2)新节点不是字符串，即包含多个子节点（有`children`属性）:\
     判断老节点是否也包含多个子节点（也有`children`属性）
     - **① 如果老节点为字符串，则直接替换成新节点的 children**
     - **② 如果老节点和新节点都分别包含多个子节点，则进行精细化比较双方的子节点**（updateChildren.js）
 
-```js
+```js{12,20}
 // ==================== patchVnode.js ====================
 export default function patchVnode(oldVnode, newVnode) {
+  console.log('【 oldVnode, newVnode 】-8', oldVnode, newVnode)
   // 1. 判断新旧 vnode 是否是同一个对象
   if (oldVnode === newVnode) return
   // 2. 判断 newVndoe 有没有 text 属性
-  if (newVnode.text !== undefined && (newVnode.children === undefined || newVnode.children.length === 0)) {
+  if (newVnode.text && !newVnode.children?.length) {
     // 2.1 newVnode 有 text属性
     // 2.1.1 判断 newVnode 与 oldVnode 的 text 属性是否相同
     // 如果newVnode中的text和oldVnode的text不同，那么直接让新text替换老elm中的text即可。
@@ -345,11 +333,9 @@ export default function patchVnode(oldVnode, newVnode) {
   } else {
     // 2.2 newVnode 没有 text属性，即有children属性
     // 2.2.1 判断 oldVnode 有没有 children 属性
-    if (oldVnode.children !== undefined && oldVnode.children.length > 0) {
+    if (oldVnode.children?.length) {
       // ☆☆☆ oldVnode有children属性 最复杂的情况，新老节点都有children
-      //=====================================================
       updateChildren(oldVnode.elm, oldVnode.children, newVnode.children) // 见updateChildren.js
-      //=====================================================
     } else {
       // 2.2.2 （oldVnode没有children属性，说明是text） && （newVnode有children属性）
       // 将oldVnode的text内容清空，替换成新的子节点
@@ -362,6 +348,7 @@ export default function patchVnode(oldVnode, newVnode) {
     }
   }
 }
+
 ```
 
 ---
