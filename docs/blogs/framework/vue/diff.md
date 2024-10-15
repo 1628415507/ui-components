@@ -236,20 +236,24 @@ export default function createElement(vnode) {
 - **key 作为节点的唯一标识**，告诉 diff 算法，在更改前后它们是同一个 DOM 节点。实现**最小量更新**；
 - **只进行同层比较，不会进行跨层比较**。即使是同一片虚拟节点，但是跨层了，diff 就是暴力删除旧的，然后插入新的；
 - **只有是同一个虚拟节点（`选择器相同且key相同则为同一个`），才进行精细化比较**（如：往 ul 中的 li 添加 li）\
-  否则就是暴力删除旧的、插入新的（如：ul 中的 li 换到 ol 中去）\
-  【源码中如何定义“同一个节点”?】
-> -旧节点的key要和新节点的key相同，且旧节点的选择器要和新节点的选择器相同
-> ```ts
-> function sameVnode(vnode1: VNode, vnode2: VNode): boolean {
->   return vnodel.key === vnode2.key && vnode1.sel === vnode2.sel
-> }
-> ```
+   否则就是暴力删除旧的、插入新的（如：ul 中的 li 换到 ol 中去）\
+   【源码中如何定义“同一个节点”?】
+  > -旧节点的 key 要和新节点的 key 相同，且旧节点的选择器要和新节点的选择器相同
+  >
+  > ```ts
+  > function sameVnode(vnode1: VNode, vnode2: VNode): boolean {
+  >   return vnodel.key === vnode2.key && vnode1.sel === vnode2.sel
+  > }
+  > ```
 
 #### （2）逻辑：
+
 ![image.png](./img/patch.png)
 
 ### 3. diff 算法：新旧节点 非同一个节点（patch.js）
+
 > 暴力删除旧的、插入新的
+
 - **功能：**
   - 传入新旧 VNode，对比差异，把差异渲染到 DOM
   - 返回新的 VNode，作为下一次 patch() 的 oldVnode
@@ -289,6 +293,7 @@ export default function (oldVnode, newVnode) {
   }
 }
 ```
+
 **测试代码**
 ::: example
 blogs/framework/vue-diff/test1
@@ -298,7 +303,7 @@ blogs/framework/vue-diff/test1
 
 #### &-1. 逻辑图
 
-双方是否都包含多个子节点，否则新节点替换子节点；是则进行diff
+双方是否都包含多个子节点，否则新节点替换子节点；是则进行 diff
 ![image.png](./img/diff2.png)
 
 #### &-2. 新旧节点不都是 children（patchVnode.js）
@@ -358,13 +363,15 @@ export default function patchVnode(oldVnode, newVnode) {
 ##### &-&-1. 前置知识点
 
 **（1）什么是新前新后、旧前旧后（四个指针）：**
+| 指针 | 描述|
+| --- | --- |
+| 新前 | 新父节点的第一个子节点 |
+| 新后 | 新父节点的最后一个子节点 |
+| 旧前 | 旧父节点的第一个子节点 |
+| 旧后 | 旧父节点的最后一个子节点 |
 
-- 新前：新父节点的第一个子节点
-- 新后：新父节点的最后一个子节点
-- 旧前：旧父节点的第一个子节点
-- 旧后：旧父节点的最后一个子节点
-  ![image.png](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/2f012af3f5744947825d4df4c87f185d~tplv-k3u1fbpfcp-watermark.image#?w=1063&h=470&s=234853&e=png&b=fefdfd)
-  **（2）比较两个节点是否为同一个节点**
+![image.png](./img/diff-point.png)
+**（2）比较两个节点是否为同一个节点**
 
 ```js
 // 判断是否是同一个节点
@@ -384,10 +391,9 @@ function checkSameVnode(a, b) {
 - ④ **旧后**与新前：将 旧尾 移动到最前面
   - (此种发生了，涉及移动节点，那么新前指向的节点（即旧后），移动的**旧前指针之前**
 - ⑤ 如果都没有命中，就需要用循环来寻找。移动到 oldStartldx 之前。
+![image.png](./img/diff3.png)
 
-![image.png](https://p9-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/e36f16bc29b1480d9c1c8cf8fda098f8~tplv-k3u1fbpfcp-watermark.image#?w=2108&h=939&s=125214&e=png&b=ffffff)
-
-##### &-&-3. 循环四种命中查找
+ ##### &-&-3. 循环四种命中查找
 
 ###### （0）循环的条件
 
@@ -401,9 +407,9 @@ while（oldStartIdx <= oldEndIdx && newStartIdx <= newEndIdx）> {}
 ###### （1）命中 ①：— 旧前与新前（头头对比）
 
 如果命中了 ①，patchVnode 之后新前与旧前指针分别**向下移动**，即 `newStart++ `，`oldStart++`
-![image.png](https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/f4725219cd9f4b33aa8c11febb852e8c~tplv-k3u1fbpfcp-watermark.image#?w=2083&h=950&s=130402&e=png&b=ffffff)
+![image.png](./img/updateChildren1.png)
 
-```js
+```js{2}
 // 新前与旧前
 if (checkSameVnode(oldStartVnode, newStartVnode)) {
   console.log(' ①1 新前与旧前 命中')
@@ -420,9 +426,10 @@ if (checkSameVnode(oldStartVnode, newStartVnode)) {
 ###### （2）命中 ②：— 旧后与新后（尾尾对比）
 
 如果命中了 ②，patchVnode 之后新后与旧后指针分别**向上移动**，即 `newEnd-- `，` oldEnd–-`
-![新后newEnd 与 旧后 oldEnd.png](https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/21c96c755f6847d989269a2c337af66c~tplv-k3u1fbpfcp-watermark.image#?w=2076&h=978&s=159856&e=png&b=ffffff)
+![image.png](./img/newEnd&oldEnd.png)
 
-```js
+
+```js{2}
 // 旧后与新后
 if (checkSameVnode(oldEndVnode, newEndVnode)) {
   // 处理（比较）当前这两个节点
@@ -439,11 +446,12 @@ if (checkSameVnode(oldEndVnode, newEndVnode)) {
 
 - 如果命中了 ③
   - 将 新后 newEnd 指向的节点（即旧前），移动到 旧后 oldEnd 之后
-  - 移动在旧节点上进行：前面的移到后面，
+  - 移动在旧节点上进行：**前面的移到后面**，
   - 然后`newEnd++`，` oldStart–-`
-    ![新后newEnd 与 旧前oldStart.png](https://p9-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/fb8b8ef64d7947b392bec02f1e710f07~tplv-k3u1fbpfcp-watermark.image#?w=2038&h=1000&s=199161&e=png&b=ffffff)
 
-```js
+![image.png](./img/newEnd&oldStart.png)
+
+```js{2,10}
 // 旧前与新后
 if (checkSameVnode(oldStartVnode, newEndVnode)) {
   console.log(' ③3 新后与旧前 命中')
