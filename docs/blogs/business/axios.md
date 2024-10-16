@@ -48,7 +48,7 @@ request.interceptors.response.use(
 )
 ```
 
-## [axios 是否可以取消请求](https://www.jb51.net/javascript/327288df7.htm)
+## [axios 如何取消请求](https://www.jb51.net/javascript/327288df7.htm)
 
 - 在 Axios 中，取消请求的基本思路是创建一个用于取消的标记（cancel token），并将其与特定请求关联。当需要取消请求时，我们可以使用这个标记通知 Axios 取消发送该请求。
 - 确保在组件卸载时取消请求，以免造成内存泄漏。
