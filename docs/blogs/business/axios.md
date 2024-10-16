@@ -50,17 +50,34 @@ request.interceptors.response.use(
 
 ## [axios 是否可以取消请求](https://www.jb51.net/javascript/327288df7.htm)
 
-### 使用 cancelToken（已弃用）
-
 - 在 Axios 中，取消请求的基本思路是创建一个用于取消的标记（cancel token），并将其与特定请求关联。当需要取消请求时，我们可以使用这个标记通知 Axios 取消发送该请求。
 - 确保在组件卸载时取消请求，以免造成内存泄漏。
 - 取消标记只能取消尚未完成的请求，无法取消已经完成的请求。
 - 取消标记只能在特定的请求上使用一次，一旦使用过，就需要重新创建。
-- 注意: 可以使用同一个 cancel token 取消多个请求
 - 如果在开始 axios request 之前执行了取消请求，则并不会发出真实的请求。
-- 支持 cancelToken 取消请求，cancelToken 可以通过工厂函数产生，也可以通过构造函数生成；
-- 支持 Fetch API 的 AbortController 取消请求；
 - 一个 token/signal 可以取消多个请求，一个请求也可同时使用 token/signal；
+
+### (1)使用 AbortController
+
+- 支持 Fetch API 的 AbortController 取消请求；
+  ::: example
+  blogs/business/cancelToken/abortController
+  :::
+
+```js{2,3}
+function hanldleAbortController() {
+  const controller = new AbortController()
+  axios.get('/api/abortController', { signal: controller.signal }).then(function (response) {
+    //...
+  })
+  controller.abort()
+}
+```
+
+### (2)使用 cancelToken（Axios `v0.22.0` 开始已被弃用）
+
+- 注意: 可以使用同一个 cancel token 取消多个请求
+- 支持 cancelToken 取消请求，cancelToken 可以通过工厂函数产生，也可以通过构造函数生成；
 
 ::: example
 blogs/business/cancelToken/cancelToken
@@ -191,16 +208,4 @@ function generateReqKey(config) {
   return [url, method, JSON.stringify(params), JSON.stringify(data)].join("&");
 }
 
-```
-
-### 使用 AbortController
-
-```js
-function hanldleAbortController() {
-  const controller = new AbortController()
-  axios.get('/foo/abortController', { signal: controller.signal }).then(function (response) {
-    //...
-  })
-  controller.abort()
-}
 ```

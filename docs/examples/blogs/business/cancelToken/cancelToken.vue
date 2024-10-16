@@ -1,9 +1,13 @@
+<!--
+ * @Description: 
+ * @Date: 2024-10-15 09:17:10
+ * @LastEditTime: 2024-10-16 09:27:10
+-->
 <template>
   <el-button @click="hanldleCancelToken">取消请求方式1</el-button>
   <el-button @click="hanldleCancelToken2(0)">全部终止请求</el-button>
   <el-button @click="hanldleCancelToken2(3)">终止请求3</el-button>
   <el-button @click="hanldleCancelToken2(4)">终止请求4</el-button>
-  <el-button @click="hanldleAbortController()">AbortControlle终止请求</el-button>
 </template>
 
 <script setup>
@@ -80,13 +84,7 @@ function hanldleCancelToken2(type) {
     })
   // cancel('终止请求信息3')
 }
-function hanldleAbortController() {
-  const controller = new AbortController()
-  axios.get('/foo/abortController', { signal: controller.signal }).then(function (response) {
-    //...
-  })
-  controller.abort()
-}
+
 </script>
 
 <style lang="scss" scoped></style>
