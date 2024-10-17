@@ -1,13 +1,21 @@
-// 全局变量
-:root {
-  --theme-color: #42b983;
-  --box-bg: #f8e3c6e5;
-}
-
-// =================================================
 // 底部距离
 .mb-05 {
   margin-bottom: 5px;
+}
+
+.flex {
+  display: flex;
+}
+
+.flex-sb {
+  display: flex;
+  justify-content: space-between;
+}
+
+.flex-sc {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 // 文档表格样式
