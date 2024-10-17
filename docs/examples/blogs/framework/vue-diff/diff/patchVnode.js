@@ -1,11 +1,12 @@
 /*
  * @Description:
  * @Date: 2024-10-15 14:53:04
- * @LastEditTime: 2024-10-15 14:59:32
+ * @LastEditTime: 2024-10-17 17:01:07
  */
+import updateChildren from './updateChildren'
 // ==================== patchVnode.js ====================
 export default function patchVnode(oldVnode, newVnode) {
-  console.log('【 oldVnode, newVnode 】-8', oldVnode, newVnode)
+  // console.log('【 oldVnode, newVnode 】-8', oldVnode, newVnode)
   // 1. 判断新旧 vnode 是否是同一个对象
   if (oldVnode === newVnode) return
   // 2. 判断 newVndoe 有没有 text 属性

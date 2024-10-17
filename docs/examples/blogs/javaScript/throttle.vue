@@ -36,7 +36,7 @@ onUnmounted(() => {
   dragBox?.removeEventListener('mousemove', throttle(callback))
 })
 </script>
-<style>
+<style scoped>
 .box {
   width: 200px;
   height: 100px;
