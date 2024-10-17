@@ -78,6 +78,7 @@ export default function updateChildren(parentElm, oldCh, newCh) {
       newStartVnode = newCh[++newStartIdx]
     } else {
       // 【5】四种都没有匹配到，都没有命中
+      // 当新节点跟旧节点头尾交叉对比没有结果时，会根据新节点的 key去对比旧节点数组中的 key
       console.log('四种都没有命中')
       // 寻找 keyMap 一个映射对象， 就不用每次都遍历old对象了
       if (!keyMap) {

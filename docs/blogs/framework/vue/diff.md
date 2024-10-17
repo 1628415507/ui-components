@@ -203,32 +203,28 @@ export default function createElement(vnode) {
 
 ## （四）[真实 DOM 的更新-diff 算法](https://www.bilibili.com/video/BV1v5411H7gZ?p=6&spm_id_from=pageDriver)
 
-### 测试
-
 ### 1. 前置知识点
 
 - [ `insertBefore(newNode, referenceNode)`](https://blog.csdn.net/hjc256/article/details/89117430)
-  - 在参考节点之前插入一个拥有指定父节点的子节点
-  - 如果参考节点为**空**，则将指定的节点添加到指定父节点的子节点列表的**末尾**。（理论上）
+  - 在父节点`parentNode` 的子节点 `referenceNode` 前插入新节点 `newNode`
+  - 如果参考节点为**空**，则将新节点 `newNode`添加到指定父节点的子节点列表的**末尾**。
   - **用法：**`insertedNode = parentNode.insertBefore(newNode, referenceNode)`
     | 参数 | 说明 |
     | ------------- | ----------------------------------------------------------------- |
-    | newNode | 将要插入的节点 |
-    | referenceNode | 被参照的节点（即要插在该节点之前） |
     | insertedNode | 插入后的节点(`newNode`)<br>因为`insertedNode`是插入后的节点，所以它与`newNode`是同一个节点。 |
     | parentNode | 父节点 |
-- `Element.tagName`\
-  返回当前元素的标签名
-  - **用法：** `elementName = element.tagName`
-  - elementName 是一个字符串,包含了 element 元素的**标签名**.
-  - 在 HTML 文档中, tagName 会返回其大写形式
+    | newNode | 将要插入的节点 |
+    | referenceNode | 被参照的节点（即要插在该节点之前） |
+- `Element.tagName`：返回当前元素的标签名（大写形式）
 - `Node.removeChild`\
   从 DOM 中删除一个子节点。返回删除的节点
+
   - **用法：** `let oldChild = node.removeChild(child);`\
     或`element.removeChild(child);`
   - child 是要移除的那个子节点.
   - node 是 child 的父节点.
   - oldChild 保存对删除的子节点的引用： oldChild === child.
+
 - [`Element.nextSibling`](https://www.runoob.com/try/try.php?filename=tryjsref_node_nextsibling)
   - 返回某个元素之后紧跟的节点:
 
@@ -238,16 +234,8 @@ export default function createElement(vnode) {
 
 - **key 作为节点的唯一标识**，告诉 diff 算法，在更改前后它们是同一个 DOM 节点。实现**最小量更新**；
 - **只进行同层比较，不会进行跨层比较**。即使是同一片虚拟节点，但是跨层了，diff 就是暴力删除旧的，然后插入新的；
-- **只有是同一个虚拟节点（`选择器相同且key相同则为同一个`），才进行精细化比较**（如：往 ul 中的 li 添加 li）\
-   否则就是暴力删除旧的、插入新的（如：ul 中的 li 换到 ol 中去）\
-   【源码中如何定义“同一个节点”?】
-  > -旧节点的 key 要和新节点的 key 相同，且旧节点的选择器要和新节点的选择器相同
-  >
-  > ```ts
-  > function sameVnode(vnode1: VNode, vnode2: VNode): boolean {
-  >   return vnodel.key === vnode2.key && vnode1.sel === vnode2.sel
-  > }
-  > ```
+- **只有是同一个虚拟节点（`选择器相同且key相同则为同一个`），才进行精细化比较**\
+   否则就是暴力删除旧的、插入新的
 
 #### （2）逻辑：
 
@@ -387,23 +375,19 @@ function checkSameVnode(a, b) {
 
 每次进入循环的时候，按命中**顺序向下**进行命中查找，`命中一种就不再进行命中判断了` ，就进入精细化比较
 
-<!-- | 参数          | 说明                                                                                         |
-| ----------| ------------------------------------------------------- |
-| **旧前**与新前 |     不移动                                                       |
-| **旧后**与新后 |      不移动                                            |
-| 旧后与新后 |                                                  |
-| 旧后与新后 |                                                  |
-                                                                                | -->
-- ① **旧前**与新前
-- ② **旧后**与新后
-- ③ **旧前**与新后：将 旧前 移动到最后面
-  - 此种发生了，涉及移动节点，那么新后指向的节点（即旧前），移动的**旧后指针之后**
-- ④ **旧后**与新前：将 旧尾 移动到最前面
-  - (此种发生了，涉及移动节点，那么新前指向的节点（即旧后），移动的**旧前指针之前**
-- ⑤ 如果都没有命中，就需要用循环来寻找。移动到 oldStartldx 之前。
-  ![image.png](./img/diff3.png)
+| 命中查找                          | 是否移动节点                                                                                                                                                                                                                                   |
+| --------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 命中 ①**旧前**与新前              | 不移动                                                                                                                                                                                                                                         |
+| 命中 ②**旧后**与新后              | 不移动                                                                                                                                                                                                                                         |
+| 命中 ③**旧前**与新后              | `旧前移到旧后之后`<br/>前面的移到后面：旧前（即新后），移动到**旧后指针对应节点**的**后面**                                                                                                                                                    |
+| 命中 ④**旧后**与新前              | `旧后移到旧前之前`<br/>后面的移到前面：旧后（即新前），移动到**旧前指针对应节点**的**前面**                                                                                                                                                    |
+| 如果都没有命中                    | `新前移/插到旧前之前`<br/>用 newStart 去匹配旧节点，<br/>如果匹配到，则将对应的旧节点（新前）移动到 oldStartldx 之前。并将原来的旧节点**置为空** ，<br/>如果没匹配到，则插到 oldStartldx 对应的节点前面，<br/>移到完只移动新前指针`newStart++` |
+| 循环结束`旧前>旧后`或`新前>新后 ` | 如果`newStartIdx <= newEndIdx`说明有新节点，则依次添加到旧前之前<br/>如果`oldStartIdx <= oldEndIdx`说明有剩余节点，则删除                                                                                                                      |
+
+![image.png](./img/diff3.png)
 
 ##### &-&-3. 循环四种命中查找
+
 每一次循环都**重新**按四种命中方式进行比对
 
 ###### （0）循环的条件
@@ -417,11 +401,8 @@ while（oldStartIdx <= oldEndIdx && newStartIdx <= newEndIdx）> {}
 
 ###### （1）命中 ①：— 旧前与新前（头头对比）
 
-::: example
-blogs/framework/vue-diff/oldstartNewstart
-:::
-如果命中了 ①，patchVnode 之后新前与旧前指针分别**向下移动**，即 `newStart++ `，`oldStart++`
-![image.png](./img/updateChildren1.png)
+- 如果命中了 ①，patchVnode 之后新前与旧前指针分别**向下移动**，即 `newStart++ `，`oldStart++`
+  ![image.png](./img/updateChildren1.png)
 
 ```js{2,7,8}
 // 新前与旧前
@@ -435,13 +416,14 @@ if (checkSameVnode(oldStartVnode, newStartVnode)) {
 }
 ```
 
+::: example
+blogs/framework/vue-diff/oldstartNewstart
+:::
+
 如果没命中就接着比较下一种情况
 
 ###### （2）命中 ②：— 旧后与新后（尾尾对比）
 
-::: example
-blogs/framework/vue-diff/oldendNewend
-:::
 如果命中了 ②，patchVnode 之后新后与旧后指针分别**向上移动**，即 `newEnd-- `，` oldEnd–-`
 ![image.png](./img/newEnd&oldEnd.png)
 
@@ -456,18 +438,17 @@ if (checkSameVnode(oldEndVnode, newEndVnode)) {
 }
 ```
 
+::: example
+blogs/framework/vue-diff/oldendNewend
+:::
+
 如果没命中就接着比较下一种情况
 
 ###### （3）命中 ③：— 旧前与新后（头尾对比）
 
-::: example
-blogs/framework/vue-diff/oldstartNewend
-:::
-
-- 如果命中了 ③
-  - 将 新后 newEnd 指向的节点（即旧前），`移动到 旧后 oldEnd 之后`
-  - 移动在旧节点上进行：**前面的移到后面**，
-  - 然后`newEnd++`，` oldStart–-`
+- 将 新后 newEnd 指向的节点（即旧前），`移动到 旧后 oldEnd 之后`
+- 移动在旧节点上进行：**前面的移到后面**，
+- 然后`newEnd++`，` oldStart–-`
 
 ![image.png](./img/newEnd&oldStart.png)
 
@@ -487,11 +468,13 @@ if (checkSameVnode(oldStartVnode, newEndVnode)) {
 }
 ```
 
-###### （4）命中 ④：— 旧后与新前（尾头对比）
-
 ::: example
-blogs/framework/vue-diff/oldendNewstart
+blogs/framework/vue-diff/oldstartNewend
 :::
+
+如果没命中就接着比较下一种情况
+
+###### （4）命中 ④：— 旧后与新前（尾头对比）
 
 - 如果命中了 ④
   - 将 新前 newStart 指向的节点（即旧后），`移动到 旧前 oldStart 之前`
@@ -512,18 +495,22 @@ if (checkSameVnode(oldEndVnode, newStartVnode)) {
 }
 ```
 
+::: example
+blogs/framework/vue-diff/oldendNewstart
+:::
+
 如果没命中就表示四种情况都没有命中
 
 ###### （5）[4 种都没命中 遍历 oldVnode 中的 key](https://www.bilibili.com/video/BV1v5411H7gZ?p=15&vd_source=9d75580d0b23d1137d56e03a996ac726)
 
-- 用新节点的 key 在旧节点中查找
+- 当新节点跟旧节点头尾交叉对比没有结果时，会根据新节点的 key 去对比旧节点数组中的 key
 - 找到了就 移动旧节点的位置，将原来位置的节点设为`undefined`，\
   移动指针`newStart++`（**只移动新头**）
 - 没找的就是新节点，直接插入所有未处理旧节点之前
 
 ![image.png](./img/diff4.png)
 
-```js{11}
+```js{11,21,27,29,32}
 // 四种都没有匹配到，都没有命中
 console.log('四种都没有命中')
 // 寻找 keyMap 一个映射对象， 就不用每次都遍历old对象了
@@ -558,7 +545,11 @@ if (idxInOld === undefined) {
 newStartVnode = newCh[++newStartIdx] // 指向新前的下一个节点
 ```
 
-进行下一次循环
+::: example
+blogs/framework/vue-diff/newStart
+:::
+
+- 进行下一次循环
 
 ##### &-&-4. 循环结束
 
@@ -782,6 +773,16 @@ export default function updateChildren(parentElm, oldCh, newCh) {
 - 递归比较子节点
 
 ## [ 延伸问题]
+
+#### 【源码中如何定义“同一个节点”?】
+
+> -旧节点的 key 要和新节点的 key 相同，且旧节点的选择器要和新节点的选择器相同
+>
+> ```ts
+> function sameVnode(vnode1: VNode, vnode2: VNode): boolean {
+>   return vnodel.key === vnode2.key && vnode1.sel === vnode2.sel
+> }
+> ```
 
 #### 1. [写 React / Vue 项目时为什么要在列表组件中写 key，其作用是什么？](https://github.com/Advanced-Frontend/Daily-Interview-Question/issues/1)
 
