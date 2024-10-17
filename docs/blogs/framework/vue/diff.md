@@ -203,10 +203,13 @@ export default function createElement(vnode) {
 
 ## （四）[真实 DOM 的更新-diff 算法](https://www.bilibili.com/video/BV1v5411H7gZ?p=6&spm_id_from=pageDriver)
 
+### 测试
+
 ### 1. 前置知识点
 
-- [ `insertBefore(newNode, referenceNode)`](https://blog.csdn.net/hjc256/article/details/89117430)\
-  在参考节点之前插入一个拥有指定父节点的子节点
+- [ `insertBefore(newNode, referenceNode)`](https://blog.csdn.net/hjc256/article/details/89117430)
+  - 在参考节点之前插入一个拥有指定父节点的子节点
+  - 如果参考节点为**空**，则将指定的节点添加到指定父节点的子节点列表的**末尾**。（理论上）
   - **用法：**`insertedNode = parentNode.insertBefore(newNode, referenceNode)`
     | 参数 | 说明 |
     | ------------- | ----------------------------------------------------------------- |
@@ -384,6 +387,13 @@ function checkSameVnode(a, b) {
 
 每次进入循环的时候，按命中**顺序向下**进行命中查找，`命中一种就不再进行命中判断了` ，就进入精细化比较
 
+<!-- | 参数          | 说明                                                                                         |
+| ----------| ------------------------------------------------------- |
+| **旧前**与新前 |     不移动                                                       |
+| **旧后**与新后 |      不移动                                            |
+| 旧后与新后 |                                                  |
+| 旧后与新后 |                                                  |
+                                                                                | -->
 - ① **旧前**与新前
 - ② **旧后**与新后
 - ③ **旧前**与新后：将 旧前 移动到最后面
@@ -391,9 +401,10 @@ function checkSameVnode(a, b) {
 - ④ **旧后**与新前：将 旧尾 移动到最前面
   - (此种发生了，涉及移动节点，那么新前指向的节点（即旧后），移动的**旧前指针之前**
 - ⑤ 如果都没有命中，就需要用循环来寻找。移动到 oldStartldx 之前。
-![image.png](./img/diff3.png)
+  ![image.png](./img/diff3.png)
 
- ##### &-&-3. 循环四种命中查找
+##### &-&-3. 循环四种命中查找
+每一次循环都**重新**按四种命中方式进行比对
 
 ###### （0）循环的条件
 
@@ -406,10 +417,13 @@ while（oldStartIdx <= oldEndIdx && newStartIdx <= newEndIdx）> {}
 
 ###### （1）命中 ①：— 旧前与新前（头头对比）
 
+::: example
+blogs/framework/vue-diff/oldstartNewstart
+:::
 如果命中了 ①，patchVnode 之后新前与旧前指针分别**向下移动**，即 `newStart++ `，`oldStart++`
 ![image.png](./img/updateChildren1.png)
 
-```js{2}
+```js{2,7,8}
 // 新前与旧前
 if (checkSameVnode(oldStartVnode, newStartVnode)) {
   console.log(' ①1 新前与旧前 命中')
@@ -425,11 +439,13 @@ if (checkSameVnode(oldStartVnode, newStartVnode)) {
 
 ###### （2）命中 ②：— 旧后与新后（尾尾对比）
 
+::: example
+blogs/framework/vue-diff/oldendNewend
+:::
 如果命中了 ②，patchVnode 之后新后与旧后指针分别**向上移动**，即 `newEnd-- `，` oldEnd–-`
 ![image.png](./img/newEnd&oldEnd.png)
 
-
-```js{2}
+```js{2,6,7}
 // 旧后与新后
 if (checkSameVnode(oldEndVnode, newEndVnode)) {
   // 处理（比较）当前这两个节点
@@ -442,10 +458,14 @@ if (checkSameVnode(oldEndVnode, newEndVnode)) {
 
 如果没命中就接着比较下一种情况
 
-###### （3）命中 ③：— 旧前与新后
+###### （3）命中 ③：— 旧前与新后（头尾对比）
+
+::: example
+blogs/framework/vue-diff/oldstartNewend
+:::
 
 - 如果命中了 ③
-  - 将 新后 newEnd 指向的节点（即旧前），移动到 旧后 oldEnd 之后
+  - 将 新后 newEnd 指向的节点（即旧前），`移动到 旧后 oldEnd 之后`
   - 移动在旧节点上进行：**前面的移到后面**，
   - 然后`newEnd++`，` oldStart–-`
 
@@ -467,15 +487,19 @@ if (checkSameVnode(oldStartVnode, newEndVnode)) {
 }
 ```
 
-###### （4）命中 ④：— 旧后与新前
+###### （4）命中 ④：— 旧后与新前（尾头对比）
+
+::: example
+blogs/framework/vue-diff/oldendNewstart
+:::
 
 - 如果命中了 ④
-  - 将 新前 newStart 指向的节点（即旧后），移动到 旧前 oldStart 之前
+  - 将 新前 newStart 指向的节点（即旧后），`移动到 旧前 oldStart 之前`
   - 移动在旧节点上进行：后面的移到前面，
   - 然后`newStart--`，` oldEnd++`
-    ![新前newStart 与 旧后oldEnd.png](https://p9-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/96c23db487db4c4a9140bba61aedb8d7~tplv-k3u1fbpfcp-watermark.image#?w=2128&h=1135&s=197600&e=png&b=ffffff)
+    ![image.png](./img/newStartoldEnd.png)
 
-```js
+```js{2,7}
 // 旧后与新前
 if (checkSameVnode(oldEndVnode, newStartVnode)) {
   console.log(' ④4 新前与旧后 命中')
@@ -497,9 +521,9 @@ if (checkSameVnode(oldEndVnode, newStartVnode)) {
   移动指针`newStart++`（**只移动新头**）
 - 没找的就是新节点，直接插入所有未处理旧节点之前
 
-![四种都没命中.png](https://p9-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/1f4bf9b03ae34be7872f2ef9d7eb66f4~tplv-k3u1fbpfcp-watermark.image#?w=2194&h=968&s=201706&e=png&b=fefefe)
+![image.png](./img/diff4.png)
 
-```js
+```js{11}
 // 四种都没有匹配到，都没有命中
 console.log('四种都没有命中')
 // 寻找 keyMap 一个映射对象， 就不用每次都遍历old对象了
@@ -515,8 +539,7 @@ if (!keyMap) {
   }
 }
 console.log(keyMap)
-// 寻找当前项（newStartIdx）在keyMap中映射的序号
-const idxInOld = keyMap[newStartVnode.key]
+const idxInOld = keyMap[newStartVnode.key]// 寻找当前项（newStartIdx）在keyMap中映射的序号
 // 没找到对应的key就说明是全新的节点
 if (idxInOld === undefined) {
   // 如果 idxInOld 是 undefined 说明是全新的项，要插入
@@ -543,14 +566,16 @@ newStartVnode = newCh[++newStartIdx] // 指向新前的下一个节点
 
 ###### （1）newVnode 中还有剩余节点——插入
 
+`newStartIdx <= newEndIdx`
+
 - 如果旧节点先循环处理完，新节点还没有结束\
   `oldStartIdx > oldEndIdx` && `newStartIdx <= newEndIdx`
 - 新节点中剩余的都  **插入**  旧节点 oldEnd 后面 或 oldStart 之前）\
-  ![image.png](https://p9-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/d4bdc1b7713d46cb8844642449e9a795~tplv-k3u1fbpfcp-watermark.image#?w=1030&h=573&s=312302&e=png&b=fefdfd)
+  ![image.png](./img/diffAdd.png)
 - 后面新增的情况：
-  ![后面新增.png](https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/796020a094f543cb9a480e1ea21a132c~tplv-k3u1fbpfcp-watermark.image#?w=2140&h=969&s=185139&e=png&b=fefdfd)
+  ![image.png](./img/diffAddBehind.png)
 - 前面新增的情况：
-  ![前面新增.png](https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/97d04f44004e42d6806f1f70cc1b3796~tplv-k3u1fbpfcp-watermark.image#?w=2123&h=992&s=233836&e=png&b=ffffff)
+  ![image.png](./img/diffAddFront.png)
 
 ###### （2）oldVnode 中还有剩余节点——删除
 
@@ -558,15 +583,15 @@ newStartVnode = newCh[++newStartIdx] // 指向新前的下一个节点
   `newStartIdx > newEndIdx` && `oldStartIdx <= oldEndIdx`
 - 旧节点中剩余的都进行删除
 - 后面删除的情况：
-  ![后面删除.png](https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/405fcdd0a72e49569bfcfe3cf65e7f24~tplv-k3u1fbpfcp-watermark.image#?w=2081&h=705&s=117774&e=png&b=fffefe)
+  ![image.png](./img/diffDelBehind.png)
 - 前面删除的情况：
-  ![前面删除.png](https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/a1521dba33364dbc90512a3480ab3e00~tplv-k3u1fbpfcp-watermark.image#?w=2085&h=829&s=139940&e=png&b=ffffff)
+  ![image.png](./img/diffDelFront.png)
 - 循环结束——删除多余的旧节点
-  ![循环结束.png](https://p9-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/82afdd19df004061bcc6473c1b5574bd~tplv-k3u1fbpfcp-watermark.image#?w=2105&h=1079&s=158769&e=png&b=ffffff)
+  ![image.png](./img/diffDel.png)
 
 ###### （3）代码
 
-```js
+```js{2,5,7,11}
 // （1）新增插入
 if (newStartIdx <= newEndIdx) {
   // 说明newVndoe还有剩余节点没有处理，所以要添加这些节点
@@ -728,7 +753,7 @@ export default function updateChildren(parentElm, oldCh, newCh) {
 
 ## （五）完整思路分析图&概述
 
-![完整逻辑图.png](https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/8d88862f4b0041089548a0f41e29a12c~tplv-k3u1fbpfcp-watermark.image#?w=1037&h=1376&s=206487&e=png&a=1&b=fbfafa)
+![完整逻辑图.png](./img/diffLogic.png)
 概述：
 
 - diff 算法是**虚拟节点**的比较
@@ -746,6 +771,14 @@ export default function updateChildren(parentElm, oldCh, newCh) {
     从头向尾比较后发现不对，就会**从尾向头**比，把 A 移至最后，再继续比较
   - 情况五：旧 ：ABCD，新 CDME；  
     以上四种都没比中时，用 keyMap 记录 oldVnode 中的节点出现的 key 和节点位置，新节点从头向尾在 keyMap 中查找比较，把 CD 移至前面，最后 新建 ME，再把 CD 至为**空**（详见 **(四）4-3-3-(5)**）
+
+```
+0  A-(C)    (C)
+1  B-D =>   A   D
+2  C-M      B   M
+3  D-E      D   E
+```
+
 - 递归比较子节点
 
 ## [ 延伸问题]
