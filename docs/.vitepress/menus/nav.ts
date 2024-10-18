@@ -1,7 +1,7 @@
 /*
  * @Description:
  * @Date: 2024-06-27 16:50:06
- * @LastEditTime: 2024-10-14 17:08:25
+ * @LastEditTime: 2024-10-18 11:14:36
  */
 //
 import { DefaultTheme } from 'vitepress';
@@ -32,7 +32,7 @@ export const nav: DefaultTheme.NavItem[] = [
       //   link: '/blogs/css' // 对应docs/column/Algorithm下的index.md文件
       // },
       {
-        text: 'CSS',
+        text: 'HTML&CSS',
         link: '/blogs/css' // 对应docs/column/Algorithm下的index.md文件
       },
       {

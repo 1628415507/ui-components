@@ -57,21 +57,110 @@ request.interceptors.response.use(
 - 如果在开始 axios request 之前执行了取消请求，则并不会发出真实的请求。
 - 一个 token/signal 可以取消多个请求，一个请求也可同时使用 token/signal；
 
-### (1)使用 AbortController
-
+### [(1)使用 AbortController](https://blog.csdn.net/yxlyttyxlytt/article/details/139914500)
+#### 单独使用
 - 支持 Fetch API 的 AbortController 取消请求；
   ::: example
   blogs/business/cancelToken/abortController
   :::
 
-```js{2,3}
+
+```js{2,3,6}
 function hanldleAbortController() {
   const controller = new AbortController()
   axios.get('/api/abortController', { signal: controller.signal }).then(function (response) {
     //...
   })
-  controller.abort()
+  controller.abort(); // 不支持 message 参数
 }
+```
+#### 全局配置
+调试时可将`docs\examples\blogs\business\cancelToken\abortController-request.js`替换`src\utils\request.js`
+```js{16,17,18,29,35,48,51,53,54,60,63,79}
+import axios from 'axios'
+
+const service = axios.create({
+  baseURL: process.env.VUE_APP_BASE_API,
+  timeout: 1000
+})
+
+// request拦截器
+service.interceptors.request.use(
+  (config) => {
+    // 判断是否有 token
+    if (getToken()) {
+      config.headers['Permission-Token'] = getToken()
+    }
+    // 添加待处理请求
+    config.urlData = config.data ? JSON.stringify(config.data) : '' // 记录初始的传参
+    config.urlParams = config.params ? JSON.stringify(config.params) : '' // 记录初始的传参
+    addPendingRequest(config)
+    return config
+  },
+  (error) => {
+    return Promise.reject(error)
+  }
+)
+
+// 响应拦截器
+service.interceptors.response.use(
+  (response) => {
+    removePendingRequest(response)
+    const res = response.data
+    return Promise.resolve(res.data)
+  },
+  (error) => {
+    if (axios.isCancel(error)) {
+      removePendingRequest(error)
+    }
+    ElMessage({ message: message, type: 'error', duration: 5 * 1000 })
+    return Promise.reject(error)
+  }
+)
+//
+function generateReqKey(config) {
+  // 请求得到的config.data是对象格式，响应回来的response.config.data是字符串格式，需要转换成对象
+  // if (typeof config.data === 'string') {
+  //   config.data = JSON.parse(config.data)
+  // }
+  const { url, method, urlParams, urlData } = config
+  return [url, method, urlParams, urlData].join('&')
+}
+// 添加、取消待处理请求
+let pendingRequestList = [] //记录待处理请求(使用对象保存，key过长取值会存在问题，所有改用数组存储)
+function addPendingRequest(config) {
+  const controller = new AbortController()
+  config.signal = controller.signal
+  const requestKey = generateReqKey(config) // 生成请求的唯一键，用于标识不同的请求
+  const flag = pendingRequestList.some((item) => item.key === requestKey)
+  // 如果相同请求已在进行中，则取消当前请求
+  if (flag) {
+    console.error('【 `重复请求已取消` 】', config.url)
+    controller.abort()
+  } else {
+    // 如果没有相同的请求在进行中，则设置取消令牌并存储请求键和取消函数的映射
+    pendingRequestList.push({
+      key: requestKey,
+      abort: controller.signal
+    })
+  }
+}
+// 请求完成后，移除记录
+function removePendingRequest(response) {
+  // 如果 response.config 返回的是 undefined，表示是取消请求，则不处理
+  if (response.config) {
+    // 生成请求的唯一键，用于标识不同的请求
+    const requestKey = generateReqKey(response.config)
+    const flag = pendingRequestList.some((item) => item.key === requestKey)
+    console.log('【 flag==== 】-250', pendingRequestList, flag)
+    // 判断是否有这个 key，有就删除
+    if (flag) {
+      pendingRequestList = pendingRequestList.filter((item) => item.key !== requestKey)
+      console.log('【 pendingRequestList 】-253', pendingRequestList)
+    }
+  }
+}
+export default service
 ```
 
 ### (2)使用 cancelToken（Axios `v0.22.0` 开始已被弃用）
@@ -149,12 +238,11 @@ function addPendingRequest(config) {
 
   // 方法一
   // 如果相同请求已在进行中，则取消当前请求
+  config.cancelToken = source.token
   if (pendingRequest.has(requestKey)) {
-    config.cancelToken = source.token
     source.cancel(`${config.url} 请求已取消`)
   } else {
     // 如果没有相同的请求在进行中，则设置取消令牌并存储请求键和取消函数的映射
-    config.cancelToken = source.token
     pendingRequest.set(requestKey, source.token)
   }
 

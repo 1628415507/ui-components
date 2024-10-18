@@ -63,18 +63,17 @@ function addPendingRequest(config) {
 
   // 方法一
   // 如果相同请求已在进行中，则取消当前请求（已完成的请求会进入响应拦截中被移除）
+  config.cancelToken = source.token;
   if (pendingRequest.has(requestKey)) {
-    config.cancelToken = source.token;
     source.cancel(`${config.url} 请求已取消`);
   } else {
     // 如果没有相同的请求在进行中，则设置取消令牌并存储请求键和取消函数的映射
-    config.cancelToken = source.token;
     pendingRequest.set(requestKey, source.token);
   }
 
   // 方法二
-  // 如果相同请求已在进行中，则取消当前请求
-  if (pendingRequest.has(requestKey)) {
+ // 如果相同请求已在进行中，则取消当前请求
+   /* if (pendingRequest.has(requestKey)) {
     config.cancelToken = new Axios.CancelToken((cancel) => {
       // cancel 函数的参数会作为 promise 的 error 被捕获
       cancel(`${config.url} 请求已取消`);
@@ -85,7 +84,7 @@ function addPendingRequest(config) {
         pendingRequest.set(requestKey, cancel);
       });
   }
-
+  */
   // 以上两种方式都能取消请求，但是从 Axios `v0.22.0` 开始已被弃用，
   // 从 `v0.22.0` 开始，Axios 支持以 fetch API 方式—— `AbortController`取消请求
 }
