@@ -6,7 +6,7 @@ app.use((ctx) => {
   var files = ctx.request.files ? ctx.request.files.f1 : [];//文件分片
   //得到上传⽂件的数组
   var result = [];
-  var fileToken = ctx.request.body.token;//完整文件的标识
+  var fileToken = ctx.request.body.fileTag;//完整文件的标识
   // ⽂件标识
   var fileIndex = ctx.request.body.index;//⽂件顺序
   if (files && !Array.isArray(files)) {//单⽂件上传容错

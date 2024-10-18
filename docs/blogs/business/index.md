@@ -1,7 +1,7 @@
 <!--
  * @Description: https://gitee.com/yanleweb/interview-question/issues/I7W2KU
  * @Date: 2024-08-23 16:04:10
- * @LastEditTime: 2024-10-08 16:48:05
+ * @LastEditTime: 2024-10-18 16:51:29
 -->
 
 # 业务场景
@@ -452,178 +452,179 @@ onErrorCaptured((error, vm, info) => {
 - open 方法返回一个 IDBOpenDBRequest 对象，同时这是一个**异步**操作，open 操作并不会立马打开数据库或者开启事务，我们可以通过监听`request`的事件来进行相应的处理。
 - `open(name,version)`：open 方法传入两个参数，第一个参数是数据库的名字，第二个参数是数据库的版本号(**整数**)。
 - 当你创建或升级一个现有的数据库版本的时候，将会触发一个`onupgradeneeded`事件，并在事件中传入`IDBVersionChangeEvent`，我们可以通过 event.target.result 来获取到 IDBDatabase 对象，然后通过这个对象来进行数据库的版本升级操作
-<!--
+
 ::: example
 blogs/business/indexedDB/index
-::: -->
+:::
 
 ## 大文件上传
 
 ### 分片上传
-
-- 把⼤⽂件进⾏分段 ⽐如 2M，发送到服务器携带⼀个标志，**可以使⽤当前的时间戳，⽤于标识⼀个完整的⽂件**
+- 把⼤⽂件进⾏分段 ⽐如 10M，发送到服务器携带⼀个标志，**可以使⽤当前的时间戳，⽤于标识⼀个完整的⽂件**
 - 服务端保存各段⽂件
 - 浏览器端所有分⽚上传完成，发送给服务端⼀个合并⽂件的请求
 - 服务端根据⽂件标识、类型、各分⽚顺序进⾏⽂件合并
 - 删除分⽚⽂件
-<!-- ::: example
+::: example
 blogs/business/largeFileUpload/upload
-::: -->
+:::
+详见`docs\examples\blogs\business\largeFileUpload\sliceUpload.js`
 
-```js{5,14,15,16,18,27,38}
-function submitUpload() {
-  const chunkSize = 210241024;//分⽚⼤⼩ 2M
-  const file = document.getElementById('f1').files[0];
+```js{4,6,15,16,17,18,23,39}
+// 分片上传
+export function sliceUpload(file) {
+  const num = 10 //分⽚⼤⼩10M
+  const chunkSize = num * 1024 * 1024 //10M
   let chunks = [], //保存分⽚数据
-    token = (+new Date()),//使用时间戳，⽤于标识⼀个完整的⽂件
+    fileTag = +new Date(), //使用时间戳，⽤于标识⼀个完整的⽂件
     name = file.name,
     chunkCount = 0, //分片总数
-    sendChunkCount = 0;//已发送分片数
-  //拆分⽂件 像操作字符串⼀样
+    sendChunkCount = 0 //已发送分片数
+  // 超过大小进行文件拆分
   if (file.size > chunkSize) {
+    let start = 0
+    let end = 0
     //拆分⽂件
-    var start = 0, end = 0;
-    while (true) {
-      end += chunkSize;//截取的结束位置
-      var blob = file.slice(start, end);//切割分片
-      start += chunkSize;//截取的开始位置
+    while (end < file.size) {
+      end += chunkSize //截取的结束位置
+      let blob = file.slice(start, end) //切割分片
+      start += chunkSize //截取的开始位置
       //截取的数据为空 则结束
       if (!blob.size) {
-        //拆分结束
-        break;
+        break //拆分结束
       }
-      chunks.push(blob);//保存分段数据
+      chunks.push(blob) //保存分段数据
     }
   } else {
-    chunks.push(file.slice(0));
+    chunks.push(file.slice(0))
   }
-  chunkCount = chunks.length;//分⽚的个数
+  chunkCount = chunks.length //分⽚的个数
   //没有做并发限制，较⼤⽂件导致并发过多，
   // tcp 链接被占光 ，需要做下并发控制，⽐如只有4个在请求在发送
   for (let i = 0; i < chunkCount; i++) {
-    const fd = new FormData(); //构造FormData对象
-    fd.append('token', token);
-    fd.append('f1', chunks[i]);
-    fd.append('index', i);
-    xhrSend(fd, function () {//保存分片成功的回调
-      sendChunkCount += 1;
+    const fd = new FormData() //构造FormData对象
+    fd.append('f1', chunks[i])
+    fd.append('index', i)
+    xhrSend(fd, function () {
+      //保存分片成功的回调
+      sendChunkCount += 1
       //上传完成，发送合并请求
       if (sendChunkCount === chunkCount) {
-        console.log('上传完成，发送合并请求');
-        var formD = new FormData();
-        formD.append('type', 'merge');
-        formD.append('token', token);
-        formD.append('chunkCount', chunkCount);
-        formD.append('filename', name);
-        xhrSend(formD);
+        console.log('上传完成，发送合并请求')
+        var formD = new FormData()
+        formD.append('type', 'merge')
+        formD.append('fileTag', fileTag)
+        formD.append('chunkCount', chunkCount)
+        formD.append('filename', name)
+        xhrSend(formD)
       }
-    });
+    })
   }
 }
 // 发送请求
 function xhrSend(fd, cb) {
-  var xhr = new XMLHttpRequest(); //创建对象
-  xhr.open('POST', 'http://localhost:8100/', true);
+  var xhr = new XMLHttpRequest() //创建对象
+  xhr.open('POST', 'http://localhost:8100/', true)
   xhr.onreadystatechange = function () {
-    console.log('state change', xhr.readyState);
+    console.log('state change', xhr.readyState)
     if (xhr.readyState == 4) {
-      console.log(xhr.responseText);
-      cb && cb();
+      console.log(xhr.responseText)
+      cb && cb()
     }
   }
-  xhr.send(fd);//发送
+  xhr.send(fd) //发送
 }
 
 //绑定提交事件
-document.getElementById('btn-submit').addEventListener('click', submitUpload);
+// document.getElementById('btn-submit').addEventListener('click', sliceUpload)
+
 ```
 
 ### 断点续传
 
-详见`docs\examples\blogs\business\largeFileUpload\setUploadedToStorage.js`
+详见`docs\examples\blogs\business\largeFileUpload\sliceUploadContinue.js`
 
-```js{29,32,33,34,42}
-// 分片上传
-function submitUpload() {
-  const chunkSize = 210241024;//分⽚⼤⼩ 2M
-  const file = document.getElementById('f1').files[0];
+```js{29,32,33,34,43,72,77}
+// 断点续传
+function sliceUpload(file) {
+  const num = 10 //分⽚⼤⼩10M
+  const chunkSize = num * 1024 * 1024 //10M
   let chunks = [], //保存分⽚数据
-    token = (+new Date()),//使用时间戳，⽤于标识⼀个完整的⽂件
+    fileTag = +new Date(), //使用时间戳，⽤于标识⼀个完整的⽂件
     name = file.name,
     chunkCount = 0, //分片总数
-    sendChunkCount = 0;//已发送分片数
-  //拆分⽂件 像操作字符串⼀样
+    sendChunkCount = 0 //已发送分片数
+  // 超过大小进行文件拆分
   if (file.size > chunkSize) {
     //拆分⽂件
-    var start = 0, end = 0;
-    while (true) {
-      end += chunkSize;//截取的结束位置
-      var blob = file.slice(start, end);//切割分片
-      start += chunkSize;//截取的开始位置
+    let start = 0,
+      end = 0
+    while (end < file.size) {
+      end += chunkSize //截取的结束位置
+      let blob = file.slice(start, end) //切割分片
+      start += chunkSize //截取的开始位置
       //截取的数据为空 则结束
       if (!blob.size) {
-        //拆分结束
-        break;
+        break //拆分结束
       }
-      chunks.push(blob);//保存分段数据
+      chunks.push(blob) //保存分段数据
     }
   } else {
-    chunks.push(file.slice(0));
+    chunks.push(file.slice(0))
   }
-  chunkCount = chunks.length;//分⽚的个数
-  let uploadedInfo = getUploadedFromStorage();//获得已上传的分段信息
+  chunkCount = chunks.length //分⽚的个数
+  let uploadedInfo = getUploadedFromStorage() //获得已上传的分段信息
   for (let i = 0; i < chunkCount; i++) {
-    console.log('index', i, uploadedInfo[i] ? '已上传过' : '未上传');
-    if (uploadedInfo[i]) {  //对⽐分段
-      sendChunkCount = i + 1;//记录已上传的索引
-      continue;//如果已上传则跳过
+    console.log('index', i, uploadedInfo[i] ? '已上传过' : '未上传')
+    if (uploadedInfo[i]) { //对⽐分段
+      sendChunkCount = i + 1 //记录已上传的索引
+      continue //如果已上传则跳过
     }
-    const fd = new FormData(); //构造FormData对象
-    fd.append('token', token);
-    fd.append('f1', chunks[i]);
-    fd.append('index', i);
-    xhrSend(fd, function () {//保存分片成功的回调
-      sendChunkCount += 1;//将成功信息保存到本地
-      setUploadedToStorage(index);//记录已上传的数据
+    const fd = new FormData() //构造FormData对象
+    fd.append('fileTag', fileTag)
+    fd.append('f1', chunks[i])
+    fd.append('index', i)
+    xhrSend(fd, function () {
+      //保存分片成功的回调
+      sendChunkCount += 1 //将成功信息保存到本地
+      setUploadedToStorage(index) //记录已上传的数据
       //上传完成，发送合并请求
       if (sendChunkCount === chunkCount) {
-        console.log('上传完成，发送合并请求');
-        var formD = new FormData();
-        formD.append('type', 'merge');
-        formD.append('token', token);
-        formD.append('chunkCount', chunkCount);
-        formD.append('filename', name);
-        xhrSend(formD);
+        console.log('上传完成，发送合并请求')
+        let formD = new FormData()
+        formD.append('type', 'merge')
+        formD.append('fileTag', fileTag)
+        formD.append('chunkCount', chunkCount)
+        formD.append('filename', name)
+        xhrSend(formD)
       }
-    });
+    })
   }
 }
 // 发送请求
 function xhrSend(fd, cb) {
-  var xhr = new XMLHttpRequest(); //创建对象
-  xhr.open('POST', 'http://localhost:8100/', true);
+  let xhr = new XMLHttpRequest() //创建对象
+  xhr.open('POST', 'http://localhost:8100/', true)
   xhr.onreadystatechange = function () {
-    console.log('state change', xhr.readyState);
+    console.log('state change', xhr.readyState)
     if (xhr.readyState == 4) {
-      console.log(xhr.responseText);
-      cb && cb();
+      console.log(xhr.responseText)
+      cb && cb()
     }
   }
-  xhr.send(fd);//发送
+  xhr.send(fd) //发送
 }
-
-//绑定提交事件
-document.getElementById('btn-submit').addEventListener('click', submitUpload);
 
 //获得本地缓存的数据
 function getUploadedFromStorage() {
-  return JSON.parse(localforage.getItem(saveChunkKey) || "{}");
+  return JSON.parse(localforage.getItem(saveChunkKey) || '{}')
 }
 
 //写⼊缓存
 function setUploadedToStorage(index) {
-  var obj = getUploadedFromStorage();
-  obj[index] = true;
-  localforage.setItem(saveChunkKey, JSON.stringify(obj));
+  let obj = getUploadedFromStorage()
+  obj[index] = true
+  localforage.setItem(saveChunkKey, JSON.stringify(obj))
 }
+
 ```

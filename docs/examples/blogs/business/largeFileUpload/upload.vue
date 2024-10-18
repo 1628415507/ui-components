@@ -1,16 +1,19 @@
+<!--
+ * @Description: 
+ * @Date: 2024-10-17 09:03:22
+ * @LastEditTime: 2024-10-18 16:50:40
+-->
 <template>
   <el-upload
-    v-model:file-list="fileList"
-    class="upload-demo"
+    ref="uploadRef"
+    v-model="fileList"
     action="/"
+    class="upload-area"
+    drag
+    :show-file-list="false"
+    :http-request="handleHttpRequest"
+    :on-change="onChange"
     multiple
-    :on-preview="handlePreview"
-    :on-remove="handleRemove"
-    :before-remove="beforeRemove"
-    :limit="3"
-    :on-exceed="handleExceed"
-    @on-change="onChange"
-    :method="method"
   >
     <el-button type="primary">Click to upload</el-button>
     <template #tip>
@@ -20,43 +23,17 @@
 </template>
 <script lang="ts" setup>
 import { ref } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
-
+import { sliceUpload } from './sliceUpload'
 import type { UploadProps, UploadUserFile } from 'element-plus'
 
-const fileList = ref<UploadUserFile[]>([
-  {
-    name: 'element-plus-logo.svg',
-    url: 'https://element-plus.org/images/element-plus-logo.svg'
-  },
-  {
-    name: 'element-plus-logo2.svg',
-    url: 'https://element-plus.org/images/element-plus-logo.svg'
-  }
-])
-function onChange(val) {
-  console.log('【 onChange 】-37', val)
-}
-const handleRemove: UploadProps['onRemove'] = (file, uploadFiles) => {
-  console.log(file, uploadFiles)
+const fileList = ref<UploadUserFile[]>([])
+function onChange(uploadFile, uploadFiles) {
+  console.log('【 onChange 】-37', uploadFile, uploadFiles)
 }
 
-const handlePreview: UploadProps['onPreview'] = (uploadFile) => {
-  console.log(uploadFile)
-}
-function method() {}
-const handleExceed: UploadProps['onExceed'] = (files, uploadFiles) => {
-  ElMessage.warning(
-    `The limit is 3, you selected ${files.length} files this time, add up to ${
-      files.length + uploadFiles.length
-    } totally`
-  )
+// 接口上传
+function handleHttpRequest(uploadObject) {
+  sliceUpload(uploadObject.file)
 }
 
-const beforeRemove: UploadProps['beforeRemove'] = (uploadFile, uploadFiles) => {
-  return ElMessageBox.confirm(`Cancel the transfer of ${uploadFile.name} ?`).then(
-    () => true,
-    () => false
-  )
-}
 </script>
