@@ -460,15 +460,16 @@ blogs/business/indexedDB/index
 ## 大文件上传
 
 ### 分片上传
+
 - 把⼤⽂件进⾏分段 ⽐如 10M，发送到服务器携带⼀个标志，**可以使⽤当前的时间戳，⽤于标识⼀个完整的⽂件**
 - 服务端保存各段⽂件
 - 浏览器端所有分⽚上传完成，发送给服务端⼀个合并⽂件的请求
 - 服务端根据⽂件标识、类型、各分⽚顺序进⾏⽂件合并
 - 删除分⽚⽂件
-::: example
-blogs/business/largeFileUpload/upload
-:::
-详见`docs\examples\blogs\business\largeFileUpload\sliceUpload.js`
+  ::: example
+  blogs/business/largeFileUpload/upload
+  :::
+  详见`docs\examples\blogs\business\largeFileUpload\sliceUpload.js`
 
 ```js{4,6,15,16,17,18,23,39}
 // 分片上传
