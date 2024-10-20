@@ -6,7 +6,7 @@
 
 # 业务场景
 
-https://juejin.cn/post/7401060368087728166?searchId=202410142012222C5A2537F9C76AD11A25
+<https://juejin.cn/post/7401060368087728166?searchId=202410142012222C5A2537F9C76AD11A25>
 
 <!-- 1. ⽤⼾访问**系统1** 的受保护资源，系统 1 发现⽤⼾未登录，跳转⾄ **sso 认证中⼼**，**并将⾃⼰的地址作
 为参数**
@@ -79,6 +79,7 @@ https://juejin.cn/post/7401060368087728166?searchId=202410142012222C5A2537F9C76A
 
 - 详见`docs\examples\blogs\business\longTask\web-worker`
 - `web worker`是**运行在 Main 线程之外的一个线程**，叫做 worker 线程。我们可以把一些计算量大的任务放到 worker 中去处理。
+
   ```html{14,16,18}
   <!DOCTYPE html>
   <html lang="en">
@@ -113,7 +114,9 @@ https://juejin.cn/post/7401060368087728166?searchId=202410142012222C5A2537F9C76A
     </body>
   </html>
   ```
+
 - 适用于不需要实时通讯的场景
+
   ```js{10}
   // worker.js
   onmessage = function (event) {
@@ -128,7 +131,9 @@ https://juejin.cn/post/7401060368087728166?searchId=202410142012222C5A2537F9C76A
     }, 3000)
   }
   ```
+
 - 如果需要实时通信结果，依然会被卡死
+
   ```js{7}
   // worker.js
   onmessage = function (event) {
@@ -175,7 +180,7 @@ https://juejin.cn/post/7401060368087728166?searchId=202410142012222C5A2537F9C76A
 </html>
 ```
 
-#### [使用 chunkSize 来对长任务进行切分](https://blog.csdn.net/qq_53109172/article/details/135320963).
+#### [使用 chunkSize 来对长任务进行切分](https://blog.csdn.net/qq_53109172/article/details/135320963)
 
 - `requestAnimationFrame(callback)`触发的时机是**浏览器在下次重绘之前调用指定的回调函数更新动画**
 - `cancelAnimationFrame`：取消 requestAnimationFrame 执行
@@ -273,7 +278,7 @@ DocumentFragment 是 Web API 中的一部分，它是 DOM （文档对象模型�
 - 通常用来作为**临时**的 DOM 节点仓库。
 - 一旦整个 DocumentFragment 插入到 DOM 的一个**永久节点**上，那么在 DocumentFragment 内进行的更改将会触发 DOM 的重新渲染。
 
-### DocumentFragment API 有几个关键的特点和用途：
+### DocumentFragment API 有几个关键的特点和用途
 
 - 轻量级：DocumentFragment 不会引起布局重排，因为其不是真实渲染的一部分。
 - 节点集合：可以在 DocumentFragment 中节点集合进行分组，这个集合可以一次性插入到 DOM 的某一部分中。
@@ -293,7 +298,7 @@ DocumentFragment 是 Web API 中的一部分，它是 DOM （文档对象模型�
 
 > 详见`docs\examples\blogs\business\validationForm.html`
 
-- 滚动指定位置：`element.scrollIntoView({ block: "center", behavior: "smooth" }); `
+- 滚动指定位置：`element.scrollIntoView({ block: "center", behavior: "smooth" });`
 
 ## 6. [检测网页是否为空闲状态](https://www.jb51.net/javascript/318807ud9.htm)
 
@@ -639,12 +644,74 @@ function setUploadedToStorage(index) {
 
 ### 实现进度条
 
+1. 自定义
 ::: example
 blogs/business/progress/progress
 :::
-
+2. 使⽤第三⽅库，如 nprogress
 <!--
+
 - https://juejin.cn/post/7307057492059471899
 - https://juejin.cn/post/7401060368087728166?searchId=202410142012222C5A2537F9C76AD11A25#heading-4
 - https://juejin.cn/post/7422848805044371471
--->
+  -->
+
+## 常⻅图⽚懒加载⽅式有哪些？
+
+图⽚懒加载可以延迟图⽚的加载，只有当图⽚即将进⼊视⼝范围时才进⾏加载。这可以⼤⼤减轻⻚⾯的加载时间，并降低带宽消耗，提⾼了⽤⼾的体验。
+
+### 1. [Intersection Observer API](https://blog.csdn.net/Zbz00720/article/details/139025413)
+
+- `Intersection Observer API` 是⼀种⽤于异步检查 **⽂档中元素与视⼝叠加程度**的API。可以将其⽤于检测图⽚是否已经进⼊视⼝，并根据需要进⾏相应的处理。
+- observer观察者对象在观察元素是否进入视口、祖先元素的时候，不管元素是否进入，都会触发观察者对象的回调函数
+- isIntersecting true当前元素进入视口，false当前元素离开视口
+```js{2,3,7}
+	var box = document.querySelector('.img')
+	var observer = new IntersectionObserver((entry)=>{
+     if (entry.isIntersecting) {
+      // ...元素进入视口
+     }
+  })
+	observer.observe(box)
+```
+::: example
+blogs/business/lazyImage/intersectionObserver
+:::
+### 2. ⾃定义监听器
+- 可以通过⾃定义监听器来实现懒加载时，要应该避免在滚动事件处理程序中频繁进⾏图⽚加载，因为这可能会影响性能。
+- 应在**滚动停⽌时**进⾏图⽚加载。
+- [前置知识点](https://blog.csdn.net/lph159/article/details/142134594)
+
+| 属性                               | 说明                                                         |  图解   |
+| ---------------------------------- | ------------------------------------------------------------ | --- |
+| `scrollTop` | 浏览器窗口顶部与文档顶部之间的距离，也就是滚动条**滚动的距离**。 |     |
+| `window.innerHeight`|浏览器窗口的内部高度(包括滚动条),会随着浏览器窗口的放大缩小变化||
+|`clientHeight` |获取屏幕可视区域的高度，包含元素的高度+内边距;**不包含**水平滚动条，边框和外边距|![clientHeight](./img/clientHeight.png)|
+|`clientWidth` |获取屏幕可视区域的宽度。该属性包括内边距padding；**不包括**边框 border、外边距 margin 和垂直滚动条（如果有的话）。||
+|`offsetHeight`|元素的offsetHeight是一种元素CSS高度的衡量标准，**包括**元素的边框、内边距和元素的水平滚动条（如果存在且渲染的话）| ![offsetHeight](./img/offsetHeight.png)|
+| [`offsetTop`](https://blog.csdn.net/qq_42816270/article/details/138028929)                          | 表示元素顶部到其offsetParent元素内边框的距离，而offsetParent是最近的定位父元素或最近的table、td、th、body元素。当元素没有定位父元素时，offsetParent默认为body                            |    ![offsetTop](./img/offsetTop.png) |
+|判断元素是否进入父元素视口|`offsetTop < window.innerHeight + scrollTop`|![alt text](./img/image.png)|
+
+详见`docs\examples\blogs\business\lazyImage\lazyLoad.html`
+```js{6,7,13}
+function lazyLoad() {
+  const images = document.querySelectorAll(".lazy");
+  const scrollTop = window.pageYOffset;
+  images.forEach((img) => {
+    console.log('【 img 】-32', img.offsetTop, scrollTop, window.innerHeight)
+    if (img.offsetTop < window.innerHeight + scrollTop) {
+      img.src = img.dataset.src;
+      // img.classList.remove("lazy");
+    }
+  });
+}
+let lazyLoadThrottleTimeout;// 防抖
+document.addEventListener("scroll",
+  function () {
+    if (lazyLoadThrottleTimeout) {
+      clearTimeout(lazyLoadThrottleTimeout);
+    }
+    lazyLoadThrottleTimeout = setTimeout(lazyLoad, 1000);//停止滚动后执行
+  }
+)
+```
