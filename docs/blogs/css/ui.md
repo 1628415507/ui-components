@@ -20,19 +20,21 @@ blogs/css/ui/triangle
 :::
 
 ## 滚动条样式设置
+
 - `::-webkit-scrollbar`：滚动条整体样式
 - `::-webkit-scrollbar-track`：滚动条轨道样式
 - `::-webkit-scrollbar-thumb`：滚动条滑块样式
-::: example
-blogs/css/ui/scrollbar
-::: 
+  ::: example
+  blogs/css/ui/scrollbar
+  :::
 
+## [画一条 0.5px 的边](https://juejin.cn/post/6844903582370643975)
 
-## [画一条0.5px的边](https://juejin.cn/post/6844903582370643975)
-- 直接设置0.5（Chrome不支持，把0.5px四舍五入变成了1px）
-- 1.缩放：设置1px，然后`scale(0.5)`
-- 2.用线性渐变linear-gradient:渐变的角度从下往上，从白色#fff渐变到黑色#000，而且是线性的
-- 3.使用svg
-::: example
-blogs/css/ui/halfLine
-::: 
+- 1.直接设置 0.5（Chrome 不支持，把 0.5px 四舍五入变成了 1px）
+- 2.缩放：设置 1px，然后`scale(0.5)`
+- 3.用线性渐变 linear-gradient:渐变的角度从下往上，从白色#fff 渐变到黑色#000，而且是线性的
+- 4.使用 svg
+- 5.使用 boxshadow
+  ::: example
+  blogs/css/ui/halfLine
+  :::

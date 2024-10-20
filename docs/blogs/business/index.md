@@ -629,3 +629,22 @@ function setUploadedToStorage(index) {
 }
 
 ```
+
+## [如何实现⽹⻚加载进度条？](https://maimai.cn/article/detail?fid=1846750090&efid=IdmfyobQZPezeUGjGeOkIQ)
+
+### 监听静态资源加载情况
+
+- 可以使⽤ `window.performance.getEntries()` ⽅法获取⻚⾯上所有的资源加载信息。如每个资源的加载状态，计算加载时间等来实现
+  详见`docs\examples\blogs\business\progress\progress.html`
+
+### 实现进度条
+
+::: example
+blogs/business/progress/progress
+:::
+
+<!--
+- https://juejin.cn/post/7307057492059471899
+- https://juejin.cn/post/7401060368087728166?searchId=202410142012222C5A2537F9C76AD11A25#heading-4
+- https://juejin.cn/post/7422848805044371471
+-->

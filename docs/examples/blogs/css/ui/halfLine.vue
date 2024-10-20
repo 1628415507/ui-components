@@ -7,7 +7,7 @@
   <div>
     <el-form label-width="250px" label-position="left">
       <el-form-item label="1px">
-        <div class="line one-px"></div>
+        <div class="line one-px origin"></div>
       </el-form-item>
       <el-form-item label="0.5px">
         <div class="line half-px"></div>
@@ -40,6 +40,9 @@
 .line {
   width: 300px;
   background-color: #000;
+  &.origin {
+    background-color: red;
+  }
   &.scale-half {
     height: 1px;
     transform: scaleY(0.5);

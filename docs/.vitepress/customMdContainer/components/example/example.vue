@@ -32,7 +32,7 @@ onBeforeMount(() => {
   const pattern = new RegExp('/', 'g')
   const matches = props.path.match(pattern)
   const pathLevel = matches.length //获取examples目录下层级
-  console.log('【 matches 】-35', matches.length)
+  // console.log('【 matches 】-35', matches.length)
   if (pathLevel == 1) {
     modules = import.meta.glob(`../../../../examples/*/*.vue`, {
       eager: true
