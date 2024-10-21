@@ -645,9 +645,9 @@ function setUploadedToStorage(index) {
 ### 实现进度条
 
 1. 自定义
-::: example
-blogs/business/progress/progress
-:::
+   ::: example
+   blogs/business/progress/progress
+   :::
 2. 使⽤第三⽅库，如 nprogress
 <!--
 
@@ -662,9 +662,10 @@ blogs/business/progress/progress
 
 ### 1. [Intersection Observer API](https://blog.csdn.net/Zbz00720/article/details/139025413)
 
-- `Intersection Observer API` 是⼀种⽤于异步检查 **⽂档中元素与视⼝叠加程度**的API。可以将其⽤于检测图⽚是否已经进⼊视⼝，并根据需要进⾏相应的处理。
-- observer观察者对象在观察元素是否进入视口、祖先元素的时候，不管元素是否进入，都会触发观察者对象的回调函数
-- isIntersecting true当前元素进入视口，false当前元素离开视口
+- `Intersection Observer API` 是⼀种⽤于异步检查 **⽂档中元素与视⼝叠加程度**的 API。可以将其⽤于检测图⽚是否已经进⼊视⼝，并根据需要进⾏相应的处理。
+- observer 观察者对象在观察元素是否进入视口、祖先元素的时候，不管元素是否进入，都会触发观察者对象的回调函数
+- isIntersecting true 当前元素进入视口，false 当前元素离开视口
+
 ```js{2,3,7}
 	var box = document.querySelector('.img')
 	var observer = new IntersectionObserver((entry)=>{
@@ -674,25 +675,29 @@ blogs/business/progress/progress
   })
 	observer.observe(box)
 ```
+
 ::: example
 blogs/business/lazyImage/intersectionObserver
 :::
+
 ### 2. ⾃定义监听器
+
 - 可以通过⾃定义监听器来实现懒加载时，要应该避免在滚动事件处理程序中频繁进⾏图⽚加载，因为这可能会影响性能。
 - 应在**滚动停⽌时**进⾏图⽚加载。
 - [前置知识点](https://blog.csdn.net/lph159/article/details/142134594)
 
-| 属性                               | 说明                                                         |  图解   |
-| ---------------------------------- | ------------------------------------------------------------ | --- |
-| `scrollTop` | 浏览器窗口顶部与文档顶部之间的距离，也就是滚动条**滚动的距离**。 |     |
-| `window.innerHeight`|浏览器窗口的内部高度(包括滚动条),会随着浏览器窗口的放大缩小变化||
-|`clientHeight` |获取屏幕可视区域的高度，包含元素的高度+内边距;**不包含**水平滚动条，边框和外边距|![clientHeight](./img/clientHeight.png)|
-|`clientWidth` |获取屏幕可视区域的宽度。该属性包括内边距padding；**不包括**边框 border、外边距 margin 和垂直滚动条（如果有的话）。||
-|`offsetHeight`|元素的offsetHeight是一种元素CSS高度的衡量标准，**包括**元素的边框、内边距和元素的水平滚动条（如果存在且渲染的话）| ![offsetHeight](./img/offsetHeight.png)|
-| [`offsetTop`](https://blog.csdn.net/qq_42816270/article/details/138028929)                          | 表示元素顶部到其offsetParent元素内边框的距离，而offsetParent是最近的定位父元素或最近的table、td、th、body元素。当元素没有定位父元素时，offsetParent默认为body                            |    ![offsetTop](./img/offsetTop.png) |
-|判断元素是否进入父元素视口|`offsetTop < window.innerHeight + scrollTop`|![alt text](./img/image.png)|
+| 属性                                                                       | 说明                                                                                                                                                                  | 图解                                    |
+| -------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------- |
+| `scrollTop`                                                                | 浏览器窗口顶部与文档顶部之间的距离，也就是滚动条**滚动的距离**。                                                                                                      |                                         |
+| `window.innerHeight`                                                       | 浏览器窗口的内部高度(包括滚动条),会随着浏览器窗口的放大缩小变化                                                                                                       |                                         |
+| `clientHeight`                                                             | 获取屏幕可视区域的高度，包含元素的高度+内边距;**不包含**水平滚动条，边框和外边距                                                                                      | ![clientHeight](./img/clientHeight.png) |
+| `clientWidth`                                                              | 获取屏幕可视区域的宽度。该属性包括内边距 padding；**不包括**边框 border、外边距 margin 和垂直滚动条（如果有的话）。                                                   |                                         |
+| `offsetHeight`                                                             | 元素的 offsetHeight 是一种元素 CSS 高度的衡量标准，**包括**元素的边框、内边距和元素的水平滚动条（如果存在且渲染的话）                                                 | ![offsetHeight](./img/offsetHeight.png) |
+| [`offsetTop`](https://blog.csdn.net/qq_42816270/article/details/138028929) | 表示元素顶部到其 offsetParent 元素内边框的距离，而 offsetParent 是最近的定位父元素或最近的 table、td、th、body 元素。当元素没有定位父元素时，offsetParent 默认为 body | ![offsetTop](./img/offsetTop.png)       |
+| 判断元素是否进入父元素视口                                                 | `offsetTop < window.innerHeight + scrollTop`                                                                                                                          | ![alt text](./img/image.png)            |
 
 详见`docs\examples\blogs\business\lazyImage\lazyLoad.html`
+
 ```js{6,7,13}
 function lazyLoad() {
   const images = document.querySelectorAll(".lazy");
@@ -715,3 +720,5 @@ document.addEventListener("scroll",
   }
 )
 ```
+
+## [扫码登录实现⽅式](https://developer.baidu.com/article/details/3352196)
