@@ -25,13 +25,37 @@
 13. sso 认证中⼼校验令牌，返回有效，注册系统 2
 14. 系统 2 使⽤该令牌创建与⽤⼾的局部会话，返回受保护资源 -->
 
-## 1. Web ⽹⻚如何禁⽌别⼈移除⽔印
+## 前端水印
+
+### [实现方案](https://zhuanlan.zhihu.com/p/374734095)
+
+#### 重复的 dom 元素覆盖实现
+
+- 在页面上覆盖一个`position:fixed`的 div 盒子，盒子透明度设置较低;
+- 设置`pointer-events: none`样式实现点击穿透，禁止鼠标选取水印元素
+- 在盒子内通过 js 循环生成水印 div，每个水印 div 内展示一个要显示的水印内容
+  ::: example
+  blogs/business/watermark/dom
+  :::
+- 缺点：这种方案需要要在 js 内循环创建多个 dom 元素，既不优雅也影响性能
+
+#### canvas 输出背景图
+
+- 在页面上覆盖一个固定定位的盒子，然后创建一个 canvas 画布，绘制出一个水印区域，
+- 将这个水印通过 toDataURL 方法输出为一个图片，将这个图片设置为盒子的背景图，
+- 通过 `backgroud-repeat：repeat`样式实现填满整个屏幕的效果，简单实现的代码。
+  默认情况下,背景图片会在水平和垂直方向上重复出现,直到填满整个页面
+  ::: example
+  blogs/business/watermark/canvas
+  :::
+
+### 1. Web ⽹⻚如何禁⽌别⼈移除⽔印
 
 - `MutationObserver` 可以观察 DOM 树的变化，并在变化发⽣时触发回调函数。
 - 可以在回调函数中使用`mutation.removedNodes`检查是否有⽔印被删除，
 - MutationObserver API 是现代浏览器提供的功能，在⽼旧的浏览器中可能不⽀持。因此，在实际使⽤时，需要注意对浏览器的兼容性进⾏测试和处理。
   ::: example
-  blogs/business/watermark
+  blogs/business/watermark/watermark
   :::
 
 ## 2. JS 执⾏ 100 万个任务， 如何保证浏览器不卡顿？
@@ -690,9 +714,9 @@ blogs/business/lazyImage/intersectionObserver
 | -------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------- |
 | `scrollTop`                                                                | 浏览器窗口顶部与文档顶部之间的距离，也就是滚动条**滚动的距离**。                                                                                                      |                                         |
 | `window.innerHeight`                                                       | 浏览器窗口的内部高度(包括滚动条),会随着浏览器窗口的放大缩小变化                                                                                                       |                                         |
-| `clientHeight`                                                             | 获取屏幕可视区域的高度，包含元素的高度+内边距;**不包含**水平滚动条，边框和外边距                                                                                      | ![clientHeight](./img/clientHeight.png) |
-| `clientWidth`                                                              | 获取屏幕可视区域的宽度。该属性包括内边距 padding；**不包括**边框 border、外边距 margin 和垂直滚动条（如果有的话）。                                                   |                                         |
-| `offsetHeight`                                                             | 元素的 offsetHeight 是一种元素 CSS 高度的衡量标准，**包括**元素的边框、内边距和元素的水平滚动条（如果存在且渲染的话）                                                 | ![offsetHeight](./img/offsetHeight.png) |
+| `clientHeight`                                                             | 获取屏幕可视区域的高度，包含元素的高度+内边距;<br/>**不包含**水平滚动条，边框和外边距                                                                                 | ![clientHeight](./img/clientHeight.png) |
+| `clientWidth`                                                              | 获取屏幕可视区域的宽度。该属性包括内边距 padding；<br/>**不包括**边框 border、外边距 margin 和垂直滚动条（如果有的话）。                                              |                                         |
+| `offsetHeight`                                                             | 元素的 offsetHeight 是一种元素 CSS 高度的衡量标准，<br/>**包括**元素的边框、内边距和元素的水平滚动条（如果存在且渲染的话）                                            | ![offsetHeight](./img/offsetHeight.png) |
 | [`offsetTop`](https://blog.csdn.net/qq_42816270/article/details/138028929) | 表示元素顶部到其 offsetParent 元素内边框的距离，而 offsetParent 是最近的定位父元素或最近的 table、td、th、body 元素。当元素没有定位父元素时，offsetParent 默认为 body | ![offsetTop](./img/offsetTop.png)       |
 | 判断元素是否进入父元素视口                                                 | `offsetTop < window.innerHeight + scrollTop`                                                                                                                          | ![alt text](./img/image.png)            |
 
@@ -722,3 +746,23 @@ document.addEventListener("scroll",
 ```
 
 ## [扫码登录实现⽅式](https://developer.baidu.com/article/details/3352196)
+
+扫码登录的实现原理核⼼是基于⼀个中转站，该中转站通常由应⽤提供商提供，⽤于维护⼿机和 PC 之
+间的会话状态。
+整个扫码登录的流程如下：
+
+1. ⽤⼾在 PC 端访问应⽤，并选择使⽤扫码登录⽅式。此时，应⽤⽣成⼀个**随机的认证码**，并将该认证
+   码通过⼆维码的形式显⽰在 PC 端的⻚⾯上。
+2. ⽤⼾打开⼿机上的应⽤，并选择使⽤扫码登录⽅式。此时，应⽤会打开⼿机端的相机，⽤⼾可以对
+   着 PC 端的⼆维码进⾏扫描。
+3. ⼀旦⽤⼾扫描了⼆维码，⼿机上的应⽤会向应⽤提供商的**中转站**发送⼀个请求，请求包含之前⽣成
+   的**随机认证码和⼿机端的⼀个会话 ID**。
+4. 中转站验证认证码和会话 ID 是否匹配，如果匹配成功，则该中转站将 **⽤⼾的⾝份信息发送给应⽤**，
+   并创建⼀个 PC 端和⼿机端之间的会话状态。
+5. 应⽤使⽤收到的⾝份信息对⽤⼾进⾏认证，并创建⼀个与该⽤⼾关联的会话状态。同时，应⽤ **返回⼀个通过认证的响应给中转站**。
+6. 中转站将该响应返回给⼿机端的应⽤，并携带⼀个⽤于表⽰该会话的令牌，此时⼿机和 PC 之间的认
+   证流程就完成了。
+7. 当⽤⼾在 PC 端进⾏其他操作时，应⽤将会话令牌附加在请求中，并通过中转站向⼿机端的应⽤发起
+   请求。⼿机端的应⽤使⽤会话令牌（也就是之前⽣成的令牌）来识别并验证会话状态，从⽽允许⽤
+   ⼾在 PC 端进⾏需要登录的操作。
+   ![alt text](./img/scanLogin.png)
