@@ -13,6 +13,7 @@ import { onMounted } from 'vue'
 
 function handleObserver() {
   // 1。创建了⼀个 MutationObserver 实例
+  const MutationObserver = window.MutationObserver || window.WebKitMutationObserver
   const observer = new MutationObserver((mutationsList) => {
     for (let mutation of mutationsList) {
       // 1-1.判断页面是否有元素被删除
@@ -28,6 +29,9 @@ function handleObserver() {
           watermarkElement.innerText = '水印'
           targetNode.appendChild(watermarkElement)
         }
+        // 避免一直触发
+        // observer.disconnect();
+        // observer = null
       }
     }
   })

@@ -21,7 +21,7 @@ function setWaterMark(config = {}) {
     zIndex = 10000
   } = config
   const container = document.body //放置水印的容器
-  // 1. 绘制水印图片
+  // 1. 绘制水印canvas图片
   const canvas = document.createElement('canvas')
   canvas.setAttribute('width', width)
   canvas.setAttribute('height', height)
@@ -59,40 +59,8 @@ function setWaterMark(config = {}) {
   if (!oldWmDiv) {
     container.insertBefore(wmDiv, container.firstChild) //将水印添加到对应容器中
   }
-  // if (typeof module != 'undefined' && module.exports) {
-  //   //CMD
-  //   module.exports = __canvasWM
-  // } else if (typeof define == 'function' && define.amd) {
-  //   // AMD
-  //   define(function () {
-  //     return __canvasWM
-  //   })
-  // } else {
-  //   window.__canvasWM = __canvasWM
-  // }
 }
 
 onMounted(() => {})
 </script>
-<style scoped lang="scss">
-#wmContainerId {
-  position: fixed;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  font-size: 24px;
-  font-weight: 700;
-  display: flex;
-  flex-wrap: wrap;
-  overflow: hidden;
-  user-select: none;
-  pointer-events: none; //禁止用户选择元素
-  opacity: 0.1;
-  z-index: 999;
-}
-
-.watermark-item {
-  text-align: center;
-}
-</style>
+<style scoped lang="scss"></style>

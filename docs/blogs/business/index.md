@@ -25,39 +25,6 @@
 13. sso 认证中⼼校验令牌，返回有效，注册系统 2
 14. 系统 2 使⽤该令牌创建与⽤⼾的局部会话，返回受保护资源 -->
 
-## 前端水印
-
-### [实现方案](https://zhuanlan.zhihu.com/p/374734095)
-
-#### 重复的 dom 元素覆盖实现
-
-- 在页面上覆盖一个`position:fixed`的 div 盒子，盒子透明度设置较低;
-- 设置`pointer-events: none`样式实现点击穿透，禁止鼠标选取水印元素
-- 在盒子内通过 js 循环生成水印 div，每个水印 div 内展示一个要显示的水印内容
-  ::: example
-  blogs/business/watermark/dom
-  :::
-- 缺点：这种方案需要要在 js 内循环创建多个 dom 元素，既不优雅也影响性能
-
-#### canvas 输出背景图
-
-- 在页面上覆盖一个固定定位的盒子，然后创建一个 canvas 画布，绘制出一个水印区域，
-- 将这个水印通过 toDataURL 方法输出为一个图片，将这个图片设置为盒子的背景图，
-- 通过 `backgroud-repeat：repeat`样式实现填满整个屏幕的效果，简单实现的代码。
-  默认情况下,背景图片会在水平和垂直方向上重复出现,直到填满整个页面
-  ::: example
-  blogs/business/watermark/canvas
-  :::
-
-### 1. Web ⽹⻚如何禁⽌别⼈移除⽔印
-
-- `MutationObserver` 可以观察 DOM 树的变化，并在变化发⽣时触发回调函数。
-- 可以在回调函数中使用`mutation.removedNodes`检查是否有⽔印被删除，
-- MutationObserver API 是现代浏览器提供的功能，在⽼旧的浏览器中可能不⽀持。因此，在实际使⽤时，需要注意对浏览器的兼容性进⾏测试和处理。
-  ::: example
-  blogs/business/watermark/watermark
-  :::
-
 ## 2. JS 执⾏ 100 万个任务， 如何保证浏览器不卡顿？
 
 - 浏览器主线程一次只能处理一个任务（任务按照队列执行）,当遇到长任务（执行超过 50 毫秒，就会被称为长任务(Long Task)）时，需要等长任务执行完才能进行下一步操作，这个过程就会造成阻塞
