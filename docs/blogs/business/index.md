@@ -733,3 +733,45 @@ document.addEventListener("scroll",
    请求。⼿机端的应⽤使⽤会话令牌（也就是之前⽣成的令牌）来识别并验证会话状态，从⽽允许⽤
    ⼾在 PC 端进⾏需要登录的操作。
    ![alt text](./img/scanLogin.png)
+
+## 如何判断 dom 元素是否在可视区域【热度: 846】
+
+### 1. getBoundingClientRect() ⽅法
+
+```js{2,6}
+function isInViewport(element) {
+  const rect = element.getBoundingClientRect()
+  const { top, left, bottom, right } = rect
+  const height = window.innerHeight || document.documentElementclientHeight
+  const width = window.innerWidth || document.documentElement.clientWidth
+  return top >= 0 && left >= 0 && bottom <= height && right <= width
+}
+// 示例
+const element = document.getElementById('my-element');
+if (isInViewport(element)) {
+  console.log('在可视区域')
+} else {
+  console.log('不在可视区域')
+}
+```
+
+### 2. IntersectionObserver API
+
+- 该 API 可以观察元素与其祖先元素或视⼝交叉的情况，并且可以设置回调函数，当元素的可⻅性发⽣变化时会调⽤该回调函数。
+- 使⽤ IntersectionObserver API 的优点是可以减少不必要的计算和事件监听，提⾼了性能
+
+```js{3,11,13}
+function callback(entries, observer) {
+  entries.forEach((entry) => {
+    if (entry.isIntersecting) {
+      console.log('Element is in viewport')
+    } else {
+      console.log('Element is not in viewport')
+    }
+  })
+}
+
+const observer = new IntersectionObserver(callback)
+const element = document.getElementById('my-element')
+observer.observe(element)
+```
