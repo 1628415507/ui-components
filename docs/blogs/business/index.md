@@ -239,9 +239,7 @@
 
 | 分支                               | 说明                                                         |     |
 | ---------------------------------- | ------------------------------------------------------------ | --- |
-| clientHeight                       | 获取屏幕可视区域的高度                                       |     |
-| clientWidth                        | 获取屏幕可视区域的宽度                                       |     |
-| offsetTop                          | 元素相对于文档顶部的高度。                                   |     |
+|                                    |
 | document.documentElement.scrollTop | 浏览器窗口顶部与文档顶部之间的距离，也就是滚动条滚动的距离。 |     |
 
 ![image.png](https://p0-xtjj-private.juejin.cn/tos-cn-i-73owjymdk6/9f4c4b681b2a49dbb1aa980fe8fc5f87~tplv-73owjymdk6-jj-mark-v1:0:0:0:0:5o6Y6YeR5oqA5pyv56S-5Yy6IEAg5bCP6I2J5byA6Iqx:q75.awebp?policy=eyJ2bSI6MywidWlkIjoiNjE2MjA1Mjg1MDY1MjA4In0%3D&rk3s=e9ecf3d6&x-orig-authkey=f32326d3454f2ac7e96d3d06cdbb035152127018&x-orig-expires=1724723528&x-orig-sign=%2BVkJnxWIB2JfM280LLZJJDzWGlw%3D)
@@ -686,6 +684,7 @@ blogs/business/lazyImage/intersectionObserver
 | `offsetHeight`                                                             | 元素的 offsetHeight 是一种元素 CSS 高度的衡量标准，<br/>**包括**元素的边框、内边距和元素的水平滚动条（如果存在且渲染的话）                                            | ![offsetHeight](./img/offsetHeight.png) |
 | [`offsetTop`](https://blog.csdn.net/qq_42816270/article/details/138028929) | 表示元素顶部到其 offsetParent 元素内边框的距离，而 offsetParent 是最近的定位父元素或最近的 table、td、th、body 元素。当元素没有定位父元素时，offsetParent 默认为 body | ![offsetTop](./img/offsetTop.png)       |
 | 判断元素是否进入父元素视口                                                 | `offsetTop < window.innerHeight + scrollTop`                                                                                                                          | ![alt text](./img/image.png)            |
+| `clientX/clientY `                                                         | 鼠标相对于浏览器文档显示区的水平 X 坐标,不包括工具栏和滚动条                                                                                                          |                                         |
 
 详见`docs\examples\blogs\business\lazyImage\lazyLoad.html`
 
@@ -775,3 +774,16 @@ const observer = new IntersectionObserver(callback)
 const element = document.getElementById('my-element')
 observer.observe(element)
 ```
+
+## 如何⽤ canvas 来做电影院选票功能
+
+- `canvas.getContext('2d')`：
+  - getContext 方法指定参数 2d，表示该 canvas 节点用于生成 2D 图案（即平面图案）。
+  - 如果参数是 webgl，就表示用于生成 3D 图像（即立体图案）
+- canvas 画布提供了一个用来作图的平面空间，该空间的每个点都有自己的坐标，x 表示横坐标，y 表示竖坐标。
+  - **原点(0, 0)位于图像左上角**，x 轴的正向是原点向右，y 轴的正向是原点向下。
+- `fillRect(x, y, width, height)`方法用来绘制矩形，它的四个参数分别为矩形左上角顶点的 x 坐标、y 坐标，以及矩形的宽和高。
+- `fillStyle` 属性用来设置矩形的填充色。
+  ::: example
+  blogs/business/movies
+  :::
