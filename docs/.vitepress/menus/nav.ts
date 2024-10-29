@@ -1,7 +1,7 @@
 /*
  * @Description:
  * @Date: 2024-06-27 16:50:06
- * @LastEditTime: 2024-08-23 15:09:57
+ * @LastEditTime: 2024-10-29 10:19:37
  */
 import { DefaultTheme } from 'vitepress';
 
@@ -11,15 +11,15 @@ export const nav: DefaultTheme.NavItem[] = [
   { text: '指南', link: '/guide' },
   { text: '组件', link: '/examples' },
   // {
-  //   text: '工具',
+  //   text: '组件',
   //   items: [
   //     {
-  //       text: '指令',
-  //       link: '/examples' // 对应docs/column/Algorithm下的idnex.md文件
+  //       text: '基础组件',
+  //       link: '/examples/base' 
   //     },
   //     {
-  //       text: '方法',
-  //       link: '/examples' // 对应docs/column/Algorithm下的idnex.md文件
+  //       text: '业务组件',
+  //       link: '/examples/business' 
   //     }
   //   ]
   // },

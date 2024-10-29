@@ -1,7 +1,7 @@
 /*
  * @Description:
  * @Date: 2024-06-26 11:40:35
- * @LastEditTime: 2024-07-30 16:13:22
+ * @LastEditTime: 2024-10-29 09:59:54
  */
 import { defineAsyncComponent } from 'vue'//异步加载组件的方法
 import type { Component, App } from 'vue'
@@ -37,7 +37,9 @@ export const components: {
   // 其他组件
   ZExpandMore: defineAsyncComponent(() => import('./expand-more/src/index.vue')),
   ZInfoCard: defineAsyncComponent(() => import('./info-card/src/index.vue')),
-  ZPlusminusButton: defineAsyncComponent(() => import('./plusminus-button/src/index.vue'))
+  ZPlusminusButton: defineAsyncComponent(() => import('./plusminus-button/src/index.vue')),
+  ZRowSteps: defineAsyncComponent(() => import('./steps/row-steps/src/index.vue')),
+  ZVerticalSteps: defineAsyncComponent(() => import('./steps/vertical-steps/src/index.vue'))
 }
 
 // 插件声明：声明所有插件

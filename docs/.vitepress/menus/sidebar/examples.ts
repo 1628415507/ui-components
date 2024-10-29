@@ -1,7 +1,7 @@
 /*
  * @Description:
  * @Date: 2024-08-23 15:19:18
- * @LastEditTime: 2024-08-23 15:34:35
+ * @LastEditTime: 2024-10-29 10:20:03
  */
 
 export const sidebarExamples = [
@@ -25,7 +25,8 @@ export const sidebarExamples = [
     text: 'Data 数据展示',
     items: [
       { text: 'Expand More 展开更多', link: '/examples/expand-more/doc.md' },
-      { text: 'Info Card 信息框', link: '/examples/info-card/doc.md' }
+      { text: 'Info Card 信息框', link: '/examples/info-card/doc.md' },
+      { text: 'Steps 步骤条', link: '/examples/steps/doc.md' }
     ]
   },
   {
