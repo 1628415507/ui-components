@@ -26,7 +26,8 @@ export const sidebarExamples = [
     items: [
       { text: 'Expand More 展开更多', link: '/examples/expand-more/doc.md' },
       { text: 'Info Card 信息框', link: '/examples/info-card/doc.md' },
-      { text: 'Steps 步骤条', link: '/examples/steps/doc.md' }
+      { text: 'Steps 步骤条', link: '/examples/steps/doc.md' },
+      { text: 'CountDown 倒计时', link: '/examples/countdown/doc.md' }
     ]
   },
   {
