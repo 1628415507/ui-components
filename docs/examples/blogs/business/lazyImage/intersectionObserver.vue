@@ -27,7 +27,7 @@ function callback(entries) {
         //用定时器方便观察替换效果，实际可以不用定时器
         setTimeout(() => {
           lazyImage.src = lazyImage.dataset.url
-          observer.unobserve(lazyImage)
+          observer?.unobserve(lazyImage)
         }, 1000)
       }
     }
