@@ -9,7 +9,8 @@ export default [
     text: '业务场景',
     items: [
       { text: '场景1', link: '/blogs/business/index.md' },
-      { text: 'axios', link: '/blogs/business/axios.md' }
+      { text: 'axios', link: '/blogs/business/axios.md' },
+      { text: '前端添加水印', link: '/blogs/business/watermark.md' }
     ]
   }
 ]
