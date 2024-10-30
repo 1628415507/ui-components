@@ -1,7 +1,7 @@
 <!--
  * @Description: 信息框
  * @Date: 2024-06-28 17:36:26
- * @LastEditTime: 2024-06-28 17:53:38
+ * @LastEditTime: 2024-10-30 18:16:07
 -->
 
 # Plusminus Button 加减按钮
@@ -9,7 +9,7 @@
 ## 基础用法
 
 ::: example
-plusminus-button/index
+examples/plusminus-button/index
 :::
 
 ## API
