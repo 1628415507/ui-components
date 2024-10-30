@@ -34,13 +34,14 @@ export const components: {
   ZInputExpand: defineAsyncComponent(() => import('./form/input-expand/src/index.vue')),
   ZInputNumber: defineAsyncComponent(() => import('./form/input-number/src/index.vue')),
   ZAssociateSelect: defineAsyncComponent(() => import('./form/associate-select/src/index.vue')),
+  ZEditLabel: defineAsyncComponent(() => import('./form/edit-label/src/index.vue')),
   // 其他组件
   ZExpandMore: defineAsyncComponent(() => import('./expand-more/src/index.vue')),
   ZInfoCard: defineAsyncComponent(() => import('./info-card/src/index.vue')),
   ZPlusminusButton: defineAsyncComponent(() => import('./plusminus-button/src/index.vue')),
   ZRowSteps: defineAsyncComponent(() => import('./steps/row-steps/src/index.vue')),
   ZVerticalSteps: defineAsyncComponent(() => import('./steps/vertical-steps/src/index.vue')),
-  ZCountdown: defineAsyncComponent(() => import('./countdown/src/index.vue'))
+  ZCountdown: defineAsyncComponent(() => import('./countdown/src/index.vue')),
 }
 
 // 插件声明：声明所有插件

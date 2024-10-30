@@ -1,7 +1,7 @@
 <!--
  * @Description: 
  * @Date: 2024-10-28 09:50:13
- * @LastEditTime: 2024-10-29 10:33:58
+ * @LastEditTime: 2024-10-30 16:00:02
 -->
 <template>
   <div class="z-countdown-wrap">
@@ -84,6 +84,7 @@ onUnmounted(() => {
     font-size: 29.5px;
     height: 39px;
     .num {
+      min-width:52px;
       font-family: var(--iv-font);
       display: flex;
       justify-content: center;

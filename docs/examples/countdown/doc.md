@@ -6,9 +6,13 @@
 
 # CountDown 倒计时
 
+## 基础用法
+
 ::: example
 countdown/CountDown
 :::
+
+## API
 
 ### Attributes
 

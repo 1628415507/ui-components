@@ -1,7 +1,7 @@
 /*
  * @Description:
  * @Date: 2024-08-23 15:19:18
- * @LastEditTime: 2024-10-29 10:20:03
+ * @LastEditTime: 2024-10-30 15:57:38
  */
 
 export const sidebarExamples = [
@@ -18,7 +18,8 @@ export const sidebarExamples = [
       { text: 'Input Divider 35字符分割线', link: '/examples/input-divider/doc.md' },
       { text: 'Input Expand 扩展输入框', link: '/examples/input-expand/doc.md' },
       { text: 'Input Order 单号输入框', link: '/examples/input-order/doc.md' },
-      { text: 'Associate Select 联想控件', link: '/examples/associate-select/doc.md' }
+      { text: 'Associate Select 联想控件', link: '/examples/associate-select/doc.md' },
+      { text: 'Edit Label 可编辑标签', link: '/examples/edit-label/doc.md' }
     ]
   },
   {

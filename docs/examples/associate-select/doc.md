@@ -1,7 +1,7 @@
 <!--
  * @Description:
  * @Date: 2024-07-16 13:49:04
- * @LastEditTime: 2024-08-14 11:56:30
+ * @LastEditTime: 2024-10-30 16:28:07
 -->
 
 # Associate Select 联想控件
@@ -29,7 +29,7 @@ associate-select/allowCreate
 
 | 属性名        | 说明                                               | 类型       | 默认值 |
 | ------------- | -------------------------------------------------- | ---------- | ------ |
-| v-model       | 绑定唯一标识的值                                   | `string`   |        |
+| v-model       | 绑定值                                   | `string`   |        |
 | configs       | 联想控件配置                                       | `object`   |        |
 |               | configs.url : 请求的接口参数                       | `string`   |        |
 |               | configs.multiple : 是否多选                        | `string`   | false  |
