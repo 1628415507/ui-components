@@ -10,7 +10,9 @@ export default [
     items: [
       { text: '场景1', link: '/blogs/business/index.md' },
       { text: 'axios', link: '/blogs/business/axios.md' },
-      { text: '前端添加水印', link: '/blogs/business/watermark.md' }
+      { text: '前端添加水印', link: '/blogs/business/watermark.md' },
+      { text: 'Dom', link: '/blogs/business/dom.md' },
+      { text: 'Node', link: '/blogs/business/node.md' }
     ]
   }
 ]
