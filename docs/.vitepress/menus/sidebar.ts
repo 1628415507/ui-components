@@ -1,15 +1,15 @@
 /*
  * @Description:左侧菜单
  * @Date: 2024-06-27 16:50:06
- * @LastEditTime: 2024-10-14 17:14:45
+ * @LastEditTime: 2024-10-30 18:10:23
  */
 import { sidebarExamples } from './sidebar/examples' // 左侧菜单
 import { sidebarGuide } from './sidebar/guide' // 左侧菜单
-import blogsBusiness from './sidebar/business' // 左侧菜单
-import blogsCss from './sidebar/css' // 左侧菜单
-import blogsJavaScript from './sidebar/javaScript' // 左侧菜单
-import blogsFramework from './sidebar/framework' // 左侧菜单
-import blogsNetwork from './sidebar/network' // 左侧菜单
+import blogsBusiness from './sidebar/blogsBusiness'  // 左侧菜单
+import blogsCss from './sidebar/blogsCss'  // 左侧菜单
+import blogsJavaScript from './sidebar/blogsJavaScript'  // 左侧菜单
+import blogsFramework from './sidebar/blogsFramework'  // 左侧菜单
+import blogsNetwork from './sidebar/blogsNetwork' // 左侧菜单
 
 // 左侧菜单
 export const sidebar = {
