@@ -6,5 +6,5 @@
 
 ##  树添加指示线线
 ::: example
-tools/businesscomp/css/LineTree
+resources/businesscomp/css/LineTree
 :::

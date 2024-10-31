@@ -6,5 +6,5 @@
 ## 百分比柱状图
 
 ::: example
-tools/businesscomp/charts/custom/demo
+resources/businesscomp/charts/custom/demo
 :::

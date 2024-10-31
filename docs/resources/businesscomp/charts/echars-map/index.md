@@ -6,11 +6,11 @@
 ## 2D地图
 
 ::: example
-tools/businesscomp/charts/echars-map/Map2D
+resources/businesscomp/charts/echars-map/Map2D
 :::
 
 ## 3D地图
 
 ::: example
-tools/businesscomp/charts/echars-map/Map3D
+resources/businesscomp/charts/echars-map/Map3D
 :::

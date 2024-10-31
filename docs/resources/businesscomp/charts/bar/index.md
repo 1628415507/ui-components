@@ -6,11 +6,11 @@
 <!-- ## 2D地图 -->
 
 ::: example
-tools/businesscomp/charts/pie/Pie
+resources/businesscomp/charts/bar/StackBar
 :::
 
 <!-- ## 3D地图
 
 ::: example
-tools/businesscomp/charts/bar/Map3D
+resources/businesscomp/charts/bar/Map3D
 ::: -->

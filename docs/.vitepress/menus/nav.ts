@@ -1,7 +1,7 @@
 /*
  * @Description:
  * @Date: 2024-06-27 16:50:06
- * @LastEditTime: 2024-10-31 11:44:12
+ * @LastEditTime: 2024-10-31 15:45:05
  */
 import { DefaultTheme } from 'vitepress';
 
@@ -12,11 +12,11 @@ export const nav: DefaultTheme.NavItem[] = [
   { text: '组件', link: '/examples' },
   // { text: '工具', link: '/tools' },
   {
-    text: '工具',
+    text: '资源',
     items: [
       {
         text: '业务组件',
-        link: '/tools/businesscomp'
+        link: '/resources/businesscomp'
       },
       // {
       //   text: '自定义指令',
