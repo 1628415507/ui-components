@@ -1,7 +1,7 @@
 <!--
  * @Description: 扩展输入框使用文档
  * @Date: 2024-06-27 16:45:45
- * @LastEditTime: 2024-07-03 09:08:38
+ * @LastEditTime: 2024-10-30 18:15:19
 -->
 
 # Input Expand 扩展输入框
@@ -12,7 +12,7 @@
 
 通过设置`independent`属性为`true`，可以绑定不同值
 ::: example
-input-expand/base
+examples/input-expand/base
 :::
 
 ## 限制单号类型
@@ -22,7 +22,7 @@ input-expand/base
 - 单号类型下，强制输入框和文本域分开绑定值
 - 单号类型下，文本域拆分出的第一个值会赋给输入框的值
   ::: example
-  input-expand/order
+  examples/input-expand/order
   :::
 
 ## API

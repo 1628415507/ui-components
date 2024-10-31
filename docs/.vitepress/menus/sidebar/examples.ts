@@ -1,7 +1,7 @@
 /*
  * @Description:
  * @Date: 2024-08-23 15:19:18
- * @LastEditTime: 2024-08-23 15:34:35
+ * @LastEditTime: 2024-10-30 15:57:38
  */
 
 export const sidebarExamples = [
@@ -18,14 +18,17 @@ export const sidebarExamples = [
       { text: 'Input Divider 35字符分割线', link: '/examples/input-divider/doc.md' },
       { text: 'Input Expand 扩展输入框', link: '/examples/input-expand/doc.md' },
       { text: 'Input Order 单号输入框', link: '/examples/input-order/doc.md' },
-      { text: 'Associate Select 联想控件', link: '/examples/associate-select/doc.md' }
+      { text: 'Associate Select 联想控件', link: '/examples/associate-select/doc.md' },
+      { text: 'Edit Label 可编辑标签', link: '/examples/edit-label/doc.md' }
     ]
   },
   {
     text: 'Data 数据展示',
     items: [
       { text: 'Expand More 展开更多', link: '/examples/expand-more/doc.md' },
-      { text: 'Info Card 信息框', link: '/examples/info-card/doc.md' }
+      { text: 'Info Card 信息框', link: '/examples/info-card/doc.md' },
+      { text: 'Steps 步骤条', link: '/examples/steps/doc.md' },
+      { text: 'CountDown 倒计时', link: '/examples/countdown/doc.md' }
     ]
   },
   {

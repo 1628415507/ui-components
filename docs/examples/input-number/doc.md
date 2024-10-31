@@ -1,7 +1,7 @@
 <!--
  * @Description: 数字输入框使用文档
  * @Date: 2024-06-27 16:45:45
- * @LastEditTime: 2024-07-03 09:08:38
+ * @LastEditTime: 2024-10-30 18:15:31
 -->
 
 # Input Number 数字输入框
@@ -10,14 +10,14 @@
 
 只能输入数值
 ::: example
-input-number/base
+examples/input-number/base
 :::
 
 ## 限制小数位
 
 通过设置`precision`属性，可以限制小数的位数，默认 4 位小数
 ::: example
-input-number/precision
+examples/input-number/precision
 :::
 
 ## 复合型输入框
@@ -25,7 +25,7 @@ input-number/precision
 可以在输入框中前置或后置一个元素。  
 可通过 `slot` 来指定在 Input 中分发的前置或者后置的内容。
 ::: example
-input-number/slot
+examples/input-number/slot
 :::
 
 ## API

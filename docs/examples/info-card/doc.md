@@ -1,7 +1,7 @@
 <!--
  * @Description: 信息框
  * @Date: 2024-06-28 17:36:26
- * @LastEditTime: 2024-07-26 16:29:01
+ * @LastEditTime: 2024-10-30 18:14:12
 -->
 
 # Info Card 信息框
@@ -9,7 +9,7 @@
 ## 基础用法
 
 ::: example
-info-card/base
+examples/info-card/base
 :::
 
 ## 可收缩
@@ -18,13 +18,14 @@ info-card/base
 - 一共有四个设置 `resizeType="none|vertical|horizontal|both"`
 
 ::: example
-info-card/resize
+examples/info-card/resize
 :::
 
 ## 随高度滚动
+
 - 可以通过设置 `scrollSelector` ，获取信息框所在的容器
   ::: example
-  info-card/resizeScroll
+  examples/info-card/resizeScroll
   :::
 
 ## API
