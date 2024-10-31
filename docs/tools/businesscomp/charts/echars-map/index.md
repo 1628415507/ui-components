@@ -8,8 +8,9 @@
 ::: example
 tools/businesscomp/charts/echars-map/Map2D
 :::
-<!-- ## 3D地图
+
+## 3D地图
 
 ::: example
-tools/businesscomp/charts/echars-map/Map2D
-::: -->
+tools/businesscomp/charts/echars-map/Map3D
+:::

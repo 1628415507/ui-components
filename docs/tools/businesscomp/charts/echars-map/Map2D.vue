@@ -2,10 +2,10 @@
  * @Description: 2d地图
  * @Date: 2023-02-15 09:33:41
  * @LastEditors: Please set LastEditors
- * @LastEditTime: 2024-10-31 13:54:14
+ * @LastEditTime: 2024-10-31 14:20:55
 -->
 <template>
-  <div class="map-wrap">
+  <div class="map2D-wrap">
     <!-- 显示层级 -->
     <div class="level-list">
       <!-- {{ info.curName }} -->
@@ -21,8 +21,8 @@
         </span>
       </div>
     </div>
-    <div class="map-box">
-      <div id="mapId" ref="chartRef" style="width: 100%; height:700px" />
+    <div class="map2D-box">
+      <div id="map2DId" ref="chartRef" style="width: 100%; height:700px" />
     </div>
   </div>
 </template>
@@ -32,8 +32,8 @@ import echartsTheme from '../static/echartsTheme.json'
 import axios from 'axios'
 import chinaJson from '../static/china.json' // 中国地图数据
 import mapBg from '../static/map-bg.png' // 地图背景图
-import toastBg from '../static/toast-bg.svg' // 地图背景图
-import toastIcon from '../static/circle.svg' // 地图背景图
+import toastBg from '../static/toast-bg.svg'
+import toastIcon from '../static/circle.svg' 
 // const toastBg = require('../static/toast-bg.svg')
 // const toastIcon = require('../static/circle.svg')
 // const mapBg= require('../static/map-bg.png')
@@ -139,7 +139,7 @@ export default {
       mapName && this.curMapJson && echarts.registerMap(mapName, { geoJSON: this.curMapJson }) // 获取对应的json数据
       echarts.registerTheme('echartsTheme', echartsTheme)
 
-      echartsMap = echarts.init(document.getElementById('mapId'), echartsTheme)
+      echartsMap = echarts.init(document.getElementById('map2DId'), echartsTheme)
       // 公共配置
       const comConfig = {
         // center: [105.194115019531, 35.582111640625], // 城市经纬度
@@ -339,7 +339,7 @@ export default {
       mapOption && mapOption.tooltip && (mapOption.tooltip.formatter = this.formatTooltip) // 加载页面时候替换tooltip的formatter
       echartsMap.setOption(mapOption)
       // 绑定事件
-      this.autoShowTip() // 自动轮播
+      // this.autoShowTip() // 自动轮播
       this.handleTooltip() // 绑定事件-轮播
       this.echartsMapClick() // 绑定事件-双击下钻
       this.handleGeoRoam() // 绑定事件-拖曳、缩放
@@ -587,7 +587,7 @@ export default {
   /*需要文字透明*/
   color: transparent;
 }
-.map-wrap {
+.map2D-wrap {
   color: rgba(138, 248, 239, 0.548);
   position: relative;
   width: 100%;
@@ -669,7 +669,7 @@ export default {
     }
   }
 }
-.map-box {
+.map2D-box {
   background: #000;
   width: 100%;
   height: 750px;
