@@ -1,3 +1,8 @@
+<!--
+ * @Description: 
+ * @Date: 2024-10-11 18:10:58
+ * @LastEditTime: 2024-10-31 16:36:12
+-->
 # [原型](https://juejin.cn/post/7105588080991535111/)
 
 > 构造函数，是一种特殊的方法。主要用来在创建对象时**初始化对象**， 即为对象成员变量赋初始值，总与 new 运算符一起使用在创建对象的语句中。
@@ -20,7 +25,7 @@
 - 每一个实例的`__proto__ `存储这个「共用属性组成的对象」的地址,即`prototype`。
 - 所有的 `prototype` 的`__proto__`最终指向的是 Object()的 prototype，Object 的隐式原型是 `null`
 - 原型出现的目的：为了**减少不必要的内存消耗**。
-  ![原型链1](./img/prototype/prototype0.png)
+  ![原型链1](./img/prototype0.png)
 
 <!-- （1） **原型**：原型分为**隐式原型和显式原型**，每个对象都有一个隐式原型，它指向**自己的构造函数的显式原型**。每个构造方法都有一个显式原型。
 
@@ -34,15 +39,15 @@
 
 ### （二）原型链
 
-![原型链1](./img/prototype/prototype4.png)
+![原型链1](./img/prototype4.png)
 
 - 原型链就是对象通过 `proto` 向**当前实例所属类的原型**上**查找属性或方法**的机制，
 - 如果找到`Object` 的原型上还是没有找到想要的属性或者是方法则查找结束，最终会返回 `undefined`
 - `instanceof` 就是判断某对象是否位于某构造方法的原型链上。
 
-  ![原型链1](./img/prototype/prototype1.png)
-  ![原型链2](./img/prototype/prototype2.png)
-  ![原型链3](./img/prototype/prototype3.png)
+  ![原型链1](./img/prototype1.png)
+  ![原型链2](./img/prototype2.png)
+  ![原型链3](./img/prototype3.png)
 
 ### 原型关系
 
@@ -56,4 +61,4 @@
 - 原型有一个属性（constructor）指回构造函数，
 - 而实例有一个内部指针（**proto**）指向原型。
 
- ![原型链3](./img/prototype/prototype5.png)
+ ![原型链3](./img/prototype5.png)
