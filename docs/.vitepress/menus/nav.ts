@@ -1,7 +1,7 @@
 /*
  * @Description:
  * @Date: 2024-06-27 16:50:06
- * @LastEditTime: 2024-10-30 17:02:29
+ * @LastEditTime: 2024-10-31 11:44:12
  */
 import { DefaultTheme } from 'vitepress';
 
@@ -10,17 +10,18 @@ export const nav: DefaultTheme.NavItem[] = [
   { text: '首页', link: '/' },
   { text: '指南', link: '/guide' },
   { text: '组件', link: '/examples' },
+  // { text: '工具', link: '/tools' },
   {
     text: '工具',
     items: [
       {
         text: '业务组件',
-        link: '/tools/components'
+        link: '/tools/businesscomp'
       },
-      {
-        text: '自定义指令',
-        link: '/tools/directive'
-      },
+      // {
+      //   text: '自定义指令',
+      //   link: '/tools/directive'
+      // },
       // {
       //   text: '常用方法',
       //   link: '/tools/methods'
