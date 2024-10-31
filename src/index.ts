@@ -1,7 +1,7 @@
 /*
  * @Description: 
  * @Date: 2024-06-26 11:40:35
- * @LastEditTime: 2024-09-27 15:42:41
+ * @LastEditTime: 2024-10-31 17:27:32
  */
 // ============= 预览
 // import { createApp } from 'vue'
@@ -36,7 +36,7 @@ import ZPlusminusButton from "./components/plusminus-button"
 const install: any = (app: App, params?: any) => {
   app.config.globalProperties.globalParams = params
   // window['globalParams'] = params || { value: 'globalParams' }
-  console.log('【  app.config 】-30', app.config)
+  // console.log('【  app.config 】-30', app.config)
   installComponents(app)//全局注册组件
   // 渲染错误处理
   app.config.errorHandler = ((error, vm, info) => {

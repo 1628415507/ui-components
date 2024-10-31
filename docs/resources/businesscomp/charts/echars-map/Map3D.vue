@@ -23,7 +23,7 @@
 import * as echarts from 'echarts'
 import echartsTheme from '../static/echartsTheme.json'
 
-import 'echarts-gl'
+// import 'echarts-gl'
 import axios from 'axios'
 import chinaJson from '../static/china.json' // 中国地图数据
 import mapBg from '../static/map-bg.png' // 地图背景图
