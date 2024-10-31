@@ -6,11 +6,11 @@
 > 2. [VitePress 官方文档](https://vitepress.dev/guide/deploy#github-pages)
 
 ## 前置准备
-- 已创建好项目，发布前可以执行 看打包是否报错
 - 创建 docs 项目
 - 在`docs/.vitepress/config.mts`中设置`base`路径
 - `docs/.vitepress/theme/index.ts`中 ZUiComp 的引用路径需改成引用本项目的相对路径，否则打包发布的时候会报错
 - 路径内容需要和 github 的项目名称一致，否则发布后会出现资源找不到的问题
+- 已创建好项目，发布前可以执行`npm run docs:build`看打包是否报错
 
 ```ts{3}
 // config.mts...
