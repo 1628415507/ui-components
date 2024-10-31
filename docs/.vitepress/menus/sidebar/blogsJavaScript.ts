@@ -1,7 +1,7 @@
 /*
  * @Description: 
  * @Date: 2024-10-09 16:08:42
- * @LastEditTime: 2024-10-31 09:45:54
+ * @LastEditTime: 2024-10-31 16:35:35
  */
 export default [
   { text: 'TODO', link: '/blogs/javaScript/todo.md' },
@@ -23,7 +23,7 @@ export default [
   {
     text: '对象、类与面向对象编程',
     items: [
-      { text: '原型', link: '/blogs/javaScript/prototype.md' },
+      { text: '原型', link: '/blogs/javaScript/prototype/index.md' },
     ]
   },
   {
