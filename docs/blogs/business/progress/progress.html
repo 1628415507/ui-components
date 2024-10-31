@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8" />
+	<!-- <script type="module"
+		src="/ui-components/@fs/D:/WorkSpace/前端/my-github/ui-components/node_modules/vitepress/dist/client/app/index.js?t=1729345948239"></script> -->
+	<!-- <script type="module" src="/ui-components/@vite/client"></script> -->
+	<!-- <script src="https://cdn.bootcdn.net/ajax/libs/lib-flexible/0.3.4/flexible.js"></script>
+	<script src="https://g.csdnimg.cn/common/csdn-toolbar/csdn-toolbar.js" type="text/javascript"></script> -->
+	<!-- <script src="./resource.js"></script> -->
+	<title>如何实现⽹⻚加载进度条？</title>
+	<!-- 模拟资源加载 -->
+	<link rel="stylesheet" href="/node_modules/nprogress/nprogress.css" />
+	<script src="/node_modules/nprogress/nprogress.js"></script>
+</head>
+
+<body>
+	<div class="scroll-container">
+		<progress id="progressBar" value="0" max="100"></progress>
+		<div class="loading">
+			<div class="myicon">
+				<div class="myicon-item item1"></div>
+				<div class="myicon-item item2"></div>
+				<div class="myicon-item item3"></div>
+				<div class="myicon-item item4"></div>
+				<div class="myicon-item item5"></div>
+			</div>
+		</div>
+		<img src="https://img1.baidu.com/it/u=2330492836,3702189489&fm=253&fmt=auto?w=1422&h=800">
+		<img src="https://img1.baidu.com/it/u=2330492836,3702189489&fm=253&fmt=auto?w=1422&h=800">
+		<img src="https://img1.baidu.com/it/u=2330492836,3702189489&fm=253&fmt=auto?w=1422&h=800">
+		<img src="https://img1.baidu.com/it/u=2330492836,3702189489&fm=253&fmt=auto?w=1422&h=800">
+		<img src="https://img1.baidu.com/it/u=2330492836,3702189489&fm=253&fmt=auto?w=1422&h=800">
+		<img src="http://img0.imgtn.bdimg.com/it/u=3081910561,4232742603&fm=26&gp=0.jpg">
+		<img src="http://img2.imgtn.bdimg.com/it/u=3924851449,159537211&fm=26&gp=0.jpg">
+		<img src="http://img1.imgtn.bdimg.com/it/u=4135296269,1136301264&fm=26&gp=0.jpg">
+		<img src="http://img1.imgtn.bdimg.com/it/u=2623748191,2154445708&fm=26&gp=0.jpg">
+		<img src="http://img5.imgtn.bdimg.com/it/u=4199878529,2086225900&fm=26&gp=0.jpg">
+		<img src="http://img5.imgtn.bdimg.com/it/u=4015368002,1586221549&fm=26&gp=0.jpg">
+		<img src="http://img5.imgtn.bdimg.com/it/u=2721573031,3342097622&fm=26&gp=0.jpg">
+		<img src="http://img2.imgtn.bdimg.com/it/u=246009171,2070901793&fm=26&gp=0.jpg">
+		<img src="http://img5.imgtn.bdimg.com/it/u=2721573031,3342097622&fm=26&gp=0.jpg">
+		<img src="http://img2.imgtn.bdimg.com/it/u=56560423,3204706921&fm=26&gp=0.jpg">
+	</div>
+	<script>
+		const resources = window.performance.getEntriesByType('resource')
+		console.log('【 resources 】-14', resources)
+		const totalResources = resources.length
+		let loadedResources = 0
+		resources.forEach((resource) => {
+			if (resource.initiatorType !== 'xmlhttprequest') {
+				// 排除 AJAX 请求
+				resource.onload = () => {
+					loadedResources++ //已加载完成的资源
+					console.log('【 loadedResources 】-35', loadedResources)
+					const progress = Math.round((loadedResources / totalResources) * 100)
+					updateProgress(progress)
+				}
+			}
+		})
+		// 更新进度条
+		function updateProgress(progress) {
+			console.log('【 updateProgress 】-28', progress)
+		}
+		const progressBar = document.getElementById('progressBar')
+		console.log('【 progressBar 】-49', progressBar)
+		window.addEventListener('load', () => {
+			console.log('【 load 】-51')
+			progressBar.value = 100
+		})
+		document.addEventListener('readystatechange', () => {
+			if (document.readyState === 'interactive') {
+				progressBar.value = progress = 0
+			}
+			if (document.readyState == "complete") {
+				progressBar.value = progress = 100
+			}
+			console.log('【 document.readyState 】-49', document.readyState)
+			// const progress = Math.floor((document.readyState / 4) * 100)
+			// progressBar.value = progress
+		})
+	</script>
+</body>
+
+</html>

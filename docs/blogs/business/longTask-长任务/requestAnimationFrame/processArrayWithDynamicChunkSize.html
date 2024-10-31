@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>使用 chunkSize动态 来对长任务进行切分</title>
+  </head>
+
+  <body>
+    <p id="result"></p>
+    <script>
+      const $result = document.getElementById('result')
+      const bigArray = Array.from({ length: 1000000 }, (_, i) => i + 1) // 假设有一个包含大量元素的数组
+      let index = 0
+      // 定义业务处理函数，对数组中的每个元素执行一次
+      function bizTask() {
+        if (index < bigArray.length) {
+          const result = `chunk: ${bigArray[index]}`
+          $result.innerText = result
+          index++
+        }
+      }
+      let chunkSize = 1000 // 初始的 chunkSize
+      // 动态调整 chunkSize 的优化方式
+      function processArrayWithDynamicChunkSize() {
+        function processChunkWithRAF() {
+          const startTime = performance.now() // 记录每次轮询的开始时间
+          // 每chunkSize一个轮询
+          for (let i = 0; i < chunkSize; i++) {
+            bizTask() //业务任务
+          }
+          const endTime = performance.now() // 记录每次轮询的结束时间
+          const timeTaken = endTime - startTime // 计算处理时间
+          // 根据处理时间动态调整 chunkSize
+          if (timeTaken > 16) {
+            chunkSize = Math.floor(chunkSize * 0.9) // 减小10%，如果处理时间超过一帧的时间（16毫秒），则减小 chunkSize
+          } else if (timeTaken < 16) {
+            chunkSize = Math.floor(chunkSize * 1.1) // 增加10% （如果处理时间远小于一帧的时间（8毫秒），则增加 chunkSize）
+          }
+          // 开始下一个轮询
+          if (index < bigArray.length) {
+            requestAnimationFrame(processChunkWithRAF) // 第n次轮询，继续处理下一个小块
+          }
+        }
+        requestAnimationFrame(processChunkWithRAF) // 第1次轮询：开始处理大数组
+      }
+      // 开始调用
+      processArrayWithDynamicChunkSize()
+    </script>
+  </body>
+</html>

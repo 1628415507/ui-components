@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>在表单校验场景中， 如何实现⻚⾯视⼝滚动到报错的位置</title>
+  <style>
+    .scroll-container {
+      background-color: #eee;
+      height: 100px;
+      width: 500px;
+      /* overflow: hidden; */
+    }
+
+    .error-highlight {
+      background-color: red;
+      border: 1px solid #ccc;
+    }
+
+    .success-highlight {
+      background-color: transparent;
+    }
+  </style>
+</head>
+
+<body>
+  <div>
+    <form id="myForm" onsubmit="return false;">
+      <input type="text" id="name" name="name" />
+      <input type="text" id="age" name="age" />
+      <button type="submit" onclick="handleValidation()">Submit</button>
+    </form>
+  </div>
+  <script>
+    // ⼀个假设的表单验证函数
+    function validateInput(inputId) {// 调⽤此处的校验逻辑，返回是否存在错误
+      // 这⾥以ID "inputId"来获取对应的DOM对象
+      let el = document.getElementById(inputId);// 此处只是⽰例, 实际上应根据具体的校验逻辑返回⼀个布尔类型
+      return el.value === "111";
+    }
+
+    function handleValidation() {
+      let valid = true;
+      ["name", "age"].forEach((key) => {// 进⾏校验判断
+        let element = document.getElementById(key);
+        if (!validateInput(key)) {
+          console.error(`验证失败: ${key}`);
+          // 标记校验失败
+          valid = false;
+          // 滚动到出现问题的元素位置
+          element.scrollIntoView({ block: "center", behavior: "smooth" });
+          // 增加⼀些提⽰效果, ⽐如错误边框, 可按需实现
+          element.classList.add('error-highlight');
+        } else {
+          element.classList.add('success-highlight');
+        }
+      });
+      // 检查是否验证失败，如果失败则不提交表单
+      return valid;
+    }
+
+    // 处理表单提交事件，与HTML中的onclick绑定
+    document.getElementById("myForm").addEventListener("submit", (e) => {
+      e.preventDefault(); // 阻⽌表单默认提交⾏为
+      handleValidation();
+    });
+  </script>
+</body>
+
+</html>

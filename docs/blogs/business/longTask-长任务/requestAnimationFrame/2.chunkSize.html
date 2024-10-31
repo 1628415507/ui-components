@@ -1,0 +1,49 @@
+<!--
+ * @Description: 
+ * @Date: 2024-08-26 09:00:55
+ * @LastEditTime: 2024-09-18 16:22:42
+-->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>使用 chunkSize 来对长任务进行切分</title>
+  </head>
+
+  <body>
+    <p id="result"></p>
+
+    <script>
+      const $result = document.getElementById('result')
+      // 假设有一个包含大量元素的数组
+      const bigArray = Array.from({ length: 1000000 }, (_, i) => i + 1)
+      let index = 0
+
+      // 定义一个处理函数，例如对数组中的每个元素进行平方操作
+      // 定义业务处理函数，对数组中的每个元素执行一次
+      function bizTask() {
+        if (index < bigArray.length) {
+          const result = `chunk: ${bigArray[index]}`
+          $result.innerText = result
+          index++
+        }
+      }
+
+      // 分割任务并使用requestAnimationFrame
+      const chunkSize = 1000 // 每个小块的大小
+      function processArrayWithRAF() {
+        function processChunkWithRAF() {
+          for (let i = 0; i < chunkSize; i++) {
+            bizTask()
+          }
+          // 每间隔1000执行一次requestAnimationFrame
+          if (index < bigArray.length) {
+            requestAnimationFrame(processChunkWithRAF) // 继续处理下一个小块
+          }
+        }
+        requestAnimationFrame(processChunkWithRAF) // 开始处理大数组
+      }
+      processArrayWithRAF()
+    </script>
+  </body>
+</html>

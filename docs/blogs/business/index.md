@@ -1,7 +1,7 @@
 <!--
  * @Description: https://gitee.com/yanleweb/interview-question/issues/I7W2KU
  * @Date: 2024-08-23 16:04:10
- * @LastEditTime: 2024-10-18 16:51:29
+ * @LastEditTime: 2024-10-31 10:59:16
 -->
 
 # 业务场景
@@ -24,15 +24,6 @@
 12. 系统 2 拿到令牌，去 sso 认证中⼼校验令牌是否有效
 13. sso 认证中⼼校验令牌，返回有效，注册系统 2
 14. 系统 2 使⽤该令牌创建与⽤⼾的局部会话，返回受保护资源 -->
-
-## 1. Web ⽹⻚如何禁⽌别⼈移除⽔印
-
-- `MutationObserver` 可以观察 DOM 树的变化，并在变化发⽣时触发回调函数。
-- 可以在回调函数中使用`mutation.removedNodes`检查是否有⽔印被删除，
-- MutationObserver API 是现代浏览器提供的功能，在⽼旧的浏览器中可能不⽀持。因此，在实际使⽤时，需要注意对浏览器的兼容性进⾏测试和处理。
-  ::: example
-  blogs/business/watermark
-  :::
 
 ## 2. JS 执⾏ 100 万个任务， 如何保证浏览器不卡顿？
 
@@ -248,9 +239,7 @@
 
 | 分支                               | 说明                                                         |     |
 | ---------------------------------- | ------------------------------------------------------------ | --- |
-| clientHeight                       | 获取屏幕可视区域的高度                                       |     |
-| clientWidth                        | 获取屏幕可视区域的宽度                                       |     |
-| offsetTop                          | 元素相对于文档顶部的高度。                                   |     |
+|                                    |
 | document.documentElement.scrollTop | 浏览器窗口顶部与文档顶部之间的距离，也就是滚动条滚动的距离。 |     |
 
 ![image.png](https://p0-xtjj-private.juejin.cn/tos-cn-i-73owjymdk6/9f4c4b681b2a49dbb1aa980fe8fc5f87~tplv-73owjymdk6-jj-mark-v1:0:0:0:0:5o6Y6YeR5oqA5pyv56S-5Yy6IEAg5bCP6I2J5byA6Iqx:q75.awebp?policy=eyJ2bSI6MywidWlkIjoiNjE2MjA1Mjg1MDY1MjA4In0%3D&rk3s=e9ecf3d6&x-orig-authkey=f32326d3454f2ac7e96d3d06cdbb035152127018&x-orig-expires=1724723528&x-orig-sign=%2BVkJnxWIB2JfM280LLZJJDzWGlw%3D)
@@ -656,69 +645,37 @@ function setUploadedToStorage(index) {
 - https://juejin.cn/post/7422848805044371471
   -->
 
-## 常⻅图⽚懒加载⽅式有哪些？
-
-图⽚懒加载可以延迟图⽚的加载，只有当图⽚即将进⼊视⼝范围时才进⾏加载。这可以⼤⼤减轻⻚⾯的加载时间，并降低带宽消耗，提⾼了⽤⼾的体验。
-
-### 1. [Intersection Observer API](https://blog.csdn.net/Zbz00720/article/details/139025413)
-
-- `Intersection Observer API` 是⼀种⽤于异步检查 **⽂档中元素与视⼝叠加程度**的 API。可以将其⽤于检测图⽚是否已经进⼊视⼝，并根据需要进⾏相应的处理。
-- observer 观察者对象在观察元素是否进入视口、祖先元素的时候，不管元素是否进入，都会触发观察者对象的回调函数
-- isIntersecting true 当前元素进入视口，false 当前元素离开视口
-
-```js{2,3,7}
-	var box = document.querySelector('.img')
-	var observer = new IntersectionObserver((entry)=>{
-     if (entry.isIntersecting) {
-      // ...元素进入视口
-     }
-  })
-	observer.observe(box)
-```
-
-::: example
-blogs/business/lazyImage/intersectionObserver
-:::
-
-### 2. ⾃定义监听器
-
-- 可以通过⾃定义监听器来实现懒加载时，要应该避免在滚动事件处理程序中频繁进⾏图⽚加载，因为这可能会影响性能。
-- 应在**滚动停⽌时**进⾏图⽚加载。
-- [前置知识点](https://blog.csdn.net/lph159/article/details/142134594)
-
-| 属性                                                                       | 说明                                                                                                                                                                  | 图解                                    |
-| -------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------- |
-| `scrollTop`                                                                | 浏览器窗口顶部与文档顶部之间的距离，也就是滚动条**滚动的距离**。                                                                                                      |                                         |
-| `window.innerHeight`                                                       | 浏览器窗口的内部高度(包括滚动条),会随着浏览器窗口的放大缩小变化                                                                                                       |                                         |
-| `clientHeight`                                                             | 获取屏幕可视区域的高度，包含元素的高度+内边距;**不包含**水平滚动条，边框和外边距                                                                                      | ![clientHeight](./img/clientHeight.png) |
-| `clientWidth`                                                              | 获取屏幕可视区域的宽度。该属性包括内边距 padding；**不包括**边框 border、外边距 margin 和垂直滚动条（如果有的话）。                                                   |                                         |
-| `offsetHeight`                                                             | 元素的 offsetHeight 是一种元素 CSS 高度的衡量标准，**包括**元素的边框、内边距和元素的水平滚动条（如果存在且渲染的话）                                                 | ![offsetHeight](./img/offsetHeight.png) |
-| [`offsetTop`](https://blog.csdn.net/qq_42816270/article/details/138028929) | 表示元素顶部到其 offsetParent 元素内边框的距离，而 offsetParent 是最近的定位父元素或最近的 table、td、th、body 元素。当元素没有定位父元素时，offsetParent 默认为 body | ![offsetTop](./img/offsetTop.png)       |
-| 判断元素是否进入父元素视口                                                 | `offsetTop < window.innerHeight + scrollTop`                                                                                                                          | ![alt text](./img/image.png)            |
-
-详见`docs\examples\blogs\business\lazyImage\lazyLoad.html`
-
-```js{6,7,13}
-function lazyLoad() {
-  const images = document.querySelectorAll(".lazy");
-  const scrollTop = window.pageYOffset;
-  images.forEach((img) => {
-    console.log('【 img 】-32', img.offsetTop, scrollTop, window.innerHeight)
-    if (img.offsetTop < window.innerHeight + scrollTop) {
-      img.src = img.dataset.src;
-      // img.classList.remove("lazy");
-    }
-  });
-}
-let lazyLoadThrottleTimeout;// 防抖
-document.addEventListener("scroll",
-  function () {
-    if (lazyLoadThrottleTimeout) {
-      clearTimeout(lazyLoadThrottleTimeout);
-    }
-    lazyLoadThrottleTimeout = setTimeout(lazyLoad, 1000);//停止滚动后执行
-  }
-)
-```
-
 ## [扫码登录实现⽅式](https://developer.baidu.com/article/details/3352196)
+
+扫码登录的实现原理核⼼是基于⼀个中转站，该中转站通常由应⽤提供商提供，⽤于维护⼿机和 PC 之
+间的会话状态。
+整个扫码登录的流程如下：
+
+1. ⽤⼾在 PC 端访问应⽤，并选择使⽤扫码登录⽅式。此时，应⽤⽣成⼀个**随机的认证码**，并将该认证
+   码通过⼆维码的形式显⽰在 PC 端的⻚⾯上。
+2. ⽤⼾打开⼿机上的应⽤，并选择使⽤扫码登录⽅式。此时，应⽤会打开⼿机端的相机，⽤⼾可以对
+   着 PC 端的⼆维码进⾏扫描。
+3. ⼀旦⽤⼾扫描了⼆维码，⼿机上的应⽤会向应⽤提供商的**中转站**发送⼀个请求，请求包含之前⽣成
+   的**随机认证码和⼿机端的⼀个会话 ID**。
+4. 中转站验证认证码和会话 ID 是否匹配，如果匹配成功，则该中转站将 **⽤⼾的⾝份信息发送给应⽤**，
+   并创建⼀个 PC 端和⼿机端之间的会话状态。
+5. 应⽤使⽤收到的⾝份信息对⽤⼾进⾏认证，并创建⼀个与该⽤⼾关联的会话状态。同时，应⽤ **返回⼀个通过认证的响应给中转站**。
+6. 中转站将该响应返回给⼿机端的应⽤，并携带⼀个⽤于表⽰该会话的令牌，此时⼿机和 PC 之间的认
+   证流程就完成了。
+7. 当⽤⼾在 PC 端进⾏其他操作时，应⽤将会话令牌附加在请求中，并通过中转站向⼿机端的应⽤发起
+   请求。⼿机端的应⽤使⽤会话令牌（也就是之前⽣成的令牌）来识别并验证会话状态，从⽽允许⽤
+   ⼾在 PC 端进⾏需要登录的操作。
+   ![alt text](./img/scanLogin.png)
+
+## 如何⽤ canvas 来做电影院选票功能
+
+- `canvas.getContext('2d')`：
+  - getContext 方法指定参数 2d，表示该 canvas 节点用于生成 2D 图案（即平面图案）。
+  - 如果参数是 webgl，就表示用于生成 3D 图像（即立体图案）
+- canvas 画布提供了一个用来作图的平面空间，该空间的每个点都有自己的坐标，x 表示横坐标，y 表示竖坐标。
+  - **原点(0, 0)位于图像左上角**，x 轴的正向是原点向右，y 轴的正向是原点向下。
+- `fillRect(x, y, width, height)`方法用来绘制矩形，它的四个参数分别为矩形左上角顶点的 x 坐标、y 坐标，以及矩形的宽和高。
+- `fillStyle` 属性用来设置矩形的填充色。
+  ::: example
+  blogs/business/movies
+  :::
