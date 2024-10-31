@@ -1,7 +1,7 @@
 <!--
  * @Description: 
  * @Date: 2024-10-30 18:10:00
- * @LastEditTime: 2024-10-31 10:58:41
+ * @LastEditTime: 2024-10-31 16:49:01
 -->
 # 前端水印
 
@@ -34,10 +34,10 @@
   blogs/business/watermark/svg
   :::
 
-## Web ⽹⻚如何禁⽌别⼈移除⽔印
+## Web如何禁⽌别⼈移除⽔印
 
 - `MutationObserver` 可以观察 DOM 树的变化，并在变化发⽣时触发回调函数。
-- 但是 MutationObserver 只能监测到诸如属性改变、子结点变化等，对于自己本身被删除，是没有办法监听的，这里可以通过监测父结点来达到要求
+- 但是 MutationObserver 只能监测到诸如属性改变、子结点变化等，**对于自己本身被删除，是没有办法监听的，这里可以通过监测父结点来达到要求**
 - 可以在回调函数中使用`mutation.removedNodes`检查是否有⽔印被删除，
 - MutationObserver API 是现代浏览器提供的功能，在⽼旧的浏览器中可能不⽀持。因此，在实际使⽤时，需要注意对浏览器的兼容性进⾏测试和处理。
   ::: example
