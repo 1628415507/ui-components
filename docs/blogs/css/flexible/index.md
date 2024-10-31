@@ -1,3 +1,8 @@
+<!--
+ * @Description: 
+ * @Date: 2024-10-30 18:10:00
+ * @LastEditTime: 2024-10-31 09:54:18
+-->
 ## H5 如何解决移动端适配问题
 
 ### 1. [使⽤ viewport 标签](https://blog.csdn.net/qq_39454432/article/details/138488494)
@@ -25,7 +30,7 @@
 - rem 是相对长度单位。是相对于根元素（即 `html` ）的字体大小 font-size 而言的
 - 例如，如果 HTML 的字体大小设置为 16px，那么 1rem 就等于 16px。
   ::: example
-  blogs/css/rem
+  blogs/css/flexible/rem
   :::
 
 ### 4. 使⽤ flexible 布局⽅案

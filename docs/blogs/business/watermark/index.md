@@ -1,3 +1,8 @@
+<!--
+ * @Description: 
+ * @Date: 2024-10-30 18:10:00
+ * @LastEditTime: 2024-10-31 10:58:41
+-->
 # 前端水印
 
 ## [页面加水印实现方案](https://zhuanlan.zhihu.com/p/374734095)

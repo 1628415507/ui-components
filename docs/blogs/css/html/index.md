@@ -1,3 +1,8 @@
+<!--
+ * @Description: 
+ * @Date: 2024-10-11 18:10:58
+ * @LastEditTime: 2024-10-31 09:55:11
+-->
 ## HTML5 新特性、语义化
 
 ### 概念
@@ -17,7 +22,7 @@ HTML5 的语义化指的是`合理正确的使用语义化的标签来创建页�
 | aside   | 定义与页面主内容 minor 的内容 ,如**侧边栏**                                |
 
 ::: example
-blogs/html/html5Layput
+blogs/css/html/html5Layput
 :::
 
 ### 语义化的优点

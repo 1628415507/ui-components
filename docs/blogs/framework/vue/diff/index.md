@@ -287,7 +287,7 @@ export default function (oldVnode, newVnode) {
 
 **测试代码**
 ::: example
-blogs/framework/vue-diff/test1
+blogs/framework/vue/diff/test1
 :::
 
 ### 4. diff 算法：新旧节点 是同一个节点 —— 精细化比较
@@ -417,7 +417,7 @@ if (checkSameVnode(oldStartVnode, newStartVnode)) {
 ```
 
 ::: example
-blogs/framework/vue-diff/oldstartNewstart
+blogs/framework/vue/diff/oldstartNewstart
 :::
 
 如果没命中就接着比较下一种情况
@@ -439,7 +439,7 @@ if (checkSameVnode(oldEndVnode, newEndVnode)) {
 ```
 
 ::: example
-blogs/framework/vue-diff/oldendNewend
+blogs/framework/vue/diff/oldendNewend
 :::
 
 如果没命中就接着比较下一种情况
@@ -469,7 +469,7 @@ if (checkSameVnode(oldStartVnode, newEndVnode)) {
 ```
 
 ::: example
-blogs/framework/vue-diff/oldstartNewend
+blogs/framework/vue/diff/oldstartNewend
 :::
 
 如果没命中就接着比较下一种情况
@@ -496,7 +496,7 @@ if (checkSameVnode(oldEndVnode, newStartVnode)) {
 ```
 
 ::: example
-blogs/framework/vue-diff/oldendNewstart
+blogs/framework/vue/diff/oldendNewstart
 :::
 
 如果没命中就表示四种情况都没有命中
@@ -546,7 +546,7 @@ newStartVnode = newCh[++newStartIdx] // 指向新前的下一个节点
 ```
 
 ::: example
-blogs/framework/vue-diff/newStart
+blogs/framework/vue/diff/newStart
 :::
 
 - 进行下一次循环

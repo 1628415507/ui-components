@@ -60,8 +60,8 @@ request.interceptors.response.use(
 ### [(1)使用 AbortController](https://blog.csdn.net/yxlyttyxlytt/article/details/139914500)
 #### 单独使用
 - 支持 Fetch API 的 AbortController 取消请求；
-  ::: example
-  blogs/business/cancelToken/abortController
+  :::
+  blogs/business/axios/cancelToken/abortController
   :::
 
 
@@ -169,7 +169,7 @@ export default service
 - 支持 cancelToken 取消请求，cancelToken 可以通过工厂函数产生，也可以通过构造函数生成；
 
 ::: example
-blogs/business/cancelToken/cancelToken
+blogs/business/axios/cancelToken/cancelToken
 :::
 
 ```js{17,29,35,43,80,84,}

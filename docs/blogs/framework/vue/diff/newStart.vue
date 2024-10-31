@@ -1,7 +1,7 @@
 <!--
  * @Description: 
  * @Date: 2024-10-15 14:18:09
- * @LastEditTime: 2024-10-17 17:42:22
+ * @LastEditTime: 2024-10-31 09:57:47
 -->
 <template>
   <div>
@@ -37,8 +37,8 @@
 
 <script setup>
 import { onMounted } from 'vue'
-import h from './diff/h'
-import patch from './diff/patch'
+import h from './code/h'
+import patch from './code/patch'
 const oldNodes = h('ul', {}, [h('h1', {}, 'h1'), h('h2', {}, 'h2'), h('h3', {}, 'h3'), h('h4', {}, 'h4')])
 const newNodes = h('ul', {}, [h('h3', {}, 'h33'), h('h4', {}, 'h44'), h('h5', {}, 'h55'), h('h6', {}, 'h66')])
 

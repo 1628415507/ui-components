@@ -1,7 +1,7 @@
 /*
  * @Description: 
  * @Date: 2024-10-09 16:08:42
- * @LastEditTime: 2024-10-14 14:26:48
+ * @LastEditTime: 2024-10-31 09:45:54
  */
 export default [
   { text: 'TODO', link: '/blogs/javaScript/todo.md' },
@@ -30,7 +30,7 @@ export default [
     text: '手写代码',
     items: [
       { text: '浅拷贝深拷贝', link: '/blogs/javaScript/deepClone.md' },
-      { text: '节流与防抖', link: '/blogs/javaScript/debounce.md' },
+      { text: '节流与防抖', link: '/blogs/javaScript/debounce/index.md' },
       { text: '其他', link: '/blogs/javaScript/else.md' },
     ]
   },

@@ -19,7 +19,7 @@
 ```
 
 ::: example
-blogs/business/lazyImage/intersectionObserver
+blogs/business/dom/lazyImage/intersectionObserver
 :::
 
 ### 2. ⾃定义监听器
@@ -64,7 +64,8 @@ document.addEventListener("scroll",
 )
 ```
 
-## 如何判断 dom 元素是否在可视区域【热度: 846】
+## 如何判断 dom 元素是否在可视区域
+<!-- 【热度: 846】 -->
 
 ### 1. getBoundingClientRect() ⽅法
 
