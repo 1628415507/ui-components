@@ -9,7 +9,7 @@
 ## 基础用法
 
 ::: example
-edit-label/index
+examples/edit-label/index
 :::
 
 ## API

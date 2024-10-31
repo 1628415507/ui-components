@@ -1,7 +1,7 @@
 <!--
  * @Description: 单号输入框使用文档
  * @Date: 2024-06-27 16:45:45
- * @LastEditTime: 2024-10-29 10:15:50
+ * @LastEditTime: 2024-10-31 09:25:12
 -->
 
 # Steps 步骤条
@@ -9,13 +9,13 @@
 ## 横向步骤条
 
 ::: example
-steps/RowSteps
+examples/steps/RowSteps
 :::
 
 ## 纵向步骤条
 
 ::: example
-steps/VerticalSteps
+examples/steps/VerticalSteps
 :::
 
 ## API

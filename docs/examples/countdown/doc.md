@@ -9,7 +9,7 @@
 ## 基础用法
 
 ::: example
-countdown/CountDown
+examples/countdown/CountDown
 :::
 
 ## API
