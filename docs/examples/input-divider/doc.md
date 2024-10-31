@@ -1,7 +1,7 @@
 <!--
  * @Description: 字符分割线使用文档
  * @Date: 2024-06-27 16:45:45
- * @LastEditTime: 2024-08-14 13:12:38
+ * @LastEditTime: 2024-10-30 18:14:46
 -->
 
 # Input Divider 字符分割线
@@ -14,14 +14,14 @@
 
 35 字符分割线的大概位置以"ABCDEABCDEABCDEABCDEABCDEABCDEABCDE"为准
 ::: example
-input-divider/base
+examples/input-divider/base
 :::
 
 ## 分割字符串
 
 将文本按每 35 字符（包括空格）进行换行拆分，未超过35字符的单词不进行拆分
 ::: example
-input-divider/method
+examples/input-divider/method
 :::
 
 ## API

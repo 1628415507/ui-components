@@ -1,7 +1,7 @@
 /*
  * @Description: 配置markdown-it-container插件
  * @Date: 2024-06-27 09:31:59
- * @LastEditTime: 2024-06-27 15:34:42
+ * @LastEditTime: 2024-10-30 18:21:41
  */
 
 import path, { resolve } from 'path'
@@ -42,9 +42,10 @@ export const mdPlugin = (mdIt: MarkdownIt) => {
         // 文件名称
         const sourceFile = sourceFileToken.children?.[0].content ?? ''
         if (sourceFileToken.type === 'inline') {
-          // ☆ 从examples中读取示列代码文件
+          // ☆ 从docs目录下中读取示列代码文件
+          // path.resolve(docRoot, 'examples', `${sourceFile}.vue`),
           source = fs.readFileSync(
-            path.resolve(docRoot, 'examples', `${sourceFile}.vue`),
+            path.resolve(docRoot, `${sourceFile}.vue`),
             'utf-8'
           )
         }

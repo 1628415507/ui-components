@@ -1,7 +1,7 @@
 <!--
  * @Description: 单号输入框使用文档
  * @Date: 2024-06-27 16:45:45
- * @LastEditTime: 2024-07-29 15:04:12
+ * @LastEditTime: 2024-10-30 18:15:53
 -->
 
 # Input Order 单号输入框
@@ -11,7 +11,7 @@
 ## 基础用法
 
 ::: example
-input-order/base
+examples/input-order/base
 :::
 
 ## API

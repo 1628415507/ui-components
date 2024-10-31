@@ -1,7 +1,7 @@
 <!--
  * @Description:
  * @Date: 2024-07-16 13:49:04
- * @LastEditTime: 2024-08-14 11:56:30
+ * @LastEditTime: 2024-10-30 18:20:49
 -->
 
 # Associate Select 联想控件
@@ -9,7 +9,7 @@
 ## 基础用法
 
 ::: example
-associate-select/base
+examples/associate-select/base
 :::
 
 ## 可输可选
@@ -18,7 +18,7 @@ associate-select/base
 - `getCreateVal`：获取输入框的值
 
 ::: example
-associate-select/allowCreate
+examples/associate-select/allowCreate
 :::
 
 ## API
