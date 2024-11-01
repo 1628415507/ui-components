@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>DocumentFragment示例</title>
+  <style>
+    .lazy {
+      display: block;
+      height: 300px;
+      background-color: #bcf;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- 占位符⽰例 -->
+  <div class="lazy-placeholder" style="background-color:#ddd;height: 500px;"></div>
+  <img class="lazy" data-src="https://img1.baidu.com/it/u=2330492836,3702189489&fm=253&fmt=auto?w=1422&h=800"
+    alt="预览图" />
+  <img class="lazy" data-src="https://img1.baidu.com/it/u=2330492836,3702189489&fm=253&fmt=auto?w=1422&h=800"
+    alt="预览图" />
+  <img class="lazy" data-src="https://img1.baidu.com/it/u=2330492836,3702189489&fm=253&fmt=auto?w=1422&h=800"
+    alt="预览图" />
+  <script>
+    function lazyLoad() {
+      const images = document.querySelectorAll(".lazy");
+      const scrollTop = window.pageYOffset;
+      images.forEach((img) => {
+        console.log('【 img 】-32', img.offsetTop, scrollTop, window.innerHeight)
+        if (img.offsetTop < window.innerHeight + scrollTop) {
+          img.src = img.dataset.src;
+          // img.classList.remove("lazy");
+        }
+      });
+    }
+    // 防抖
+    let lazyLoadThrottleTimeout;
+    document.addEventListener("scroll",
+      function () {
+        if (lazyLoadThrottleTimeout) {
+          clearTimeout(lazyLoadThrottleTimeout);
+        }
+        lazyLoadThrottleTimeout = setTimeout(lazyLoad, 1000);//停止滚动后执行
+      });
+  </script>
+</body>
+
+</html>

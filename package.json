@@ -30,6 +30,7 @@
     "crypto-js": "^4.2.0",
     "element-plus": "^2.6.3",
     "escape-html": "^1.0.3",
+    "faker": "^6.6.6",
     "js-cookie": "^3.0.5",
     "markdown-it": "^14.1.0",
     "markdown-it-container": "^4.0.0",
