@@ -1,7 +1,7 @@
 <!--
  * @Description: https://gitee.com/yanleweb/interview-question/issues/I7W2KU
  * @Date: 2024-08-23 16:04:10
- * @LastEditTime: 2024-10-31 10:59:16
+ * @LastEditTime: 2024-11-01 10:29:31
 -->
 
 # 业务场景
@@ -29,46 +29,20 @@
 
 - 浏览器主线程一次只能处理一个任务（任务按照队列执行）,当遇到长任务（执行超过 50 毫秒，就会被称为长任务(Long Task)）时，需要等长任务执行完才能进行下一步操作，这个过程就会造成阻塞
 
-```html{25}
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <title>普通长任务示例</title>
-    <style></style>
-  </head>
-  <body>
-    <script>
-      // 主线程代码
-      let body = document.querySelector('body') //获取某个真实的dom元素
-      const params = { start: 0, end: 100000 }
-      // --------------- 主线程长任务 Start---------------
-      function longTask() {
-        const { start, end } = params
-        let sum = 0
-        for (let i = start; i <= end; i++) {
-          console.log('【 主线程长任务... 】-39')
-          sum += i
-        }
-        let div = document.createElement('div')
-        div.innerHTML = '主线程长任务完成:' + sum
-        body.appendChild(div)
-      }
-      longTask() // 执行长任务
-      // --------------- 主线程长任务 End---------------
-      // -- 主线程任务
-      let mainDiv = document.createElement('div')
-      mainDiv.innerHTML = '主线程任务'
-      body.appendChild(mainDiv)
-    </script>
-  </body>
-</html>
+### 普通长任务
 
-```
+- 执行之后页面会一直处于卡顿空白，然后最后结果闪出来
+  ::: example
+  blogs/business/longTask-长任务/web-worker/generalLongTask
+  :::
 
 ### 方案 1：web worker 越过主线程阻塞问题
+<!-- 
+::: example
+blogs/business/longTask-长任务/web-worker/webWorker
+::: -->
 
-- 详见`docs\examples\blogs\business\longTask\web-worker`
+- 详见`docs\blogs\business\longTask-长任务\web-worker\index.html`
 - `web worker`是**运行在 Main 线程之外的一个线程**，叫做 worker 线程。我们可以把一些计算量大的任务放到 worker 中去处理。
 
   ```html{14,16,18}
@@ -249,7 +223,9 @@
 ![image.png](https://p0-xtjj-private.juejin.cn/tos-cn-i-73owjymdk6/84fd23b803b64ecb89c01fa78921b09c~tplv-73owjymdk6-jj-mark-v1:0:0:0:0:5o6Y6YeR5oqA5pyv56S-5Yy6IEAg5bCP6I2J5byA6Iqx:q75.awebp?policy=eyJ2bSI6MywidWlkIjoiNjE2MjA1Mjg1MDY1MjA4In0%3D&rk3s=e9ecf3d6&x-orig-authkey=f32326d3454f2ac7e96d3d06cdbb035152127018&x-orig-expires=1724723780&x-orig-sign=ivoR%2BcQjZXJBPRyBC55pcO6lhBY%3D)
 
 ### 虚拟滚动的核心原理
-
+  ::: example
+  blogs/business/virtualScroll/test1
+  :::
 - 虚拟滚动的核心原理是**仅渲染用户可视范围内的列表项**，以此减少 DOM 操作的数量和提高性能。
 - 实现虚拟滚动
   - 监听滚动事件，了解当前滚动位置。
