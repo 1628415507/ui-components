@@ -22,7 +22,8 @@ export default [
     text: 'CSS 应用',
     items: [
       { text: 'UI 样式', link: '/blogs/css/ui/index.md' },
-      { text: '移动端适配', link: '/blogs/css/flexible/index.md' }
+      { text: '移动端适配', link: '/blogs/css/flexible/index.md' },
+      { text: '其他', link: '/blogs/css/application.md' }
     ]
   }
   // {

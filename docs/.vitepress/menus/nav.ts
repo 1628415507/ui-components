@@ -48,7 +48,7 @@ export const nav: DefaultTheme.NavItem[] = [
         link: '/blogs/framework' // 对应docs/column/Algorithm下的index.md文件
       },
       {
-        text: '业务场景',
+        text: '业务应用',
         link: '/blogs/business' // 对应docs/column/Algorithm下的index.md文件
       }
       // {

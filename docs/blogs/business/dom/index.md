@@ -1,3 +1,27 @@
+## [【DocumentFragment】](https://github.com/pro-collection/interview-question/issues/722)
+
+> 详见`./documentFragmentApi.html`
+
+`DocumentFragment` 是 Web API 中的一部分，它是 DOM （文档对象模型）的一个非常轻量级的节点，代表一组 DOM 节点的集合。
+
+- 它不是一个真实存在于 DOM 中的实体
+- 通常用来作为**临时**的 DOM 节点仓库。
+- 一旦整个 `DocumentFragment` 插入到 DOM 的一个**永久节点**上，那么在 `DocumentFragment` 内进行的更改将会触发 DOM 的重新渲染。
+
+### 特点和用途
+
+- 轻量级：`DocumentFragment` **不会引起布局重排**，因为其不是真实渲染的一部分。
+- 节点集合：可以在 `DocumentFragment` 中节点集合进行分组，这个集合可以一次性插入到 DOM 的某一部分中。
+- **性能优化**：通过在一个 `DocumentFragment` 中构建好一大块 DOM 树，然后将它整体插入到主 DOM 中，从而减少重排次数，提高效率。
+- **事件不冒泡**：因为 `DocumentFragment` 不是真实渲染的一部分，所以它的事件不会冒泡到上层的 DOM 元素，除非它被插入到了 DOM 中。
+
+### 使用场景
+
+- 批量操作：当你想要一次性添加多个节点到 DOM 树中时，使用 `DocumentFragment` 可以将这些节点预先堆放在一个轻量级对象中，然后一次性添加。
+- 离屏操作：如果你需要创建复杂的 DOM 结构，可以通过 `DocumentFragment` 在不触发页面重排和重绘的情况下进行。
+- 内容填充：在填充 DOM 元素内容之前，可以先创建一个 `DocumentFragment` 完成所有节点的添加和排序，然后把它添加到 DOM 树中。
+- 避免内存泄漏：在某些情况下，它可以作为防止因移动节点而造成的内存泄漏的一个办法。
+
 ## 【图⽚懒加载⽅式】
 
 图⽚懒加载可以延迟图⽚的加载，只有当图⽚即将进⼊视⼝范围时才进⾏加载。这可以⼤⼤减轻⻚⾯的加载时间，并降低带宽消耗，提⾼了⽤⼾的体验。
@@ -38,16 +62,16 @@ blogs/business/dom/lazyImage/intersectionObserver
 - 应在**滚动停⽌时**进⾏图⽚加载。
 - [前置知识点](https://blog.csdn.net/lph159/article/details/142134594)
 
-| 属性                                                                       | 说明                                                                                                                                                                  | 图解                                              |
-| -------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------- |
-| `scrollTop`                                                                | 元素顶部与文档顶部之间的距离，也就是滚动条**滚动的距离**。                                                                                                            |                                                   |
-| `window.innerHeight`                                                       | 浏览器窗口的内部高度(包括滚动条),会随着浏览器窗口的放大缩小变化                                                                                                       |                                                   |
-| `clientHeight`                                                             | 获取屏幕可视区域的高度，包含元素的高度+内边距;<br/>**不包含**水平滚动条，边框和外边距                                                                                 | ![clientHeight](./lazyImage/img/clientHeight.png) |
-| `clientWidth`                                                              | 获取屏幕可视区域的宽度。该属性包括内边距 padding；<br/>**不包括**边框 border、外边距 margin 和垂直滚动条（如果有的话）。                                              |                                                   |
-| `offsetHeight`                                                             | 元素的 offsetHeight 是一种元素 CSS 高度的衡量标准，<br/>**包括**元素的边框、内边距和元素的水平滚动条（如果存在且渲染的话）                                            | ![offsetHeight](./lazyImage/img/offsetHeight.png) |
-| [`offsetTop`](https://blog.csdn.net/qq_42816270/article/details/138028929) | 表示元素顶部到其 offsetParent 元素内边框的距离，而 offsetParent 是最近的定位父元素或最近的 table、td、th、body 元素。当元素没有定位父元素时，offsetParent 默认为 body | ![offsetTop](./lazyImage/img/offsetTop.png)       |
-| 判断元素是否进入父元素视口                                                 | `offsetTop < window.innerHeight + scrollTop`                                                                                                                          | ![alt text](./lazyImage/img/image.png)            |
-| `clientX/clientY `                                                         | 鼠标相对于浏览器文档显示区的水平 X 坐标,不包括工具栏和滚动条                                                                                                          |                                                   |
+| 属性                                                                       | 说明                                                                                                                                                                        | 图解                                              |
+| -------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------- |
+| `scrollTop`                                                                | 元素顶部与文档顶部之间的距离，也就是滚动条**滚动的距离**。                                                                                                                  |                                                   |
+| `window.innerHeight`                                                       | 浏览器窗口的内部高度(包括滚动条),会随着浏览器窗口的放大缩小变化                                                                                                             |                                                   |
+| `clientHeight`                                                             | 获取屏幕可视区域的高度，包含元素的高度+内边距;<br/>**不包含**水平滚动条，边框和外边距                                                                                       | ![clientHeight](./lazyImage/img/clientHeight.png) |
+| `clientWidth`                                                              | 获取屏幕可视区域的宽度。该属性包括内边距 padding；<br/>**不包括**边框 border、外边距 margin 和垂直滚动条（如果有的话）。                                                    |                                                   |
+| `offsetHeight`                                                             | 元素的 offsetHeight 是一种元素 CSS 高度的衡量标准，<br/>**包括**元素的**边框+内边距+元素的水平滚动条**（如果存在且渲染的话）                                                | ![offsetHeight](./lazyImage/img/offsetHeight.png) |
+| [`offsetTop`](https://blog.csdn.net/qq_42816270/article/details/138028929) | 表示元素顶部到其 `offsetParent` 元素内边框的距离，而 offsetParent 是**最近的定位父元素**或最近的 table、td、th、body 元素。当元素没有定位父元素时，offsetParent 默认为 body | ![offsetTop](./lazyImage/img/offsetTop.png)       |
+| 判断元素是否进入父元素视口                                                 | `offsetTop < window.innerHeight + scrollTop`                                                                                                                                | ![alt text](./lazyImage/img/image.png)            |
+| `clientX/clientY `                                                         | 鼠标相对于浏览器文档显示区的水平 X 坐标,不包括工具栏和滚动条                                                                                                                |                                                   |
 
 详见`lazyImage/scrollListener.html`
 
