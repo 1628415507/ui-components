@@ -7,8 +7,11 @@ export default [
   { text: '汇总', link: '/blogs/css/index.md' },
   { text: 'TODO', link: '/blogs/css/todo.md' },
   {
-    text: 'HTML汇总',
-    items: [{ text: 'html', link: '/blogs/css/html.md' }]
+    text: 'HTML',
+    items: [
+      { text: 'html', link: '/blogs/css/html/index.md' },
+      { text: 'canvas', link: '/blogs/css/html/canvas.md' }
+    ]
   },
   {
     text: 'CSS原理',
