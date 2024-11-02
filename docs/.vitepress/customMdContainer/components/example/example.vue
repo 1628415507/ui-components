@@ -33,7 +33,7 @@ onBeforeMount(() => {
   const matches = props.path.match(pattern)
   console.log('【 matches 】-34', props.path, matches)
   const pathLevel = matches.length //获取examples目录下层级
-  console.log('【 matches 】-35', matches.length)
+  // console.log('【 matches 】-35', matches.length)
   if (pathLevel == 1) {
     // modules = import.meta.glob(`../../../../examples/*/*.vue`, {
     modules = import.meta.glob(`/*/*.vue`, {

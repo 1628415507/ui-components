@@ -6,16 +6,26 @@
 
 - `Intersection Observer API` 是⼀种⽤于异步检查 **⽂档中元素与视⼝叠加程度**的 API。可以将其⽤于检测图⽚是否已经进⼊视⼝，并根据需要进⾏相应的处理。
 - observer 观察者对象在观察元素是否进入视口、祖先元素的时候，不管元素是否进入，都会触发观察者对象的回调函数
-- isIntersecting true 当前元素进入视口，false 当前元素离开视口
+- `isIntersecting`:true 当前元素进入视口，false 当前元素离开视口
 
 ```js{2,3,7}
-    var box = document.querySelector('.img')
-    var observer = new IntersectionObserver((entry)=>{
-     if (entry.isIntersecting) {
-      // ...元素进入视口
-     }
+var box = document.querySelector('.img')
+var observer = new IntersectionObserver(callback, {
+  root: this.container,//父元素
+  threshold: 1.0,
+})
+// 对元素进行监听
+function callback(entries) {
+  entries.forEach(() => {
+    if (entry.isIntersecting) {
+      // ...元素进入父元素视口
+    }
   })
-    observer.observe(box)
+}
+const items = [...document.querySelectorAll('.item')]
+items.forEach(function (it) {
+  observer.observe(it) //观察指定DOM对象
+})
 ```
 
 ::: example
@@ -125,7 +135,7 @@ blogs/business/dom/virtualScroll/generalRender
 - 第一个 console.log 的触发时间是在页面进行**渲染之前**，此时得到的间隔时间为 JS 运行所需要的时间
 - 第二个 console.log 是放到 setTimeout 中的，它的触发时间是在**渲染完成**，在下一次 Event Loop 中执行的
 
-### 2. 虚拟滚动
+### [2. 虚拟列表](https://juejin.cn/post/6844903982742110216)
 
 #### 原理
 
@@ -383,3 +393,9 @@ export default {
 }
 </style>
 ```
+
+### [3.requestAnimationFrame 时间分片](https://juejin.cn/post/6844903938894872589)
+
+::: example
+blogs/business/dom/virtualScroll/requestAnimationFrameList
+:::
