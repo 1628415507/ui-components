@@ -22,6 +22,52 @@
 - 内容填充：在填充 DOM 元素内容之前，可以先创建一个 `DocumentFragment` 完成所有节点的添加和排序，然后把它添加到 DOM 树中。
 - 避免内存泄漏：在某些情况下，它可以作为防止因移动节点而造成的内存泄漏的一个办法。
 
+## 【如何判断 dom 元素是否在可视区域】
+
+<!-- 【热度: 846】 -->
+
+### 1. getBoundingClientRect() ⽅法
+
+![alt text](./img/getBoundingClientRect.png)
+
+```js{2,6}
+function isInViewport(element) {
+  const rect = element.getBoundingClientRect()
+  const { top, left, bottom, right } = rect
+  const height = window.innerHeight || document.documentElementclientHeight
+  const width = window.innerWidth || document.documentElement.clientWidth
+  return top >= 0 && left >= 0 && bottom <= height && right <= width
+}
+// 示例
+const element = document.getElementById('my-element');
+if (isInViewport(element)) {
+  console.log('在可视区域')
+} else {
+  console.log('不在可视区域')
+}
+```
+
+### 2. IntersectionObserver API
+
+- 该 API 可以观察元素与其祖先元素或视⼝交叉的情况，并且可以设置回调函数，当元素的可⻅性发⽣变化时会调⽤该回调函数。
+- 使⽤ IntersectionObserver API 的优点是可以减少不必要的计算和事件监听，提⾼了性能
+
+```js{3,11,13}
+function callback(entries, observer) {
+  entries.forEach((entry) => {
+    if (entry.isIntersecting) {
+      console.log('Element is in viewport')
+    } else {
+      console.log('Element is not in viewport')
+    }
+  })
+}
+
+const observer = new IntersectionObserver(callback)
+const element = document.getElementById('my-element')
+observer.observe(element)
+```
+
 ## 【图⽚懒加载⽅式】
 
 图⽚懒加载可以延迟图⽚的加载，只有当图⽚即将进⼊视⼝范围时才进⾏加载。这可以⼤⼤减轻⻚⾯的加载时间，并降低带宽消耗，提⾼了⽤⼾的体验。
@@ -96,50 +142,6 @@ document.addEventListener("scroll",
     lazyLoadThrottleTimeout = setTimeout(lazyLoad, 1000);//停止滚动后执行
   }
 )
-```
-
-## 【如何判断 dom 元素是否在可视区域】
-
-<!-- 【热度: 846】 -->
-
-### 1. getBoundingClientRect() ⽅法
-
-```js{2,6}
-function isInViewport(element) {
-  const rect = element.getBoundingClientRect()
-  const { top, left, bottom, right } = rect
-  const height = window.innerHeight || document.documentElementclientHeight
-  const width = window.innerWidth || document.documentElement.clientWidth
-  return top >= 0 && left >= 0 && bottom <= height && right <= width
-}
-// 示例
-const element = document.getElementById('my-element');
-if (isInViewport(element)) {
-  console.log('在可视区域')
-} else {
-  console.log('不在可视区域')
-}
-```
-
-### 2. IntersectionObserver API
-
-- 该 API 可以观察元素与其祖先元素或视⼝交叉的情况，并且可以设置回调函数，当元素的可⻅性发⽣变化时会调⽤该回调函数。
-- 使⽤ IntersectionObserver API 的优点是可以减少不必要的计算和事件监听，提⾼了性能
-
-```js{3,11,13}
-function callback(entries, observer) {
-  entries.forEach((entry) => {
-    if (entry.isIntersecting) {
-      console.log('Element is in viewport')
-    } else {
-      console.log('Element is not in viewport')
-    }
-  })
-}
-
-const observer = new IntersectionObserver(callback)
-const element = document.getElementById('my-element')
-observer.observe(element)
 ```
 
 ## 【虚拟滚动加载原理及实现】
