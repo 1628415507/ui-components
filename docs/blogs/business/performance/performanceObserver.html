@@ -1,0 +1,62 @@
+<!--
+ * @Description: 
+ * @Date: 2024-10-11 18:10:58
+ * @LastEditTime: 2024-11-04 09:43:32
+-->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>如何统计⻓任务时间、⻓任务执⾏次数</title>
+    <style></style>
+  </head>
+
+  <body>
+    <div class="scroll-container"></div>
+    <script>
+      const bigArray = Array.from({ length: 100000 }, (_, i) => i + 1)
+
+      // 定义一个处理函数，例如对数组中的每个元素进行平方操作
+      function processChunk(chunk) {
+        for (const item in bigArray) {
+        }
+      }
+      processChunk()
+      // 创建一个性能观察者实例来订阅长任务
+      let observer = new PerformanceObserver((list) => {
+        console.log('【 list 】-19', list)
+        for (const entry of list.getEntries()) {
+          console.log('Long Task detected:')
+          console.log(`Task Start Time: ${entry.startTime}, Duration: ${entry.duration}`)
+        }
+      })
+
+      // 开始观察长任务
+      observer.observe({ entryTypes: ['longtask'] }) //entryTypes:指定要观察的性能条目类型,这里表示长任务
+
+      // 启动长任务统计数据的变量
+      let longTaskCount = 0
+      let totalLongTaskTime = 0
+
+      // 更新之前的性能观察者实例，以增加统计逻辑
+      observer = new PerformanceObserver((list) => {
+        list.getEntries().forEach((entry) => {
+          longTaskCount++ // 统计长任务次数
+          console.log('【 longTaskCount 】-45', longTaskCount)
+          totalLongTaskTime += entry.duration // 累加长任务总耗时
+          // 可以在这里添加其他逻辑，比如记录长任务发生的具体时间等
+        })
+      })
+
+      // 再次开始观察长任务
+      observer.observe({ entryTypes: ['longtask'] })
+      // // 停止观察能力
+      // observer.disconnect();
+      setTimeout(() => {
+        // // 统计数据输出
+        console.log(`长任务总数: ${longTaskCount}`)
+        console.log(`长任务总耗时: ${totalLongTaskTime}ms`)
+      },1000)
+    </script>
+  </body>
+</html>
