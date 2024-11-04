@@ -1,7 +1,7 @@
 <!--
  * @Description: https://gitee.com/yanleweb/interview-question/issues/I7W2KU
  * @Date: 2024-08-23 16:04:10
- * @LastEditTime: 2024-11-04 17:22:39
+ * @LastEditTime: 2024-11-04 17:40:59
 -->
 
 # 业务场景
@@ -210,9 +210,10 @@ blogs/business/longTask-长任务/web-worker/webWorker
 
 ## 5. 在表单校验场景中， 如何实现⻚⾯视⼝滚动到报错的位置
 
-> 详见`docs\examples\blogs\business\validationForm.html`
-
 - 滚动指定位置：`element.scrollIntoView({ block: "center", behavior: "smooth" });`
+  ::: example
+  blogs/business/validationForm
+  :::
 
 ## 6. [检测网页是否为空闲状态](https://www.jb51.net/javascript/318807ud9.htm)
 
