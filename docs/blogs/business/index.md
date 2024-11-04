@@ -1,7 +1,7 @@
 <!--
  * @Description: https://gitee.com/yanleweb/interview-question/issues/I7W2KU
  * @Date: 2024-08-23 16:04:10
- * @LastEditTime: 2024-11-01 15:23:42
+ * @LastEditTime: 2024-11-04 15:16:20
 -->
 
 # 业务场景
@@ -591,3 +591,132 @@ function setUploadedToStorage(index) {
    请求。⼿机端的应⽤使⽤会话令牌（也就是之前⽣成的令牌）来识别并验证会话状态，从⽽允许⽤
    ⼾在 PC 端进⾏需要登录的操作。
    ![alt text](./img/scanLogin.png)
+
+## [【不同标签⻚或窗⼝间的主动通信】](https://juejin.cn/post/7359470175760957474)
+
+- 频道内的通信 仅在同源浏览器上下⽂（具有相同的协议、域名和端⼝号）之间有效
+
+### BroadcastChannel
+
+详见`\tabMessage\BroadcastChannel\tab1.html`和`\tabMessage\BroadcastChannel\tab2.html`
+
+- tab1
+
+```js
+// 在任何一个 tab 或 iframe 中创建一个广播频道
+const channel = new BroadcastChannel('my-channel-name')
+// 发送一个消息到频道
+channel.postMessage('Hello from a tab!')
+```
+
+- tab2
+
+```js
+// 监听这个频道的消息
+channel.addEventListener('message', function (event) {
+  if (event.data === 'Hello from a tab!') {
+    console.log('Message received: ', event.data)
+  }
+})
+```
+
+### Service Workers
+
+- 利用 Service Workers，各个标签页可以通过 `clients.matchAll()` 方法找到所有其他客户端（如打开的标签页），然后使用 `postMessage` 发送消息。
+- Service Workers 可以通过 Focus 和 Navigate 事件来控制页面的焦点和导航等。
+  详见`\tabMessage\ServiceWorker\tab1.html`和`\tabMessage\ServiceWorker\tab2.html`
+
+```js{2}
+navigator.serviceWorker
+  .register('./sw.js')
+  .then((registration) => {
+  })
+  .catch((error) => {
+    console.log('注册失败:', error)
+  })
+// 发送消息
+navigator.serviceWorker.controller.postMessage('This is from main page')
+```
+
+```js{1}
+self.clients.matchAll({
+    type: 'window',
+    includeUncontrolled: true
+  })
+  .then((windowClients) => {
+    windowClients.forEach((client) => {
+      client.postMessage('New message for ' + client.id)
+    })
+  })
+```
+
+### 使用 iframe 的 message 事
+
+详见`\tabMessage\iframe\index.html`和`\tabMessage\iframe\iframe.html`
+
+- index.html
+
+```js{5,8,17,21}
+<h2 >Parent Page</h2>
+<iframe src="./iframe.html"></iframe>
+<div id="iframeText"></div>
+
+let originUrl = window.location.origin.toString()
+let count = 0
+// 监听 iframe 发送的 message 事件
+window.addEventListener('message', function (event) {
+  if (event.origin !== originUrl) {
+    return // 确保消息源是可信的
+  }
+  if (event.data && event.data.greeting) {
+    count++
+    const iframeText = document.getElementById('iframeText')
+    iframeText.textContent = '来自iframe的消息:' + event.data.greeting + count
+    // 回复iframe发送一些信息
+    document.querySelector('iframe').contentWindow.postMessage(
+      {
+        response: 'Hello iframe! This is the parent window speaking.'
+      },
+      originUrl
+    )
+  }
+})
+```
+
+- iframe.html
+
+```js{4,10,20}
+<h2>Iframe Page</h2>
+<div id="parentText"></div>
+
+let originUrl = window.location.origin.toString() //发送的地址
+let count = 0
+// 假设我们有一些需要发送到父页面的信息
+function sendMessageToParent() {
+  setInterval(function () {
+    // 向父页面发送消息
+    parent.postMessage({ greeting: 'Hello, I am the iframe!' }, originUrl)
+  }, 5000)
+}
+
+// 当页面加载完成后，给父页面发送消息
+window.onload = function () {
+  sendMessageToParent()
+}
+
+// 监听来自父页面的消息
+window.addEventListener('message', function (event) {
+  if (event.origin != originUrl) {
+    // 反向验证消息源的可信度
+    return
+  }
+  console.log('【 event.data 】-33', event.data)
+  if (event.data && event.data.response) {
+    count++
+    const parentText = document.getElementById('parentText')
+    parentText.textContent = '来自parent的消息:' + event.data.response + count
+    console.log('来自父页面parent发送消息:', event.data)
+    // 可根据消息实现特定的逻辑...
+  }
+})
+```

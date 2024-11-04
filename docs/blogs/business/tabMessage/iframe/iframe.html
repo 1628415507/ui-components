@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Iframe Page</title>
+  </head>
+  <body>
+    <h2>Iframe Page</h2>
+    <div id="parentText"></div>
+    <script>
+      let originUrl = window.location.origin.toString() //发送的地址
+      let count = 0
+      // 假设我们有一些需要发送到父页面的信息
+      function sendMessageToParent() {
+        setInterval(function () {
+          // 向父页面发送消息
+          parent.postMessage({ greeting: 'Hello, I am the iframe!' }, originUrl)
+        }, 5000)
+      }
+
+      // 当页面加载完成后，给父页面发送消息
+      window.onload = function () {
+        sendMessageToParent()
+      }
+
+      // 监听来自父页面的消息
+      window.addEventListener('message', function (event) {
+        if (event.origin != originUrl) {
+          // 反向验证消息源的可信度
+          return
+        }
+        console.log('【 event.data 】-33', event.data)
+        if (event.data && event.data.response) {
+          count++
+          const parentText = document.getElementById('parentText')
+          parentText.textContent = '来自parent的消息:' + event.data.response + count
+          console.log('来自父页面parent发送消息:', event.data)
+          // 可根据消息实现特定的逻辑
+        }
+      })
+    </script>
+  </body>
+</html>

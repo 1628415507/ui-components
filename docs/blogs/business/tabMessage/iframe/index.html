@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Parent Page</title>
+  </head>
+  <body>
+    <h2 >Parent Page</h2>
+    <iframe src="./iframe.html"></iframe>
+    <div id="iframeText"></div>
+    <script>
+      let originUrl = window.location.origin.toString()
+      let count = 0
+      // 监听 iframe 发送的 message 事件
+      window.addEventListener('message', function (event) {
+        if (event.origin !== originUrl) {
+          return // 确保消息源是可信的
+        }
+        if (event.data && event.data.greeting) {
+          count++
+          const iframeText = document.getElementById('iframeText')
+          iframeText.textContent = '来自iframe的消息:' + event.data.greeting + count
+          // 回复iframe发送一些信息
+          document.querySelector('iframe').contentWindow.postMessage(
+            {
+              response: 'Hello iframe! This is the parent window speaking.'
+            },
+            originUrl
+          )
+        }
+      })
+    </script>
+  </body>
+</html>

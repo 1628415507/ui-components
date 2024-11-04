@@ -1,0 +1,39 @@
+<!--
+ * @Description: 
+ * @Date: 2024-11-04 13:18:05
+ * @LastEditTime: 2024-11-04 14:26:05
+-->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>tab2-ServiceWorker</title>
+    <style></style>
+  </head>
+
+  <body>
+    <div>ServiceWorker-tab2</div>
+    <div id="msg"></div>
+    <script>
+      if (navigator['serviceWorker']) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker
+            .register('./sw.js')
+            .then((registration) => {
+              // console.log('【tab2:Service Worker 注册成功 】-22', registration, registration.scope)
+            })
+            .catch((error) => {
+              console.log('Service Worker registration failed:', error)
+            })
+        })
+      }
+      // 检查是否已经有 ServiceWorker 主动控制。
+      if (navigator.serviceWorker.controller) {
+        // 像其他标签页发送消息
+        setInterval(function () {
+          navigator.serviceWorker.controller.postMessage('another:New message from another tab')
+        }, 3000)
+      }
+    </script>
+  </body>
+</html>

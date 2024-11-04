@@ -1,0 +1,36 @@
+<!--
+ * @Description: 
+ * @Date: 2024-11-04 13:18:05
+ * @LastEditTime: 2024-11-04 14:24:56
+-->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>ServiceWorker</title>
+    <style></style>
+  </head>
+
+  <body>
+    <div>ServiceWorker-tab1</div>
+    <script>
+      if (navigator['serviceWorker']) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker
+            .register('./sw.js')
+            .then((registration) => {
+              // console.log('【tab1:Service Worker 注册成功 】-22', registration, registration.scope)
+            })
+            .catch((error) => {
+              console.log('注册失败:', error)
+            })
+        })
+      }
+      // 检查是否已经有 ServiceWorker 主动控制。
+      if (navigator.serviceWorker.controller) {
+        console.log('【 已经有 ServiceWorker 主动控制 】-29', navigator.serviceWorker.controller)
+        navigator.serviceWorker.controller.postMessage('This is from main page')
+      }
+    </script>
+  </body>
+</html>
