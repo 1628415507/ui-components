@@ -1,7 +1,7 @@
 <!--
  * @Description: https://gitee.com/yanleweb/interview-question/issues/I7W2KU
  * @Date: 2024-08-23 16:04:10
- * @LastEditTime: 2024-11-04 15:16:20
+ * @LastEditTime: 2024-11-04 17:22:39
 -->
 
 # 业务场景
@@ -719,4 +719,209 @@ window.addEventListener('message', function (event) {
     // 可根据消息实现特定的逻辑...
   }
 })
+```
+
+## 【使⽤浏览器原⽣ hash 或 history 路由来组织⻚⾯路由？】
+
+### 1. hash 模式
+
+- 详见`\router\hash模式.html`
+- 改变 URL 中的 hash 部分不会引起页面刷新
+- 通过 `hashchange` 事件监听 URL 的变化
+- 改变 URL 的方式只有 3 种，这几种情况改变 URL 都会触发 `hashchange` 事件
+  - 通过浏览器前进后退触发`popstate`改变 URL;
+  - 通过`<a>`标签改变 URL;
+  - 通过 window.location 改变 URL;
+
+```html{17,18,38,49,57}
+<body>
+  <main id="content"></main>
+  <nav id="nav">
+    <a href="#/">首页</a>
+    <a href="#/shop">tab1</a>
+    <a href="#/shopping-cart">tab2</a>
+    <a href="#/mine">tab3</a>
+  </nav>
+</body>
+<script>
+  class VueRouter {
+    constructor(routes = []) {
+      this.routes = routes // 路由映射
+      this.currentHash = '' // 当前的hash
+      this.refresh = this.refresh.bind(this)
+      // 监听页面加载load和hashchange事件
+      window.addEventListener('load', this.refresh, false)
+      window.addEventListener('hashchange', this.refresh, false)
+    }
+    // 获取路由
+    getUrlPath(url) {
+      const hash = url.indexOf('#') >= 0 ? url.slice(url.indexOf('#') + 1) : '/' // 获取hash
+      return hash
+    }
+    // hash路由切换时刷新页面
+    refresh(event) {
+      console.log('【 event 】-75', event)
+      // URL hash发生改变的时候，拿到当前的hash
+      let newHash = ''
+      let oldHash = null
+      if (event.newURL) {
+        oldHash = this.getUrlPath(event.oldURL || '') // 旧的路由
+        newHash = this.getUrlPath(event.newURL || '') // 新的路由
+      } else {
+        newHash = this.getUrlPath(window.location.hash)
+      }
+      this.currentHash = newHash
+      this.matchComponent() // 匹配路由对应的页面
+    }
+    // 切换页面组件
+    matchComponent() {
+      let curRoute = this.routes.find((route) => route.path === this.currentHash)
+      console.log('【 curRoute 】-91', curRoute)
+      if (!curRoute) {
+        // 当前URL中的hash不存在的时候，默认取第一个，当然真实场景下，可能会有各种情况，取决于业务逻辑
+        curRoute = this.routes.find((route) => route.path === '/')
+      }
+      const { component } = curRoute
+      document.querySelector('#content').innerHTML = component
+    }
+  }
+
+  const router = new VueRouter([
+    {
+      path: '/',
+      name: 'home',
+      component: '<div>首页内容</div>'
+    },
+    {
+      path: '/shop',
+      name: 'shop',
+      component: '<div>tab1内容</div>'
+    },
+    {
+      path: '/shopping-cart',
+      name: 'shopping-cart',
+      component: '<div>tab2内容</div>'
+    },
+    {
+      path: '/mine',
+      name: 'mine',
+      component: '<div>tab3内容</div>'
+    }
+  ])
+</script>
+```
+
+1. 使⽤ `history.pushState()` 和 `history.replaceState()` ⽅法来添加和修改浏览器历史条⽬。
+2. 侦听 `popstate` 事件来响应浏览器历史的变化。
+3. 根据当前的 URL 状态，⼿动渲染对应的 React 组件。
+
+### 2. history 模式
+
+- 详见`\router\history模式.html`
+- 通过浏览器`前进后退`改变 URL 时会触发 `popstate` 事件，
+- 通过`pushState/replaceState`或`<a>`标签改变 URL 不会触发 `popstate` 事件
+
+```html{16,17,18,20,34,40,43,48,73,78}
+<body>
+  <main id="content"></main>
+  <nav id="nav">
+    <button id="button1">button1</button>
+    <button id="button2">button2</button>
+    <button id="button3">button3</button>
+    <button id="button4">button4</button>
+  </nav>
+</body>
+<script>
+  class VueRouter {
+    constructor(routes = []) {
+      this.routes = routes // 路由映射
+      this.currentPath = '' // 当前的hash
+      this.refresh = this.refresh.bind(this)
+      history.pushState = this._wr('pushState')
+      history.replaceState = this._wr('replaceState')
+      this.addEventListener()
+      // 监听浏览器的前进后退改变
+      window.onpopstate = (event) => {
+        console.log('【  window.onpopstate 】-86', event, event.state)
+        this.refresh(event)
+      }
+    }
+    // 重写history.pushState和history.replaceState方法
+    _wr(type) {
+      let orig = history[type] //调用原来的history.pushState和history.replaceState方法
+      return function () {
+        let rv = orig.apply(this, arguments)
+        let e = new Event(type) //创建函数
+        e.arguments = arguments
+        // 调用 dispatchEvent() 是触发一个事件的最后一步。
+        // 被触发的事件应事先通过 Event() 构造函数创建并初始化完毕。
+        window.dispatchEvent(e)
+        return rv // 返回重写后的方法
+      }
+    }
+    // 添加事件监听
+    addEventListener() {
+      window.addEventListener('load', this.refresh, false)
+      this.routes.forEach((route) => {
+        const target = document.querySelector(route.target)
+        target.addEventListener('click', () => {
+          history.pushState({ state: 1 }, null, route.path)
+        })
+      })
+      // 监听路由变化
+      window.addEventListener('pushState', (e) => {
+        //监听pushState自定义事件，拿到上面通过pushState传入的参数，做出对应的页面渲染，
+        this.refresh(e)
+      })
+    }
+    // 获取路由
+    getUrlPath(args) {
+      const path = window.location.pathname
+      return path
+    }
+    // hash路由切换时刷新页面
+    refresh(event) {
+      console.log('【 window.location 】-112', window.location)
+      this.currentPath = this.getUrlPath()
+      this.matchComponent() // 匹配路由对应的页面
+    }
+    // 切换页面组件
+    matchComponent() {
+      let curRoute = this.routes.find((route) => route.path === this.currentPath)
+      if (!curRoute) {
+        // 当前URL中的hash不存在的时候，默认取第一个，当然真实场景下，可能会有各种情况，取决于业务逻辑
+        curRoute = this.routes.find((route) => route.path === '/')
+      }
+      const { component } = curRoute
+      console.log('【 curRoute 】-122', curRoute)
+      document.querySelector('#content').innerHTML = component
+    }
+  }
+  const router = new VueRouter([
+    {
+      target: '#button1',
+      path: '/',
+      name: 'home',
+      component: '<div>首页内容</div>'
+    },
+    {
+      target: '#button2',
+      path: '/shop',
+      name: 'shop',
+      component: '<div>tab1内容</div>'
+    },
+    {
+      target: '#button3',
+      path: '/shopping-cart',
+      name: 'shopping-cart',
+      component: '<div>tab2内容</div>'
+    },
+    {
+      target: '#button4',
+      path: '/mine',
+      name: 'mine',
+      component: '<div>tab3内容</div>'
+    }
+  ])
+</script>
 ```
