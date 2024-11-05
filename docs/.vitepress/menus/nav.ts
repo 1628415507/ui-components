@@ -1,7 +1,7 @@
 /*
  * @Description:
  * @Date: 2024-06-27 16:50:06
- * @LastEditTime: 2024-10-18 11:14:36
+ * @LastEditTime: 2024-11-05 10:10:41
  */
 //
 import { DefaultTheme } from 'vitepress'
@@ -44,7 +44,7 @@ export const nav: DefaultTheme.NavItem[] = [
         link: '/blogs/network' // 对应docs/column/Algorithm下的index.md文件
       },
       {
-        text: '前端框架', //算法。浏览器‘正则表达式
+        text: '进阶', //算法。浏览器‘正则表达式
         link: '/blogs/framework' // 对应docs/column/Algorithm下的index.md文件
       },
       {

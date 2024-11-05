@@ -1,7 +1,7 @@
 <!--
  * @Description: 根据路径匹配examples文件夹下的组件
  * @Date: 2024-06-27 09:40:26
- * @LastEditTime: 2024-10-30 18:26:47
+ * @LastEditTime: 2024-11-05 11:47:22
 -->
 <template>
   <ClientOnly>
@@ -31,7 +31,7 @@ onBeforeMount(() => {
   let modules: any
   const pattern = new RegExp('/', 'g')
   const matches = props.path.match(pattern)
-  console.log('【 matches 】-34', props.path, matches)
+  // console.log('【 matches 】-34', props.path, matches)
   const pathLevel = matches.length //获取examples目录下层级
   // console.log('【 matches 】-35', matches.length)
   if (pathLevel == 1) {

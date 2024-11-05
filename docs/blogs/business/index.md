@@ -1,7 +1,7 @@
 <!--
  * @Description: https://gitee.com/yanleweb/interview-question/issues/I7W2KU
  * @Date: 2024-08-23 16:04:10
- * @LastEditTime: 2024-11-04 17:40:59
+ * @LastEditTime: 2024-11-05 09:26:12
 -->
 
 # 业务场景
@@ -732,7 +732,7 @@ window.addEventListener('message', function (event) {
 - 改变 URL 的方式只有 3 种，这几种情况改变 URL 都会触发 `hashchange` 事件
   - 通过浏览器前进后退触发`popstate`改变 URL;
   - 通过`<a>`标签改变 URL;
-  - 通过 window.location 改变 URL;
+  - 通过 `window.location` 改变 URL;
 
 ```html{17,18,38,49,57}
 <body>

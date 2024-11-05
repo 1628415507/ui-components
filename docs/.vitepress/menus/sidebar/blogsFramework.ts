@@ -1,7 +1,7 @@
 /*
  * @Description: 
  * @Date: 2024-10-14 17:14:53
- * @LastEditTime: 2024-11-04 10:05:16
+ * @LastEditTime: 2024-11-05 10:17:15
  */
 export default [
   { text: '汇总', link: '/blogs/framework/index.md' },
@@ -12,4 +12,6 @@ export default [
       { text: '虚拟DOM与Diff算法分析', link: '/blogs/framework/vue/diff/index.md' },
     ]
   },
+  { text: 'TypeScript入门', link: '/blogs/framework/typeScript/index.md' },
+
 ]
