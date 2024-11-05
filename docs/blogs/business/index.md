@@ -959,3 +959,10 @@ window.addEventListener('message', function (event) {
 - 前端性能优化
 - 前端低代码平台搭建
 - 微前端（Micro App）
+
+## ~~[【什么是 Service Worker？它的主要用途是什么？】](https://blog.csdn.net/weixin_43850639/article/details/133105612)~~
+
+- ServiceWorker 是一个**运行在浏览器背后**的独立线程，它拥有**访问网络的能力**，可以实现资源缓存、消息推送、后台数据同步等功能.
+  - 资源缓存：它能拦截和缓存网络请求，提高加载速度和优化用户体验。
+  - 消息推送：即便在应用或浏览器未运行的情况下，Service Worker 也能接收后台推送通知。
+  - 后台数据同步：使用 Background Sync API, 它可以在后台同步数据，这在断网或网络不稳定时特别有用。
