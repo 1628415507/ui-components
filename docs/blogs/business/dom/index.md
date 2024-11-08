@@ -110,7 +110,7 @@ blogs/business/dom/lazyImage/intersectionObserver
 
 | 属性                                                                       | 说明                                                                                                                                                                        | 图解                                              |
 | -------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------- |
-| `scrollTop`                                                                | 元素顶部与文档顶部之间的距离，也就是滚动条<br/>**滚动的距离当滚动条位于容器底部时，以下条件成立`scrollTop + clientHeight  = scrollHeight;`**。                                                                                                                  |       ![alt text](./lazyImage/img/scrollTop.png)                               |
+| `scrollTop`                                                                | 元素顶部与文档顶部之间的距离，也就是滚动条<br/>**滚动的距离当滚动条位于容器底部时，以下条件成立`scrollTop + clientHeight  = scrollHeight;`**。                              | ![alt text](./lazyImage/img/scrollTop.png)        |
 | `window.innerHeight`                                                       | 浏览器窗口的内部高度(包括滚动条),会随着浏览器窗口的放大缩小变化                                                                                                             |                                                   |
 | `clientHeight`                                                             | 获取屏幕可视区域的高度，包含元素的高度+内边距;<br/>**不包含**水平滚动条，边框和外边距                                                                                       | ![clientHeight](./lazyImage/img/clientHeight.png) |
 | `clientWidth`                                                              | 获取屏幕可视区域的宽度。该属性包括内边距 padding；<br/>**不包括**边框 border、外边距 margin 和垂直滚动条（如果有的话）。                                                    |                                                   |
@@ -492,3 +492,10 @@ const virtualScroll = new VirtualScroll(container, itemHeight, itemCount, render
 ::: example
 blogs/business/dom/virtualScroll/requestAnimationFrameList
 :::
+
+## 【在表单校验场景中， 如何实现⻚⾯视⼝滚动到报错的位置】
+
+- 滚动指定位置：`element.scrollIntoView({ block: "center", behavior: "smooth" });`
+  ::: example
+  blogs/business/validationForm
+  :::

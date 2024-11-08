@@ -1,7 +1,7 @@
 <!--
  * @Description: https://gitee.com/yanleweb/interview-question/issues/I7W2KU
  * @Date: 2024-08-23 16:04:10
- * @LastEditTime: 2024-11-05 09:26:12
+ * @LastEditTime: 2024-11-08 14:44:54
 -->
 
 # 业务场景
@@ -207,13 +207,6 @@ blogs/business/longTask-长任务/web-worker/webWorker
   </body>
 </html>
 ```
-
-## 5. 在表单校验场景中， 如何实现⻚⾯视⼝滚动到报错的位置
-
-- 滚动指定位置：`element.scrollIntoView({ block: "center", behavior: "smooth" });`
-  ::: example
-  blogs/business/validationForm
-  :::
 
 ## 6. [检测网页是否为空闲状态](https://www.jb51.net/javascript/318807ud9.htm)
 
@@ -927,42 +920,103 @@ window.addEventListener('message', function (event) {
 </script>
 ```
 
-## [【如何从 0 到 1 搭建前端基建】](https://juejin.cn/post/7144881028661723167)
-
-### 1.什么是基建？
-
-![alt text](image.png)
-
-### 2.为什么要做前端基建？
-
-- 业务复⽤；
-- 提升研发效率；
-- 规范研发流程；
-- 团队技术提升；
-- 团队的技术影响⼒；
-
-### 3.前端基建都有什么？
-
-- **前端规范（Standard）**
-- **前端⽂档（Document）**
-- 前端项⽬模板管理（Templates）
-- 前端脚⼿架（CLI）
-- **前端组件库（UI Design）**
-- 前端响应式设计 or ⾃适应设计
-- **前端⼯具库（类 Hooks / Utils）**
-- 前端⼯具⾃动化（Tools）
-- 接⼝数据聚合（BFF）
-- 前端 SSR 推进
-- 前端⾃动化构建部署（CI/CD）
-- 全链路前端监控/数据埋点系统
-- 前端可视化平台
-- 前端性能优化
-- 前端低代码平台搭建
-- 微前端（Micro App）
-
-## ~~[【什么是 Service Worker？它的主要用途是什么？】](https://blog.csdn.net/weixin_43850639/article/details/133105612)~~
-
 - ServiceWorker 是一个**运行在浏览器背后**的独立线程，它拥有**访问网络的能力**，可以实现资源缓存、消息推送、后台数据同步等功能.
   - 资源缓存：它能拦截和缓存网络请求，提高加载速度和优化用户体验。
   - 消息推送：即便在应用或浏览器未运行的情况下，Service Worker 也能接收后台推送通知。
   - 后台数据同步：使用 Background Sync API, 它可以在后台同步数据，这在断网或网络不稳定时特别有用。
+
+## 【HTTP 是⼀个⽆状态的协议，那么 Web 应⽤要怎么保持⽤⼾的登录态呢？】
+
+### 实现登录态的几种形式：
+
+#### 1. cookie
+
+- 服务器可以通过 HTTP 响应头中的`Set-Cookie`字段通知浏览器存储 Cookie
+- 缺点：⽤⼾可以通过 `document.cookie`进行修改， 伪造登陆凭证
+
+#### 2. session
+
+- 仅发给客⼾端⼀个 session key ，然后在⾃⼰维护⼀个 key-value 表，如果请求中有 key ，并且在表中可以找到对应的 value ，则视为合法请求调⽤ 接⼝，验证通过后颁发 sessionID
+- 这样即使⾃⾏修改了 sessionID ，也没有对应的记录，也⽆法获取数据
+- 缺点：如果存在多个服务器如负载均衡时，每个服务器的状态表必须同步，或者抽离出来统⼀管理，如使⽤ Redis 等服务。
+
+#### 3. 令牌（TOKEN）机制(JWT)
+
+`JSON Web Token`（简称 JWT）
+
+`JSON Web Token`（简称 JWT）, 是以 JSON 格式存储信息的 Token
+|JSON Web Token |描述 |
+|---|--|
+| 头部|存储 Token 的**类型和签名算法**（上图中，类型是 jwt ，加密算法是 HS256 ） |
+|负载|是 Token**要存储的信息**（如存储了⽤⼾姓名和昵称信息）|
+|签名|是由指定的算法，将**转义后的头部和负载**，**加上密钥⼀同加密**得到的|
+|`.` |最后将这三部分⽤`.` 连接，就可以得到了⼀个 Token 了。|
+
+使⽤ `JWT` 维护登陆态，服务器不再需要维护状态表，他**仅给客⼾端发送⼀个加密的数据 token** ，每次请求都带上这个加密的数据，**再解密验证是否合法即可**。由于是加密的数据，即使⽤⼾可以修改， 命中⼏率也很⼩。
+
+##### 客⼾端如何存储 token 呢？
+
+1. 存在 `cookie` 中  
+   虽然设置 HttpOnly 可以有效防⽌ `XSS` 攻击中 token 被窃取，但是也就意味着客⼾端⽆法获取 token 来设置 CORS 头部。
+1. 存在 `sessionStorage` 或者 `localStorage` 中  
+   可以设置头部解决跨域资源共享问题，同时也可以防⽌ `CSRF` ，但是就需要考虑 XSS 的问题防⽌凭证泄露。
+
+##### Node 中 JWT 的使⽤
+
+- 第⼀步，在你的 `/login` 路由中使⽤ `jsonwebtoken` 中间件⽤于⽣成 token
+
+```js{1}
+const jwt = require('jsonwebtoken')
+let token = jwt.sign(
+  {
+    name: username
+  },
+  config.secret,
+  {
+    expiresIn: '24h'
+  }
+)
+res.cookie('token', token)
+```
+
+- 第⼆步，在 Node 的⼊⼝⽂件 `app.js `中注册 `express-jwt` 中间件⽤于验证 token
+
+```js{1,3}
+const expressJwt = require('express-jwt')
+app.use(
+  expressJwt({
+    secret: config.secret,
+    getToken: (req) => {
+      return req.cookies.token || null
+    }
+  }).unless({
+    path: ['/login']
+  })
+)
+```
+
+- 如果 getToken 返回 null ，中间件会抛出 UnauthorizedError 异常
+
+```js{3}
+app.use(function (err, req, res, next) {
+  //当token验证失败时会抛出如下错误
+  if (err.name === 'UnauthorizedError') {
+    res.status(401).json({
+      status: 'fail',
+      message: '⾝份校验过期，请重新登陆'
+    })
+  }
+})
+```
+
+### 如何实现单点登录
+
+- 假设我们在电脑和⼿机都使⽤同⼀个⽤⼾登陆，对于服务器来说，这两次登陆⽣成的 token 都是合法的，尽管他们是同⼀个⽤⼾。所以两个 token 不会失效。
+- 要实现单点登陆，服务器只需要维护⼀张**userId 和 token 之间映射关系的表**。每次登陆成功都刷新 token 的值。
+- 在处理业务逻辑之前，使⽤解密拿到的 userId **去映射表中找到 token** ，**和请求中的 token 对⽐** 就能校验是否合法了。
+
+### cookie使⽤流程总结 登录 / 注册请求：
+
+- 浏览器发送⽤⼾名和密码到服务器。 服务器验证通过后，在响应头中设置 cookie，附带登录认证信息（⼀般为 jwt）。
+- 浏览器收到 cookie 保存下来。 后续请求，浏览器会⾃动将符合的 cookie 附带到请求中；
+- 服务器验证 cookie 后，允许其他操作完成业务流程。

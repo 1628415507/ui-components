@@ -1,7 +1,7 @@
 /*
  * @Description: 
  * @Date: 2024-10-14 17:14:53
- * @LastEditTime: 2024-11-05 10:17:15
+ * @LastEditTime: 2024-11-08 13:10:13
  */
 export default [
   { text: '汇总', link: '/blogs/framework/index.md' },
@@ -13,5 +13,5 @@ export default [
     ]
   },
   { text: 'TypeScript入门', link: '/blogs/framework/typeScript/index.md' },
-
+  { text: 'Cli相关', link: '/blogs/framework/cli/index.md' },
 ]

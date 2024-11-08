@@ -1,7 +1,7 @@
 <!--
  * @Description:
  * @Date: 2024-11-08 14:02:47
- * @LastEditTime: 2024-11-08 14:22:40
+ * @LastEditTime: 2024-11-08 15:09:34
 -->
 
 ## （一）[xss 脚本注入——插入恶意脚本](https://www.cnblogs.com/sochishun/p/6993997.html)
@@ -61,9 +61,11 @@
   | none | 关闭该设置
 
 ### 3.CSRF 举例：
-1. 示例1
-![alt text](CSRF.png)
-1. 示例2：点击劫持
+
+1. 示例 1
+   ![alt text](CSRF.png)
+1. 示例 2：点击劫持
+
 - 点击劫持是指利用 `iframe+css` 的 opacity 把危险网址**设置为透明覆盖到安全的网址上面**，使用户误以为在安全网址下操作。
 - 防范：  
   在 http 中配置 X-frame-options 设置为 deny 可以禁止被 iframe 嵌入
