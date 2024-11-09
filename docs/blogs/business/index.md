@@ -1021,3 +1021,22 @@ app.use(function (err, req, res, next) {
 - 浏览器发送⽤⼾名和密码到服务器。 服务器验证通过后，在响应头中设置 cookie，附带登录认证信息（⼀般为 jwt）。
 - 浏览器收到 cookie 保存下来。 后续请求，浏览器会⾃动将符合的 cookie 附带到请求中；
 - 服务器验证 cookie 后，允许其他操作完成业务流程。
+
+## 如何禁⽌别⼈调试⾃⼰的前端⻚⾯代码?
+
+### ⽆限 debugger
+
+```js{3,4}
+(() => {
+  function ban() {
+    setInterval(() => {
+      debugger
+    }, 50)
+  }
+  try {
+    ban()
+  } catch (err) {}
+})()
+```
+
+### 禁⽌断点的对策
