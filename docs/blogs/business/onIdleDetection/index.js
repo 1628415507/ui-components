@@ -10,8 +10,7 @@
  * @param {boolean} [immediate=false] 是否立即开始，默认 false
  * @returns
  */
-const onIdleDetection = (callback, timeout = 15, immediate = false) => {
-  console.log('【 onIdleDetection 】-19')
+export const onIdleDetection = (callback, timeout = 15, immediate = false) => {
   let pageTimer //定时器
   let beginTime = 0
   const onClearTimer = () => {

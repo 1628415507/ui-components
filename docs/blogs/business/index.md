@@ -208,14 +208,15 @@ blogs/business/longTask-长任务/web-worker/webWorker
 </html>
 ```
 
-## 6. [检测网页是否为空闲状态](https://www.jb51.net/javascript/318807ud9.htm)
-
-> 详见`docs\examples\blogs\business\检测网页是否为空闲状态`
+## [【检测网页是否为空闲状态】](https://www.jb51.net/javascript/318807ud9.htm)
 
 1. 监听⿏标移动事件 `mousemove` ；
-2. 监听键盘按下事件 `mousedown` ；
+2. 监听⿏标按下事件 `mousedown` ；
 3. 监听页面隐藏情况 `visibilitychange` ；
 4. 在⽤⼾进⼊⽹⻚后，设置延时跳转，如果触发以上事件，则移除延时器，并重新开始。
+   ::: example
+   blogs/business/onIdleDetection/index
+   :::
 
 ## 8. [前端⽇志埋点 SDK 设计思路](https://zhuanlan.zhihu.com/p/497413927)
 
@@ -1015,7 +1016,7 @@ app.use(function (err, req, res, next) {
 - 要实现单点登陆，服务器只需要维护⼀张**userId 和 token 之间映射关系的表**。每次登陆成功都刷新 token 的值。
 - 在处理业务逻辑之前，使⽤解密拿到的 userId **去映射表中找到 token** ，**和请求中的 token 对⽐** 就能校验是否合法了。
 
-### cookie使⽤流程总结 登录 / 注册请求：
+### cookie 使⽤流程总结 登录 / 注册请求：
 
 - 浏览器发送⽤⼾名和密码到服务器。 服务器验证通过后，在响应头中设置 cookie，附带登录认证信息（⼀般为 jwt）。
 - 浏览器收到 cookie 保存下来。 后续请求，浏览器会⾃动将符合的 cookie 附带到请求中；
