@@ -28,6 +28,8 @@
     "chalk": "^5.3.0",
     "consola": "^3.2.3",
     "crypto-js": "^4.2.0",
+    "echarts": "^5.5.1",
+    "echarts-gl": "^2.0.9",
     "element-plus": "^2.6.3",
     "escape-html": "^1.0.3",
     "faker": "^6.6.6",
