@@ -1,7 +1,7 @@
 <!--
  * @Description: https://gitee.com/yanleweb/interview-question/issues/I7W2KU
  * @Date: 2024-08-23 16:04:10
- * @LastEditTime: 2024-11-08 14:44:54
+ * @LastEditTime: 2024-11-12 14:55:18
 -->
 
 # 业务场景
@@ -1040,3 +1040,101 @@ app.use(function (err, req, res, next) {
 ```
 
 ### 禁⽌断点的对策
+
+## 【web 系统⾥⾯， 如何对图⽚进⾏优化？】
+
+- 图⽚优化是提升⽤⼾体验、提⾼⽹站性能、减少流量消耗和增加搜索引擎曝光度的关键因素。
+
+### 1. 选择合适的图⽚格式
+
+![alt text](./img/imageType.png)
+
+### 2. 图⽚压缩
+
+webpack 对图⽚进⾏压缩，可以使⽤`file-loader`和`image-webpack-loader`
+
+### 3. 雪碧图
+
+- 雪碧图（CSS Sprites）是⼀种将多个⼩图⽚合并为⼀个⼤图⽚的技术。通过将多个⼩图⽚合并成⼀张⼤图⽚，可以减少浏览器发送的请求次数，从⽽提⾼⻚⾯加载速度。
+- 雪碧图的原理是通过 CSS 的 `background-image` 和 `background-position` 属性，将所需的⼩图⽚显⽰在指定的位置上
+- 可以使⽤ webpack 插件`webpack-spritesmith` 完成⾃动化处理雪碧图合成
+
+```css{8,13}
+div {
+  background: url(path/to/output/sprite.png) no-repeat;
+}
+/* 设置⼩图标在雪碧图中的位置和⼤⼩ */
+.icon-facebook {
+  width: 32px;
+  height: 32px;
+  background-position: 0 0; /* 该⼩图标在雪碧图中的位置*/
+}
+.icon-twitter {
+  width: 32px;
+  height: 32px;
+  background-position: -32px 0; /* 该⼩图标在雪碧图中的位置 */
+}
+.icon-instagram {
+  width: 32px;
+  height: 32px;
+  background-position: -64px 0; /* 该⼩图标在雪碧图中的位置 */
+}
+/** 使用
+<div class="icon icon-facebook"></div>
+*/
+```
+
+### 4. 图标类型资源推荐使⽤ [iconfont](https://www.iconfont.cn/)
+
+### 5. 使⽤ base64 格式
+
+- 使⽤ Base64 图⽚的优势有以下⼏点：
+  - **减少 HTTP 请求数量**
+  - **减少图⽚⽂件的⼤⼩**  
+    Base64 编码的字符串通常会更⼩，因此可以减少图⽚⽂件的⼤⼩，从⽽减少了⽹⻚的总体积，加快了⽹⻚加载速度
+  - 简化部署和维护
+- 劣势：
+  - 增加了⽂本⽂件的体积
+  - 缓存问题  
+    由于 Base64 图⽚被嵌⼊到了 CSS 或 HTML ⽂件中，如果图⽚内容有更新，那么整个⽂件都需要重新加载，⽽⽆法使⽤缓存
+- 建议复⽤性很强, 变更率较低，且 `⼩于 10KB` 的图⽚⽂件， 可以考虑 base64
+- webpack 可以使用插件： `url-loader` 或 `file-loader`
+
+### 6. 使⽤ CDN 加载图⽚
+
+### 7. 图⽚懒加载
+
+- `Intersection Observer API`
+- ⾃定义监听器
+
+### 8. 图⽚预加载
+
+- 图⽚预加载可以使⽤原⽣ JavaScript 实现，也可以使⽤现成的 JavaScript 库，如 `Preload.js`、`LazyLoad.js` 等。
+
+### 9. 响应式加载图⽚
+
+- `<picture>`元素内部有多个 `<source>` 元素，每个 `<source>` 元素通过`srcset` 属性指定了对应分辨率下的图⽚链接。
+- media 属性可以⽤来指定在哪个分辨率下应⽤对应的图⽚。
+- 如果没有任何 `<source>` 元素匹配当前设备的分辨率，那么就会使⽤`img` 元素的 src 属性指定的图⽚链接。
+
+::: example
+blogs/business/dom/picture
+:::
+
+- 也可以使⽤ webpack 的 `responsive-loader` 插件
+
+### 10. 渐进式加载图⽚
+
+- 实现渐进式加载的主要思想是**先加载⼀张较低分辨率的模糊图⽚**，然后逐步加载更⾼分辨率的图⽚
+- 使⽤ JavaScript 监听图⽚的加载事件，**在⾼分辨率图⽚加载完成后，将其替换低分辨率图⽚的 src 属性**，以实现渐进式加载的效果。
+
+```html{6}
+<img src="blur-image.jpg" data-src="high-res-image.jpg" alt="Image">
+<script>
+const image = document.querySelector('img');
+// 监听⾼分辨率图⽚加载完成事件
+image.addEventListener('load', () => {
+  image.src = image.dataset.src;  // 替换低分辨率图⽚的src属性
+});
+</script>
+```
