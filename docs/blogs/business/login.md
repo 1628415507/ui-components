@@ -1,7 +1,7 @@
 <!--
  * @Description:
  * @Date: 2024-11-12 17:30:33
- * @LastEditTime: 2024-11-13 17:56:59
+ * @LastEditTime: 2024-11-14 14:48:10
 -->
 
 ## [【扫码登录实现⽅式】](https://developer.baidu.com/article/details/3352196)
@@ -138,14 +138,14 @@ app.use(function (err, req, res, next) {
 
 在这个过程中，OAuth2.0 通过访问令牌实现了⽤⼾和资源服务器之间的⾝份授权和资源访问分离。客⼾端⽆需知道或存储⽤⼾的凭证（如⽤⼾名和密码），⽽是使⽤访问令牌代表⽤⼾向资源服务器请求资源，提供了更安全和便捷的授权⽅式。
 
-## 【单点登录是如何实现的？】
+## 【单点登录SSO是如何实现的？】
 
 > 单点登录：`Single Sign On`，简称`SSO`。⽤⼾只要登录⼀次，就可以访问 **所有相关信任应⽤** 的资源。企业 ⾥⾯⽤的会⽐较多，有很多内⽹平台，但是只要在⼀个系统登录就可以。
 
 ### 实现⽅案
 
 - 单⼀域名：可以把 cookie 种在**根域名**下实现单点登录
-- 多域名：常⽤ `CAS`来解决，新增⼀个认证中⼼的服务。CAS（Central Authentication Service）是实现 SSO 单点登录的框架
+- 多域名：常⽤ `CAS`来解决，新增⼀个认证中⼼的服务。`CAS（Central Authentication Service）`是实现 SSO 单点登录的框架
 - CAS 实现单点登录的流程：
   1. ⽤⼾访问系统 A，判断未登录，则直接跳到认证中⼼⻚⾯
   2. 在认证中⼼⻚⾯输⼊账号，密码，⽣成**令牌**，重定向到 系统 A
@@ -154,24 +154,25 @@ app.use(function (err, req, res, next) {
   5. 认证中⼼发现有全局会话，新建令牌，重定向到系统 B
   6. 在系统 B 使⽤令牌去认证中⼼验证，验证成功后，建议系统 B 的局部会话。
 
-### 举例
+### [举例](https://www.processon.com/diagraming/67359052d3ba651985762e49)
 
 下⾯是举例来详细说明 CAS 实现单点登录的流程：   
-⼀、第⼀次访问系统 A
+**⼀、第⼀次访问系统 A**
 
-1. ⽤⼾访问系统 A (www.app1.com)， 跳转认证中⼼ client(www.sso.com)， 然后输⼊⽤⼾名，密码登录，然后认证中⼼ serverSSO 把 cookieSSO 种在认证中⼼的域名下 (www.sso.com)， 重定向到系统 A，并且带上⽣成 ticket 参数 `(www.app1.com?ticket =xxx`)
-2. 系统 A (www.app1.com?ticket =xxx)请求系统 A 的后端 serverA ，serverA 去 serverSSO 验证，通
+1. ⽤⼾访问系统 A (www.app1.com)， 跳转认证中⼼ client(www.sso.com)， 然后输⼊⽤⼾名，密码登录，
+2. 然后认证中⼼ serverSSO 把 cookieSSO 种在认证中⼼的域名下 (www.sso.com)， 重定向到系统 A，并且带上⽣成 ticket 参数 `(www.app1.com?ticket =xxx`)
+3. 系统 A (www.app1.com?ticket =xxx)请求系统 A 的后端 serverA ，serverA 去 serverSSO 验证，通
    过后，将 cookieA 种在 www.app1.com下
 
-⼆、第⼆次访问系统 A 直接携带 cookieA 去访问后端，验证通过后，即登录成功。
+**⼆、第⼆次访问系统 A**：直接携带 cookieA 去访问后端，验证通过后，即登录成功。
 
-三、第三次访问系统 B
+**三、第三次访问系统 B**
 
-1. 访问系统 B (www.app2.com)， 跳转到认证中⼼ client(www.sso.com)， 这个时候会把认证中⼼的 cookieSSO 也携带上，发现⽤⼾已登录过，则直接重定向到系统 B（www.app2.com）， 并且带上⽣成的 ticket 参数（`www.app2.com?ticket =xxx`）
-2. 系统 B (www.app2.com?ticket =xxx)请求系统 B 的后端 serverB，serverB 去 serverSSO 验证，通过后，将 cookieB 种在www.app2.com下
-
+1. 访问系统 B (www.app2.com)， 跳转到认证中⼼ client(www.sso.com)， 这个时候会把认证中⼼的 cookieSSO 也携带上，
+2. 发现⽤⼾已登录过，则直接重定向到系统 B（www.app2.com）， 并且带上⽣成的 ticket 参数（`www.app2.com?ticket =xxx`）
+3. 系统 B (www.app2.com?ticket =xxx)请求系统 B 的后端 serverB，serverB 去 serverSSO 验证，通过后，将 cookieB 种在www.app2.com下
+![alt text](CAS-示例.png)
 注意 cookie ⽣成时机及种的位置：
-
 - cookieSSO，SSO 域名下的 cookie
 - cookieA，系统 A 域名下的 cookie
 - cookieB，系统 B 域名下的 cookie
