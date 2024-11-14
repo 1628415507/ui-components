@@ -1,7 +1,7 @@
 <!--
  * @Description: https://gitee.com/yanleweb/interview-question/issues/I7W2KU
  * @Date: 2024-08-23 16:04:10
- * @LastEditTime: 2024-11-12 14:55:18
+ * @LastEditTime: 2024-11-14 15:47:09
 -->
 
 # 业务场景
@@ -1022,3 +1022,44 @@ image.addEventListener('load', () => {
 });
 </script>
 ```
+
+## 【如何在跨域请求中携带另外⼀个域名下的 Cookie】
+### 配置
+1. **服务端**设置**响应头部**的`Access-Control-Allow-Credentials`字段为`true`，
+1. **服务端**需要设置**响应头部**的`Access-Control-Allow-Origin`字段为指定的域名，表⽰允许指定域名的跨域请求携带Cookie。
+1. **客⼾端**设置**请求头部**的`withCredentials`字段为`true`。
+### ⽰例代码
+- 服务端（Node.js）：
+```js{5,7}
+const express = require('express')
+const app = express()
+app.use((req, res, next) => {
+  // 允许指定域名的跨域请求携带Cookie。
+  res.setHeader('Access-Control-Allow-Origin', 'http://example.com')
+  // 请求携带Cookie
+  res.setHeader('Access-Control-Allow-Credentials', 'true')
+  next()
+})
+app.get('/api/data', (req, res) => {
+  res.send('Response Data') // 处理请求
+})
+app.listen(3000, () => {
+  console.log('Server is running on port 3000')
+})
+
+```
+- 客户端（JavaScript）
+```js{2}
+fetch('http://example.com/api/data', {
+// 在客⼾端发起跨域请求时，需要设置请求头部的`withCredentials`字段为`true`
+  credentials: 'include'
+})
+  .then((response) => response.text())
+  .then((data) => {
+    console.log(data)
+  })
+  .catch((error) => {
+    console.error('Error:', error)
+  })
+```
+以上代码中，Access-Control-Allow-Origin设置为'http://example.com'，表⽰允许该域名的跨域请求携带Cookie。fetch请求的参数中，credentials设置为'include'表⽰请求中携带Cookie
