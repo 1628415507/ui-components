@@ -1,7 +1,7 @@
 <!--
  * @Description:
  * @Date: 2024-11-12 17:30:33
- * @LastEditTime: 2024-11-14 15:14:28
+ * @LastEditTime: 2024-11-14 15:25:14
 -->
 
 ## [【扫码登录实现⽅式】](https://developer.baidu.com/article/details/3352196)
@@ -136,7 +136,7 @@ app.use(function (err, req, res, next) {
   7. 资源服务器验证访问令牌的有效性，并根据权限决定是否允许访问资源。
   8. 资源服务器向客⼾端返回请求的资源。
 
-![alt text](OAuth2.0.png)
+![alt text](./img/OAuth2.0.png)
 在这个过程中，OAuth2.0 通过访问令牌实现了⽤⼾和资源服务器之间的⾝份授权和资源访问分离。客⼾端⽆需知道或存储⽤⼾的凭证（如⽤⼾名和密码），⽽是使⽤**访问令牌**代表⽤⼾向资源服务器请求资源，提供了更安全和便捷的授权⽅式。
 
 ## 【单点登录 SSO 是如何实现的？】
@@ -172,9 +172,39 @@ app.use(function (err, req, res, next) {
 1. 访问系统 B (www.app2.com)， 跳转到认证中⼼ client(www.sso.com)， 这个时候会把认证中⼼的 cookieSSO 也携带上，
 2. 发现⽤⼾已登录过，则直接重定向到系统 B（www.app2.com）， 并且带上⽣成的 ticket 参数（`www.app2.com?ticket =xxx`）
 3. 系统 B (www.app2.com?ticket =xxx)请求系统 B 的后端 serverB，serverB 去 serverSSO 验证，通过后，将 cookieB 种在www.app2.com下
-   ![alt text](CAS-示例.png)
+   ![alt text](./img/CAS-示例.png)
    注意 cookie ⽣成时机及种的位置：
 
 - cookieSSO，SSO 域名下的 cookie
 - cookieA，系统 A 域名下的 cookie
 - cookieB，系统 B 域名下的 cookie
+
+## 【常⻅的登录鉴权⽅式有哪些？】
+
+前端登录鉴权的⽅式主要有以下⼏种：
+
+> 1.  **基于 Session Cookie 的鉴权：**
+
+- `cookie`: ⽤⼾在登录成功后，服务器会⽣成⼀个包含⽤⼾信息的 Cookie，并返回给前端。**前端在后续的请求中会⾃动携带这个 Cookie，在服务器端进⾏验证和识别⽤⼾⾝份。**
+- `Session ID`，将这个 Session ID 返回给前端。**前端在后续的请求中需要携带这个 Session ID**，服务器通过 Session ID 来验证⽤⼾⾝份。
+
+> 2.  **单点登录`（Single Sign-On，SSO）`**
+
+- 单点登录是⼀种将多个应⽤系统进⾏集成的认证⽅式。⽤⼾只需登录⼀次，即可在多个系统中完成认证，避免了重复登录的⿇烦。
+- 常⻅的单点登录协议有 `CAS（Central Authentication Service）`、SAML（Security Assertion Markup Language）等。
+
+> 3.`OAuth2.0`
+
+- OAuth2.0 是⼀个**授权框架**，⽤于 **授权第三⽅应⽤** 访问⽤⼾的资源。它通过授权服务器颁发令牌（Token），使得第三⽅应⽤可以代表⽤⼾获取资源的权限，⽽⽆需知道⽤⼾的真实凭证。
+
+> 4. `OpenID Connect（OIDC）`
+
+- OIDC 是基于 OAuth2.0 的⾝份验证协议，通过在认证和授权过程中引⼊⾝份提供者，使得⽤⼾可以使⽤第三⽅⾝份提供者（如 Google、Facebook 等）进⾏登录和授权，从⽽实现⽤⼾⾝份验证和授权的功能。
+
+> 5. `LDAP（Lightweight Directory Access Protocol）`
+
+- LDAP 是⼀种⽤于访问和维护分布式⽬录服务的协议。在登录鉴权中，LDAP 常⽤于验证⽤⼾的⾝份信息，如⽤⼾名和密码，通过与 LDAP 服务器进⾏通信来进⾏⽤⼾⾝份验证。
+
+> 6.  `2FA（Two-Factor Authentication）`
+
+- ⼆次验证是⼀种提供额外安全层的⾝份验证⽅式。与传统的⽤⼾名和密码登录不同，2FA 需要⽤⼾**提供第⼆个验证因**素，如⼿机验证码、指纹识别、硬件令牌等，以提⾼账⼾的安全性。
