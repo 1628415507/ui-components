@@ -3,7 +3,7 @@
 <!-- - 详见`docs\examples\blogs\business\fetchWithRetries.ts`
 https://zhuanlan.zhihu.com/p/668882474 -->
 
-```js{5,6,8,11,13,19,26,30,39}
+```js{5,6,8,11,13,19,26,31,40}
 import axios from 'axios'
 const request = axios.create({
   baseURL: globalParamsEnv?.BASE_API || 'http://192.168.11.79/',
@@ -12,27 +12,28 @@ const request = axios.create({
   retryInterval: 1000 // 重新请求间隙
 })
 // 重新请求
-function requestAgain(config){
+function requestAgain(config) {
   //设置⼀个变量记录重新请求的次数
   config.retryCount = config.retryCount || 0
   // 检查重新请求的次数是否超过设定的请求次数
   if (config.retryCount >= config.retry) {
-      return Promise.reject(error)
+    return Promise.reject(error)
   }
   //重新请求的次数⾃增
   config.retryCount += 1
   // 创建新的Promise来处理重新请求的间隙
   let back = new Promise(function (resolve) {
-      console.log('接⼝' + config.url + '请求超时，重新请求', config.retryCount)
-      setTimeout(function () {
+    console.log('接⼝' + config.url + '请求超时，重新请求', config.retryCount)
+    setTimeout(function () {
       resolve()
-      }, config.retryInterval || 1)
+    }, config.retryInterval || 1)
   })
   //返回axios的实体，重试请求
   return back.then(function () {
-      return request(config)
+    return request(config)
   })
 }
+// 响应拦截
 request.interceptors.response.use(
   (res) => {
     // ...请求成功
@@ -43,7 +44,6 @@ request.interceptors.response.use(
     if (!config || !config.retry) return Promise.reject(error)
     // 重新请求
     return requestAgain(error.config)
-
   }
 )
 ```
