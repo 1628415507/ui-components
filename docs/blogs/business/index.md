@@ -1,7 +1,7 @@
 <!--
  * @Description: https://gitee.com/yanleweb/interview-question/issues/I7W2KU
  * @Date: 2024-08-23 16:04:10
- * @LastEditTime: 2024-11-14 15:47:09
+ * @LastEditTime: 2024-11-15 14:56:29
 -->
 
 # 业务场景
@@ -220,19 +220,36 @@ blogs/business/longTask-长任务/web-worker/webWorker
 
 ## 8. [前端⽇志埋点 SDK 设计思路](https://zhuanlan.zhihu.com/p/497413927)
 
+### SDK 需求与设计
+
+需求
+
+- ⾃动化上报 ⻚⾯ PV、UV。 如果能⾃动化上报 **⻚⾯性能**， ⽤⼾**点击路径**⾏为等。
+- ⾃动上报 **⻚⾯异常**。
+- 发送埋点信息的时候， 不影响性能， 不阻碍⻚⾯主流程加载和请求发送。
+- 能够 **⾃定义**⽇志发送， ⽇志 scope、key、value。
+
+设计
+
+- SDK 初始化
+- 数据发送
+- ⾃定义错误上报
+- 初始化错误监控
+- ⾃定义⽇志上报
+
 ### （1）StatisticSDK 方法实现
 
 #### 数据发送方法 `navigator.sendBeacon()`
 
-- navigator.sendBeacon() ⽅法会在后台异步地发送数据，不会阻塞⻚⾯的其他操作,即使⻚⾯正在卸载或关闭，该⽅法也可以继续发送数据，确保数据的可靠性。
-- navigator.sendBeacon() ⽅法⽀持**跨域**发送数据。
-- navigator.sendBeacon() ⽅法发送的数据是以 **POST 请求**的形式发送到服务
+- 异步操作：`navigator.sendBeacon()`⽅法会在后台**异步**地发送数据，不会阻塞⻚⾯的其他操作，即使⻚⾯正在卸载或关闭，该⽅法也可以**继续**发送数据，确保数据的可靠性。
+- ⽀持跨域：`navigator.sendBeacon()`⽅法⽀持**跨域**发送数据。
+- `navigator.sendBeacon()`⽅法发送的数据是以 **POST 请求**的形式发送到服务
   器
   ::: example
   blogs/business/SDK/index
   :::
 
-```js{15,25,33,44,57}
+```js{15,22,25,33,44,57}
 // StatisticSDK.js
 class StatisticSDK {
   constructor(productID, baseURL) {
@@ -308,6 +325,9 @@ export default StatisticSDK
 
 ### （2）组件错误上报
 
+- 错误捕获和上报的优先级:
+  - 组件内部处理`onErrorCaptured`>全局挂载挂载`app.config.errorHandler`> window.addEventListener('error')
+  - 若存在`onErrorCaptured`或`errorHandler`，`window.addEventListener('error')`将不会触发
 - 错误组件示例`ErrorCapturedDemo.vue`
 
 ```vue{7}
@@ -564,7 +584,6 @@ function setUploadedToStorage(index) {
 - https://juejin.cn/post/7401060368087728166?searchId=202410142012222C5A2537F9C76AD11A25#heading-4
 - https://juejin.cn/post/7422848805044371471
   -->
-
 
 ## [【不同标签⻚或窗⼝间的主动通信】](https://juejin.cn/post/7359470175760957474)
 
@@ -905,7 +924,6 @@ window.addEventListener('message', function (event) {
   - 消息推送：即便在应用或浏览器未运行的情况下，Service Worker 也能接收后台推送通知。
   - 后台数据同步：使用 Background Sync API, 它可以在后台同步数据，这在断网或网络不稳定时特别有用。
 
-
 ## 如何禁⽌别⼈调试⾃⼰的前端⻚⾯代码?
 
 ### ⽆限 debugger
@@ -1024,12 +1042,17 @@ image.addEventListener('load', () => {
 ```
 
 ## 【如何在跨域请求中携带另外⼀个域名下的 Cookie】
+
 ### 配置
+
 1. **服务端**设置**响应头部**的`Access-Control-Allow-Credentials`字段为`true`，
-1. **服务端**需要设置**响应头部**的`Access-Control-Allow-Origin`字段为指定的域名，表⽰允许指定域名的跨域请求携带Cookie。
+1. **服务端**需要设置**响应头部**的`Access-Control-Allow-Origin`字段为指定的域名，表⽰允许指定域名的跨域请求携带 Cookie。
 1. **客⼾端**设置**请求头部**的`withCredentials`字段为`true`。
+
 ### ⽰例代码
+
 - 服务端（Node.js）：
+
 ```js{5,7}
 const express = require('express')
 const app = express()
@@ -1048,7 +1071,9 @@ app.listen(3000, () => {
 })
 
 ```
+
 - 客户端（JavaScript）
+
 ```js{2}
 fetch('http://example.com/api/data', {
 // 在客⼾端发起跨域请求时，需要设置请求头部的`withCredentials`字段为`true`
@@ -1062,4 +1087,15 @@ fetch('http://example.com/api/data', {
     console.error('Error:', error)
   })
 ```
-以上代码中，Access-Control-Allow-Origin设置为'http://example.com'，表⽰允许该域名的跨域请求携带Cookie。fetch请求的参数中，credentials设置为'include'表⽰请求中携带Cookie
+
+以上代码中，Access-Control-Allow-Origin 设置为'http://example.com'，表⽰允许该域名的跨域请求携带Cookie。fetch请求的参数中，credentials设置为'include'表⽰请求中携带Cookie
+
+## 【后端⼀次性返回树形结构数据，数据量⾮常⼤, 前端该如何处理？】
+
+1. **分批处理**：将⼤量的树形数据分为多个批次进⾏处理和渲染。前端可以通过**递归或循环**的⽅式，每次处理⼀部分数据，并在渲染完成后再处理下⼀部分数据。这样可以避免⼀次性处理⼤量数据造成栈溢出的问题。
+2. **异步处理**：使⽤异步处理的⽅式进⾏数据的计算和渲染。前端可以利⽤ JavaScript 的异步特性，将数据处理和渲染任务分为多个异步任务，并通过事件循环机制依次执⾏这些任务。这样可以避免⼀次性计算和渲染⼤量数据导致栈溢出的问题。
+3. **虚拟化渲染**：**使⽤虚拟化渲染技术，只渲染当前可⻅区域的树节点**，⽽不是全部节点。可以根据⻚
+   ⾯的滚动位置和⽤⼾操作，只渲染当前需要展⽰的节点，⽽对于不可⻅的节点只保留其占位符。这样可以减少实际渲染的节点数量，降低内存占⽤和渲染时间。
+4. **数据分级处理**：对于树形结构数据，可以考虑对数据进⾏分级处理。将数据根据节点的层级关系进⾏分组，**每次只处理和渲染当前层级的节点数据**。这样可以减少每次处理的数据量，降低栈溢出的⻛险。
+
+根据具体的业务需求和技术实现情况，可以选择适合的处理⽅式来解决栈溢出问题。同时，也可以结合多种处理⽅式来提⾼⻚⾯性能和⽤⼾体验。
