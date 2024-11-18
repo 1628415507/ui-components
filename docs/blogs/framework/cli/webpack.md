@@ -1,10 +1,10 @@
 <!--
  * @Description:
  * @Date: 2024-11-15 17:43:05
- * @LastEditTime: 2024-11-18 11:40:42
+ * @LastEditTime: 2024-11-18 13:54:16
 -->
 
-## Webpack 有哪些优化项⽬的⼿段？
+## 【Webpack 有哪些优化项⽬的⼿段？】
 
 ### 性能优化方式汇总
 
@@ -461,3 +461,99 @@ module.exports = {
   ]
 }
 ```
+
+## 【Webpack 如何打包运⾏时 chunk，且在项⽬⼯程中，如何去加载这个运⾏时 chunk ?】
+
+### Webpack 如何打包运⾏时 chunk
+
+- Webpack 打包运⾏时 chunk 的⽅式可以通过`optimization.runtimeChunk`选项来配置。
+- 通过设置`optimization.runtimeChunk`为`'single'`，将会把**所有的 webpack 运⾏时代码打包为⼀个单独的 chunk**。
+
+```js{4}
+module.exports = {
+  // ...
+  optimization: {
+    runtimeChunk: 'single'//把所有的webpack运⾏时代码打包为⼀个单独的chunk。
+  }
+}
+```
+
+### 在项⽬⼯程中加载运⾏时 chunk 有两种⽅式：
+
+#### 1. 通过`script`标签加载
+
+- 可以使⽤`HtmlWebpackPlugin`插件来 **⾃动将运⾏时 chunk 添加到 HTML ⽂件中**。
+- 在 webpack 配置⽂件中添加以下配置：
+
+```js{5,7}
+const HtmlWebpackPlugin = require('html-webpack-plugin')
+module.exports = {
+  // ...
+  plugins: [
+    new HtmlWebpackPlugin({
+      // ...
+      chunks: ['runtime', 'app']//指定了要加载的 chunk
+    })
+  ]
+}
+```
+
+- 上述配置中，chunks 选项指定了要加载的 chunk，包括**运⾏时** `chunk（'runtime'）`和其他的业务代码`chunk（'app'）`。**最终⽣成的 HTML ⽂件会⾃动引⼊这些 chunk。**
+
+#### 2. 通过 import 语句动态加载
+
+可以使⽤动态导⼊的⽅式来加载运⾏时 chunk。在需要加载运⾏时 chunk 的地⽅，使⽤以下代码：
+
+```js
+import(/* webpackChunkName: "runtime" */ './path/to/runtime').then((runtime) => {
+  // 运⾏时 chunk 加载完成后的逻辑
+})
+```
+
+- 上述代码中，通过 `import()`函数动态加载运⾏时 chunk，通过 `webpackChunkName` 注释指定**要加载的 chunk 名称**（这⾥是'runtime'）。加载完成后，可以进⾏相关逻辑处理。
+
+#### 总结
+
+**Webpack 可以通过 `optimization.runtimeChunk` 选项配置打包运⾏时 chunk，可以通过 `script` 标签加载或者使⽤`动态导⼊`的⽅式来加载运⾏时 chunk**。
+
+### 如果只想把某⼏个⽂件打包成运⾏时加载， 该如何处理呢？
+
+- 如果想将某⼏个⽂件打包成运⾏时加载，可以使⽤ Webpack 的 `entry` 配置和 `import()` 语法来实现。
+- ⾸先，在 Webpack 的配置⽂件中，**将这⼏个⽂件指定为单独的 entry 点**。例如：
+
+```js{5}
+module.exports = {
+  // ...
+  entry: {
+    main: './src/main.js',//业务代码的⼊⼝⽂件
+    runtime: './src/runtime.js'//想要打包成运⾏时加载的⽂件。
+  }
+}
+```
+
+- 上述配置中， `main.js` 是业务代码的⼊⼝⽂件，` runtime.js` 是你想要打包成运⾏时加载的⽂件。
+- 然后，在你的业务代码中，通过 `import()` 动态导⼊这些⽂件。例如：
+
+```js{2,5}
+function loadRuntime() {
+  return import('./runtime.js')
+}
+// 使⽤动态导⼊的⽅式加载运⾏时⽂件
+loadRuntime().then((runtime) => {
+  // 运⾏时⽂件加载完成后的逻辑
+})
+```
+
+- 使⽤ import() 会返回⼀个 `Promise` ，可以通过 `.then()` 来处理⽂件加载完成后的逻辑。
+- 最后，使⽤ Webpack 进⾏打包时，会根据配置的 entry 点和 import() 语法⾃动将这⼏个⽂件打包成运⾏时加载的模块。运⾏时模块会在需要时动态加载并执⾏。
+- 注意：在使⽤ import() 动态导⼊⽂件时，需要确保你的环境⽀持 **Promise 和动态导⼊语法**。
+- 除了 entry 的⽅式可以处理⾃⼰申明的 runtime ⽂件以外， 还可以直接在 `import('xx')` 的时
+  候申明；
+  例如：
+  ```js{1}
+  import(/* webpackChunkName: "runtime" */ './path/to/runtime').then((runtime) => {
+    // 运⾏时 chunk 加载完成后的逻辑
+  })
+  ```
+
+上⾯的⽅式， 可以在也可以达到同样的效果， 只是在 import 的时候申明 runtime ⽂件名称⽽已
