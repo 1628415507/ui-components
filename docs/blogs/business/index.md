@@ -1,7 +1,7 @@
 <!--
  * @Description: https://gitee.com/yanleweb/interview-question/issues/I7W2KU
  * @Date: 2024-08-23 16:04:10
- * @LastEditTime: 2024-11-15 17:33:27
+ * @LastEditTime: 2024-11-18 13:30:23
 -->
 
 # 业务场景
@@ -381,15 +381,6 @@ onErrorCaptured((error, vm, info) => {
 </script>
 ```
 
-## [indexedDB](https://deepinout.com/javascript/javascript-questions/110_hk_1709940124.html)
-
-- open 方法返回一个 IDBOpenDBRequest 对象，同时这是一个**异步**操作，open 操作并不会立马打开数据库或者开启事务，我们可以通过监听`request`的事件来进行相应的处理。
-- `open(name,version)`：open 方法传入两个参数，第一个参数是数据库的名字，第二个参数是数据库的版本号(**整数**)。
-- 当你创建或升级一个现有的数据库版本的时候，将会触发一个`onupgradeneeded`事件，并在事件中传入`IDBVersionChangeEvent`，我们可以通过 event.target.result 来获取到 IDBDatabase 对象，然后通过这个对象来进行数据库的版本升级操作
-
-::: example
-blogs/business/indexedDB/index
-:::
 
 ## 大文件上传
 
@@ -1138,7 +1129,7 @@ fetch('http://example.com/api/data', {
 在前端应⽤中，需要实现异常处理机制，当⽤⼾越权操作时，需要给予相应提⽰并记录⽇志。同时，对于敏感操作，需要进⾏**⼆次验证**，例如通过输⼊密码或短信验证码等⽅式进⾏安全验证。
 
 ### 安全性考虑
-在设计前端应⽤的权限时，需要考虑安全性，例如防⽌跨站脚本攻击（XSS）、跨站请求伪造（CSRF）等攻击⽅式。可以采⽤合适的安全措施，如输⼊验证、加密传输等来保护应⽤的安全性。  
 
+在设计前端应⽤的权限时，需要考虑安全性，例如防⽌跨站脚本攻击（XSS）、跨站请求伪造（CSRF）等攻击⽅式。可以采⽤合适的安全措施，如输⼊验证、加密传输等来保护应⽤的安全性。
 
 - 综上所述，前端应⽤的权限设计应该考虑 **⻆⾊与权限分离、功能级与路由级的权限控制、动态权限管理、UI 级的权限控制、异常处理与安全验证以及安全性考虑等⽅⾯**。通过合理的权限设计，可以确保系统的安全性和⽤⼾权限的灵活管理。
