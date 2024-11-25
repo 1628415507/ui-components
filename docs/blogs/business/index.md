@@ -1,7 +1,7 @@
 <!--
  * @Description: https://gitee.com/yanleweb/interview-question/issues/I7W2KU
  * @Date: 2024-08-23 16:04:10
- * @LastEditTime: 2024-11-08 14:44:54
+ * @LastEditTime: 2024-11-18 13:30:23
 -->
 
 # 业务场景
@@ -220,19 +220,36 @@ blogs/business/longTask-长任务/web-worker/webWorker
 
 ## 8. [前端⽇志埋点 SDK 设计思路](https://zhuanlan.zhihu.com/p/497413927)
 
+### SDK 需求与设计
+
+需求
+
+- ⾃动化上报 ⻚⾯ PV、UV。 如果能⾃动化上报 **⻚⾯性能**， ⽤⼾**点击路径**⾏为等。
+- ⾃动上报 **⻚⾯异常**。
+- 发送埋点信息的时候， 不影响性能， 不阻碍⻚⾯主流程加载和请求发送。
+- 能够 **⾃定义**⽇志发送， ⽇志 scope、key、value。
+
+设计
+
+- SDK 初始化
+- 数据发送
+- ⾃定义错误上报
+- 初始化错误监控
+- ⾃定义⽇志上报
+
 ### （1）StatisticSDK 方法实现
 
 #### 数据发送方法 `navigator.sendBeacon()`
 
-- navigator.sendBeacon() ⽅法会在后台异步地发送数据，不会阻塞⻚⾯的其他操作,即使⻚⾯正在卸载或关闭，该⽅法也可以继续发送数据，确保数据的可靠性。
-- navigator.sendBeacon() ⽅法⽀持**跨域**发送数据。
-- navigator.sendBeacon() ⽅法发送的数据是以 **POST 请求**的形式发送到服务
+- 异步操作：`navigator.sendBeacon()`⽅法会在后台**异步**地发送数据，不会阻塞⻚⾯的其他操作，即使⻚⾯正在卸载或关闭，该⽅法也可以**继续**发送数据，确保数据的可靠性。
+- ⽀持跨域：`navigator.sendBeacon()`⽅法⽀持**跨域**发送数据。
+- `navigator.sendBeacon()`⽅法发送的数据是以 **POST 请求**的形式发送到服务
   器
   ::: example
   blogs/business/SDK/index
   :::
 
-```js{15,25,33,44,57}
+```js{15,22,25,33,44,57}
 // StatisticSDK.js
 class StatisticSDK {
   constructor(productID, baseURL) {
@@ -308,6 +325,9 @@ export default StatisticSDK
 
 ### （2）组件错误上报
 
+- 错误捕获和上报的优先级:
+  - 组件内部处理`onErrorCaptured`>全局挂载挂载`app.config.errorHandler`> window.addEventListener('error')
+  - 若存在`onErrorCaptured`或`errorHandler`，`window.addEventListener('error')`将不会触发
 - 错误组件示例`ErrorCapturedDemo.vue`
 
 ```vue{7}
@@ -361,15 +381,6 @@ onErrorCaptured((error, vm, info) => {
 </script>
 ```
 
-## [indexedDB](https://deepinout.com/javascript/javascript-questions/110_hk_1709940124.html)
-
-- open 方法返回一个 IDBOpenDBRequest 对象，同时这是一个**异步**操作，open 操作并不会立马打开数据库或者开启事务，我们可以通过监听`request`的事件来进行相应的处理。
-- `open(name,version)`：open 方法传入两个参数，第一个参数是数据库的名字，第二个参数是数据库的版本号(**整数**)。
-- 当你创建或升级一个现有的数据库版本的时候，将会触发一个`onupgradeneeded`事件，并在事件中传入`IDBVersionChangeEvent`，我们可以通过 event.target.result 来获取到 IDBDatabase 对象，然后通过这个对象来进行数据库的版本升级操作
-
-::: example
-blogs/business/indexedDB/index
-:::
 
 ## 大文件上传
 
@@ -564,28 +575,6 @@ function setUploadedToStorage(index) {
 - https://juejin.cn/post/7401060368087728166?searchId=202410142012222C5A2537F9C76AD11A25#heading-4
 - https://juejin.cn/post/7422848805044371471
   -->
-
-## [扫码登录实现⽅式](https://developer.baidu.com/article/details/3352196)
-
-扫码登录的实现原理核⼼是基于⼀个中转站，该中转站通常由应⽤提供商提供，⽤于维护⼿机和 PC 之
-间的会话状态。
-整个扫码登录的流程如下：
-
-1. ⽤⼾在 PC 端访问应⽤，并选择使⽤扫码登录⽅式。此时，应⽤⽣成⼀个**随机的认证码**，并将该认证
-   码通过⼆维码的形式显⽰在 PC 端的⻚⾯上。
-2. ⽤⼾打开⼿机上的应⽤，并选择使⽤扫码登录⽅式。此时，应⽤会打开⼿机端的相机，⽤⼾可以对
-   着 PC 端的⼆维码进⾏扫描。
-3. ⼀旦⽤⼾扫描了⼆维码，⼿机上的应⽤会向应⽤提供商的**中转站**发送⼀个请求，请求包含之前⽣成
-   的**随机认证码和⼿机端的⼀个会话 ID**。
-4. 中转站验证认证码和会话 ID 是否匹配，如果匹配成功，则该中转站将 **⽤⼾的⾝份信息发送给应⽤**，
-   并创建⼀个 PC 端和⼿机端之间的会话状态。
-5. 应⽤使⽤收到的⾝份信息对⽤⼾进⾏认证，并创建⼀个与该⽤⼾关联的会话状态。同时，应⽤ **返回⼀个通过认证的响应给中转站**。
-6. 中转站将该响应返回给⼿机端的应⽤，并携带⼀个⽤于表⽰该会话的令牌，此时⼿机和 PC 之间的认
-   证流程就完成了。
-7. 当⽤⼾在 PC 端进⾏其他操作时，应⽤将会话令牌附加在请求中，并通过中转站向⼿机端的应⽤发起
-   请求。⼿机端的应⽤使⽤会话令牌（也就是之前⽣成的令牌）来识别并验证会话状态，从⽽允许⽤
-   ⼾在 PC 端进⾏需要登录的操作。
-   ![alt text](./img/scanLogin.png)
 
 ## [【不同标签⻚或窗⼝间的主动通信】](https://juejin.cn/post/7359470175760957474)
 
@@ -926,102 +915,6 @@ window.addEventListener('message', function (event) {
   - 消息推送：即便在应用或浏览器未运行的情况下，Service Worker 也能接收后台推送通知。
   - 后台数据同步：使用 Background Sync API, 它可以在后台同步数据，这在断网或网络不稳定时特别有用。
 
-## 【HTTP 是⼀个⽆状态的协议，那么 Web 应⽤要怎么保持⽤⼾的登录态呢？】
-
-### 实现登录态的几种形式：
-
-#### 1. cookie
-
-- 服务器可以通过 HTTP 响应头中的`Set-Cookie`字段通知浏览器存储 Cookie
-- 缺点：⽤⼾可以通过 `document.cookie`进行修改， 伪造登陆凭证
-
-#### 2. session
-
-- 仅发给客⼾端⼀个 session key ，然后在⾃⼰维护⼀个 key-value 表，如果请求中有 key ，并且在表中可以找到对应的 value ，则视为合法请求调⽤ 接⼝，验证通过后颁发 sessionID
-- 这样即使⾃⾏修改了 sessionID ，也没有对应的记录，也⽆法获取数据
-- 缺点：如果存在多个服务器如负载均衡时，每个服务器的状态表必须同步，或者抽离出来统⼀管理，如使⽤ Redis 等服务。
-
-#### 3. 令牌（TOKEN）机制(JWT)
-
-`JSON Web Token`（简称 JWT）
-
-`JSON Web Token`（简称 JWT）, 是以 JSON 格式存储信息的 Token
-|JSON Web Token |描述 |
-|---|--|
-| 头部|存储 Token 的**类型和签名算法**（上图中，类型是 jwt ，加密算法是 HS256 ） |
-|负载|是 Token**要存储的信息**（如存储了⽤⼾姓名和昵称信息）|
-|签名|是由指定的算法，将**转义后的头部和负载**，**加上密钥⼀同加密**得到的|
-|`.` |最后将这三部分⽤`.` 连接，就可以得到了⼀个 Token 了。|
-
-使⽤ `JWT` 维护登陆态，服务器不再需要维护状态表，他**仅给客⼾端发送⼀个加密的数据 token** ，每次请求都带上这个加密的数据，**再解密验证是否合法即可**。由于是加密的数据，即使⽤⼾可以修改， 命中⼏率也很⼩。
-
-##### 客⼾端如何存储 token 呢？
-
-1. 存在 `cookie` 中  
-   虽然设置 HttpOnly 可以有效防⽌ `XSS` 攻击中 token 被窃取，但是也就意味着客⼾端⽆法获取 token 来设置 CORS 头部。
-1. 存在 `sessionStorage` 或者 `localStorage` 中  
-   可以设置头部解决跨域资源共享问题，同时也可以防⽌ `CSRF` ，但是就需要考虑 XSS 的问题防⽌凭证泄露。
-
-##### Node 中 JWT 的使⽤
-
-- 第⼀步，在你的 `/login` 路由中使⽤ `jsonwebtoken` 中间件⽤于⽣成 token
-
-```js{1}
-const jwt = require('jsonwebtoken')
-let token = jwt.sign(
-  {
-    name: username
-  },
-  config.secret,
-  {
-    expiresIn: '24h'
-  }
-)
-res.cookie('token', token)
-```
-
-- 第⼆步，在 Node 的⼊⼝⽂件 `app.js `中注册 `express-jwt` 中间件⽤于验证 token
-
-```js{1,3}
-const expressJwt = require('express-jwt')
-app.use(
-  expressJwt({
-    secret: config.secret,
-    getToken: (req) => {
-      return req.cookies.token || null
-    }
-  }).unless({
-    path: ['/login']
-  })
-)
-```
-
-- 如果 getToken 返回 null ，中间件会抛出 UnauthorizedError 异常
-
-```js{3}
-app.use(function (err, req, res, next) {
-  //当token验证失败时会抛出如下错误
-  if (err.name === 'UnauthorizedError') {
-    res.status(401).json({
-      status: 'fail',
-      message: '⾝份校验过期，请重新登陆'
-    })
-  }
-})
-```
-
-### 如何实现单点登录
-
-- 假设我们在电脑和⼿机都使⽤同⼀个⽤⼾登陆，对于服务器来说，这两次登陆⽣成的 token 都是合法的，尽管他们是同⼀个⽤⼾。所以两个 token 不会失效。
-- 要实现单点登陆，服务器只需要维护⼀张**userId 和 token 之间映射关系的表**。每次登陆成功都刷新 token 的值。
-- 在处理业务逻辑之前，使⽤解密拿到的 userId **去映射表中找到 token** ，**和请求中的 token 对⽐** 就能校验是否合法了。
-
-### cookie 使⽤流程总结 登录 / 注册请求：
-
-- 浏览器发送⽤⼾名和密码到服务器。 服务器验证通过后，在响应头中设置 cookie，附带登录认证信息（⼀般为 jwt）。
-- 浏览器收到 cookie 保存下来。 后续请求，浏览器会⾃动将符合的 cookie 附带到请求中；
-- 服务器验证 cookie 后，允许其他操作完成业务流程。
-
 ## 如何禁⽌别⼈调试⾃⼰的前端⻚⾯代码?
 
 ### ⽆限 debugger
@@ -1040,3 +933,203 @@ app.use(function (err, req, res, next) {
 ```
 
 ### 禁⽌断点的对策
+
+## 【web 系统⾥⾯， 如何对图⽚进⾏优化？】
+
+- 图⽚优化是提升⽤⼾体验、提⾼⽹站性能、减少流量消耗和增加搜索引擎曝光度的关键因素。
+
+### 1. 选择合适的图⽚格式
+
+![alt text](./img/imageType.png)
+
+### 2. 图⽚压缩
+
+webpack 对图⽚进⾏压缩，可以使⽤`file-loader`和`image-webpack-loader`
+
+### 3. 雪碧图
+
+- 雪碧图（CSS Sprites）是⼀种将多个⼩图⽚合并为⼀个⼤图⽚的技术。通过将多个⼩图⽚合并成⼀张⼤图⽚，可以减少浏览器发送的请求次数，从⽽提⾼⻚⾯加载速度。
+- 雪碧图的原理是通过 CSS 的 `background-image` 和 `background-position` 属性，将所需的⼩图⽚显⽰在指定的位置上
+- 可以使⽤ webpack 插件`webpack-spritesmith` 完成⾃动化处理雪碧图合成
+
+```css{8,13}
+div {
+  background: url(path/to/output/sprite.png) no-repeat;
+}
+/* 设置⼩图标在雪碧图中的位置和⼤⼩ */
+.icon-facebook {
+  width: 32px;
+  height: 32px;
+  background-position: 0 0; /* 该⼩图标在雪碧图中的位置*/
+}
+.icon-twitter {
+  width: 32px;
+  height: 32px;
+  background-position: -32px 0; /* 该⼩图标在雪碧图中的位置 */
+}
+.icon-instagram {
+  width: 32px;
+  height: 32px;
+  background-position: -64px 0; /* 该⼩图标在雪碧图中的位置 */
+}
+/** 使用
+<div class="icon icon-facebook"></div>
+*/
+```
+
+### 4. 图标类型资源推荐使⽤ [iconfont](https://www.iconfont.cn/)
+
+### 5. 使⽤ base64 格式
+
+- 使⽤ Base64 图⽚的优势有以下⼏点：
+  - **减少 HTTP 请求数量**
+  - **减少图⽚⽂件的⼤⼩**  
+    Base64 编码的字符串通常会更⼩，因此可以减少图⽚⽂件的⼤⼩，从⽽减少了⽹⻚的总体积，加快了⽹⻚加载速度
+  - 简化部署和维护
+- 劣势：
+  - 增加了⽂本⽂件的体积
+  - 缓存问题  
+    由于 Base64 图⽚被嵌⼊到了 CSS 或 HTML ⽂件中，如果图⽚内容有更新，那么整个⽂件都需要重新加载，⽽⽆法使⽤缓存
+- 建议复⽤性很强, 变更率较低，且 `⼩于 10KB` 的图⽚⽂件， 可以考虑 base64
+- webpack 可以使用插件： `url-loader` 或 `file-loader`
+
+### 6. 使⽤ CDN 加载图⽚
+
+### 7. 图⽚懒加载
+
+- `Intersection Observer API`
+- ⾃定义监听器
+
+### 8. 图⽚预加载
+
+- 图⽚预加载可以使⽤原⽣ JavaScript 实现，也可以使⽤现成的 JavaScript 库，如 `Preload.js`、`LazyLoad.js` 等。
+
+### 9. 响应式加载图⽚
+
+- `<picture>`元素内部有多个 `<source>` 元素，每个 `<source>` 元素通过`srcset` 属性指定了对应分辨率下的图⽚链接。
+- media 属性可以⽤来指定在哪个分辨率下应⽤对应的图⽚。
+- 如果没有任何 `<source>` 元素匹配当前设备的分辨率，那么就会使⽤`img` 元素的 src 属性指定的图⽚链接。
+
+::: example
+blogs/business/dom/picture
+:::
+
+- 也可以使⽤ webpack 的 `responsive-loader` 插件
+
+### 10. 渐进式加载图⽚
+
+- 实现渐进式加载的主要思想是**先加载⼀张较低分辨率的模糊图⽚**，然后逐步加载更⾼分辨率的图⽚
+- 使⽤ JavaScript 监听图⽚的加载事件，**在⾼分辨率图⽚加载完成后，将其替换低分辨率图⽚的 src 属性**，以实现渐进式加载的效果。
+
+```html{6}
+<img src="blur-image.jpg" data-src="high-res-image.jpg" alt="Image">
+<script>
+const image = document.querySelector('img');
+// 监听⾼分辨率图⽚加载完成事件
+image.addEventListener('load', () => {
+  image.src = image.dataset.src;  // 替换低分辨率图⽚的src属性
+});
+</script>
+```
+
+## 【如何在跨域请求中携带另外⼀个域名下的 Cookie】
+
+### 配置
+
+1. **服务端**设置**响应头部**的`Access-Control-Allow-Credentials`字段为`true`，
+1. **服务端**需要设置**响应头部**的`Access-Control-Allow-Origin`字段为指定的域名，表⽰允许指定域名的跨域请求携带 Cookie。
+1. **客⼾端**设置**请求头部**的`withCredentials`字段为`true`。
+
+### ⽰例代码
+
+- 服务端（Node.js）：
+
+```js{5,7}
+const express = require('express')
+const app = express()
+app.use((req, res, next) => {
+  // 允许指定域名的跨域请求携带Cookie。
+  res.setHeader('Access-Control-Allow-Origin', 'http://example.com')
+  // 请求携带Cookie
+  res.setHeader('Access-Control-Allow-Credentials', 'true')
+  next()
+})
+app.get('/api/data', (req, res) => {
+  res.send('Response Data') // 处理请求
+})
+app.listen(3000, () => {
+  console.log('Server is running on port 3000')
+})
+
+```
+
+- 客户端（JavaScript）
+
+```js{2}
+fetch('http://example.com/api/data', {
+// 在客⼾端发起跨域请求时，需要设置请求头部的`withCredentials`字段为`true`
+  credentials: 'include'
+})
+  .then((response) => response.text())
+  .then((data) => {
+    console.log(data)
+  })
+  .catch((error) => {
+    console.error('Error:', error)
+  })
+```
+
+以上代码中，Access-Control-Allow-Origin 设置为'http://example.com'，表⽰允许该域名的跨域请求携带Cookie。fetch请求的参数中，credentials设置为'include'表⽰请求中携带Cookie
+
+## 【后端⼀次性返回树形结构数据，数据量⾮常⼤, 前端该如何处理？】
+
+1. **分批处理**：将⼤量的树形数据分为多个批次进⾏处理和渲染。前端可以通过**递归或循环**的⽅式，每次处理⼀部分数据，并在渲染完成后再处理下⼀部分数据。这样可以避免⼀次性处理⼤量数据造成栈溢出的问题。
+2. **异步处理**：使⽤异步处理的⽅式进⾏数据的计算和渲染。前端可以利⽤ JavaScript 的异步特性，将数据处理和渲染任务分为多个异步任务，并通过事件循环机制依次执⾏这些任务。这样可以避免⼀次性计算和渲染⼤量数据导致栈溢出的问题。
+3. **虚拟化渲染**：**使⽤虚拟化渲染技术，只渲染当前可⻅区域的树节点**，⽽不是全部节点。可以根据⻚
+   ⾯的滚动位置和⽤⼾操作，只渲染当前需要展⽰的节点，⽽对于不可⻅的节点只保留其占位符。这样可以减少实际渲染的节点数量，降低内存占⽤和渲染时间。
+4. **数据分级处理**：对于树形结构数据，可以考虑对数据进⾏分级处理。将数据根据节点的层级关系进⾏分组，**每次只处理和渲染当前层级的节点数据**。这样可以减少每次处理的数据量，降低栈溢出的⻛险。
+
+根据具体的业务需求和技术实现情况，可以选择适合的处理⽅式来解决栈溢出问题。同时，也可以结合多种处理⽅式来提⾼⻚⾯性能和⽤⼾体验。
+
+## 【在前端应⽤如何进⾏权限设计？】
+
+### ⻆⾊与权限分离
+
+- 将⽤⼾的权限分为不同的⻆⾊，每个⻆⾊拥有特定的权限。
+- 这样可以简化权限管理，并且当需求变化时，只需要调整⻆⾊的权限，⽽不需要逐个修改⽤⼾的权限。
+
+### 功能级权限控制
+
+对于敏感操作或者需要权限控制的功能，需要在前端实现功能级的权限控制。
+
+- 可以通过**按钮权限**控制
+- 权限可以使⽤权限名或者权限码进⾏标识
+- **⻆⾊与权限关联**：将权限与⻆⾊进⾏关联。确定每个⻆⾊具备哪些权限
+- **⽤⼾与⻆⾊关联**：将⽤⼾与⻆⾊进⾏关联。确定每个⽤⼾属于哪些⻆⾊
+
+### 路由级权限控制
+
+- 对于不同的⻚⾯或路由，可以根据⽤⼾的⻆⾊或权限来进⾏权限控制。在前端路由中配置权限信息，
+- 当⽤⼾访问特定路由时，前端会检查⽤⼾是否具备访问该路由的权限。
+- 使⽤前端路由守卫机制，在路由跳转前进⾏权限验证。在路由守卫中，根据当前⽤⼾的
+  权限信息和路由配置进⾏判断，决定是否允许⽤⼾访问该路由。如果⽤⼾没有相应的权限，可以进⾏跳转到⽆权限提⽰⻚⾯或者其他处理⽅式。
+- **权限控制组件**：可以创建⼀个权限控制组件，在需要进⾏权限控制的路由组件上使⽤该组件进⾏包裹。该组件可以根据当前⽤⼾的权限和路由配置，动态显⽰或隐藏路由组件。
+- **动态路由**：对于⼀些有权限控制的路由，可以在⽤⼾登录时根据权限配置动态⽣成。根据⽤⼾的权限配置，过滤路由表，⽣成⽤⼾可以访问的路由列表，并将该列表添加到路由配置中。
+
+### 动态权限管理
+
+在前端应⽤中，可以实现动态权限管理，即在⽤⼾登录时从服务器获取⽤⼾的权限信息，并在前端进⾏缓存。这样可以保证⽤⼾权限的实时性，同时也便于后端对权限进⾏调整和管理。
+
+### UI 级的权限控制
+
+对于某些敏感信息或操作，可以通过前端的界⾯设计来进⾏权限控制。例如，隐藏某些敏感字段或操作按钮，只对具有相应权限的⽤⼾可⻅或可操作。
+
+### 异常处理与安全验证
+
+在前端应⽤中，需要实现异常处理机制，当⽤⼾越权操作时，需要给予相应提⽰并记录⽇志。同时，对于敏感操作，需要进⾏**⼆次验证**，例如通过输⼊密码或短信验证码等⽅式进⾏安全验证。
+
+### 安全性考虑
+
+在设计前端应⽤的权限时，需要考虑安全性，例如防⽌跨站脚本攻击（XSS）、跨站请求伪造（CSRF）等攻击⽅式。可以采⽤合适的安全措施，如输⼊验证、加密传输等来保护应⽤的安全性。
+
+- 综上所述，前端应⽤的权限设计应该考虑 **⻆⾊与权限分离、功能级与路由级的权限控制、动态权限管理、UI 级的权限控制、异常处理与安全验证以及安全性考虑等⽅⾯**。通过合理的权限设计，可以确保系统的安全性和⽤⼾权限的灵活管理。

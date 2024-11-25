@@ -1,7 +1,7 @@
 <!--
  * @Description:
  * @Date: 2024-10-30 18:10:00
- * @LastEditTime: 2024-11-08 15:03:37
+ * @LastEditTime: 2024-11-18 13:29:20
 -->
 
 # 浏览器缓存
@@ -78,6 +78,60 @@ domain=example.com//作⽤域为 "example.com" 的域名
 - 再重写一个 get 方法，在读取数据时，检查当前时间是否超过了失效时间。
 - 如果超过了失效时间，则使⽤`localStorage.removeItem(key)`或`sessionStorage.removeItem(key)`⽅法删除该数据。
 - 没过期的话正常返回
+
+## [【indexedDB】](https://deepinout.com/javascript/javascript-questions/110_hk_1709940124.html)
+
+> IndexedDB 是⼀种⽤于在浏览器中存储⼤量结构化数据的数据库。它提供了⼀个异步的 API，可以进⾏增删改查等数据库操作。IndexedDB 可以存储⼤量的数据，并⽀持事务操作。
+
+### indexedDB API
+
+- `open` 方法返回一个 `IDBOpenDBRequest` 对象，同时这是一个**异步**操作，open 操作并不会立马打开数据库或者开启事务，我们可以通过监听`request`的事件来进行相应的处理。
+- `open(name,version)`：open 方法传入两个参数，第一个参数是数据库的名字，第二个参数是数据库的版本号(**整数**)。
+- 当你**创建或升级**一个现有的数据库版本的时候，将会触发一个`onupgradeneeded`事件，并在事件中传入`IDBVersionChangeEvent`，我们可以通过 `event.target.result` 来获取到 IDBDatabase 对象，然后通过这个对象来进行数据库的版本升级操作
+
+::: example
+blogs/business/indexedDB/index
+:::
+![alt text](./indexedDB/indexedDB.png)
+
+### IndexedDB 存储空间⼤⼩是如何约束的？
+
+- IndexedDB 有⼤⼩限制。具体来说，IndexedDB 的⼤⼩限制通常由浏览器实现决定，因此不同浏览器可能会有不同的限制。
+- ⼀般来说，IndexedDB 的⼤⼩限制可以分为两个⽅⾯：
+  - **单个数据库**的⼤⼩限制：每个 IndexedDB 数据库的⼤⼩通常会有限制，这个限制可以是固定的（如某些浏览器限制为特定的⼤⼩，如 50MB），也可以是动态的（如某些浏览器根据设备剩余存储空间来动态调整⼤⼩）。
+  - **整个浏览器**的⼤⼩限制：除了每个数据库的⼤⼩限制外，浏览器还可能设置整 IndexedDB 存储的总⼤⼩限制。这个限制可以根据浏览器的策略和设备的可⽤存储空间来决定。
+- 需要注意的是，由于 IndexedDB 是在⽤⼾设备上进⾏存储的，并且浏览器对存储空间的管理可能会受到⽤⼾权限和设备限制的影响，因此在使⽤ IndexedDB 存储⼤量数据时，**需要注意数据的⼤⼩和存储限制**，以免超过浏览器的限制导致出错或⽆法正常存储数据。
+
+### 开发者是否可以通过 JS 代码可以调整 IndexedDB 存储空间⼤⼩？
+
+- 实际上，在创建数据库时，⽆法直接通过 API 设置存储空间⼤⼩。
+- **IndexedDB 的存储空间⼤⼩通常由浏览器的策略决定，并且在⼤多数情况下，开发者⽆法直接控制**。
+- 浏览器会根据⾃⾝的限制和规则，动态分配和管理 IndexedDB 的存储空间。因此，将存储空间⼤⼩设置为期望的值不是开发者可以直接控制的。
+- 开发者可以通过以下⽅式来控制 IndexedDB 的存储空间使⽤情况：
+  1. 优化数据模型：设计合适的数据结构和索引，避免存储冗余数据和不必要的索引。
+  2. 删除不再需要的数据：定期清理不再需要的数据，以减少数据库的⼤⼩。
+  3. 压缩数据：对存储的数据进⾏压缩，可以减少存储空间的使⽤。
+
+这些⽅法只能间接地影响 IndexedDB 的存储空间使⽤情况，具体的存储空间⼤⼩仍然由浏览器决定。
+
+## Cache Storage
+
+Cache Storage 是浏览器缓存的⼀部分，⽤于存储浏览器的缓存资源。它可以⽤来缓存⽹⻚、脚本、样式表、图像等**静态资源**，以提⾼⽹⻚加载速度和离线访问能⼒。
+
+## Web SQL Database：
+
+Web SQL Database 是⼀种**已被废弃**但仍被⼀些浏览器⽀持的关系型数据库。它使⽤ SQL 语⾔来进⾏数据操作，可以存储⼤量的结构化数据。
+
+## 追问：service worker 存储的内容是放在 哪⼉的？
+
+Service Worker 可以利⽤ Cache API 和 IndexedDB API 进⾏存储。具体来说：
+
+1. Cache API：Service Worker 可以使⽤ Cache API 将请求的响应存储在浏览器的 `Cache Storage`中。Cache Storage 是浏览器的⼀部分，⽤于存储缓存的资源。通过 Cache API，Service Worker 可以将⽹⻚、脚本、样式表、图像等静态资源缓存起来，以提⾼⽹⻚加载速度和离线访问能⼒。
+2. IndexedDB API：
+   - Service Worker 还可以利⽤ IndexedDB API 在浏览器中创建和管理数据库。
+   - IndexedDB 是⼀种⽤于存储⼤量结构化数据的数据库，Service Worker 可以通过 IndexedDB API 进⾏数据的增删改查操作。通过 IndexedDB，Service Worker 可以将⼤量的数据进⾏持久化存储，以便在离线状态下仍然能够访问和操作数据。
+   - Service Worker 存储的内容并不是放在普通的浏览器缓存或本地数据库中，⽽是放在 Service Worker 的**全局作⽤域**中。
+   - Service Worker 运⾏在**独⽴的线程中，与浏览器主线程分离，因此能够独⽴地处理⽹络请求和数据存储，提供了⼀种强⼤的离线访问和缓存能⼒**
 
 ## （三）session（服务端）
 
