@@ -557,3 +557,15 @@ loadRuntime().then((runtime) => {
   ```
 
 上⾯的⽅式， 可以在也可以达到同样的效果， 只是在 import 的时候申明 runtime ⽂件名称⽽已
+
+## 在项⽬中， 使⽤过哪些 webpack plugin, 说⼀下他们的作⽤
+
+| 插件名称             | 作用                                                        |
+| -------------------- | ----------------------------------------------------------- |
+| HtmlWebpackPlugin    | 自动生成 HTML 文件，并将打包后的资源自动注入到 HTML 中。    |
+| MiniCssExtractPlugin | 将 CSS 代码提取到单独的文件中，而不是内联到 JavaScript 中。 |
+| CopyWebpackPlugin    | 将指定的文件或目录复制到输出目录                            |
+|                      |                                                             |
+
+<!-- ![alt text](image-1.png)
+![alt text](image-2.png) -->
