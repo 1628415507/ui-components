@@ -127,7 +127,7 @@ request.onerror = function (event) {
 ::: example
 blogs/business/indexedDB/index
 :::
-![alt text](./indexedDB/indexedDB.png)
+![alt text](./img/indexedDB.png)
 
 <!-- -  // 创建了一个名为 customers 的对象存储空间，并指定了一个自增的键
 - db.createObjectStore('customers', {
