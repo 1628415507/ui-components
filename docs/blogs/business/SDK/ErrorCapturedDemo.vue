@@ -4,5 +4,6 @@
   </div>
 </template>
 <script setup>
+// 以下报错，会被onErrorCaptured或app.config.errorHandler捕获
 handlePromiseError2() //运行未申明的方法
 </script>
