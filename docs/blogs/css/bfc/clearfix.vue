@@ -6,7 +6,7 @@
 <template>
   <div>
     <div>
-      方式一：在浮动元素后添加一个空标签
+      方式一：clear属性的空标签——在浮动元素后添加一个空标签
       <el-button @click="addClearDiv = !addClearDiv" class="mb-05">添加一个空标签</el-button>
     </div>
     <div style="min-height: 150px">
