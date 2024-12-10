@@ -81,13 +81,13 @@ input1.addEventListener(
   })
 )
 ```
+
 ## 3.代码的关键区别
 
 - 节流 ：n 秒内重复触发，只执行一次`if(timer){ return }`
 - 防抖 ：n 秒内重复触发，则重新计时`if(timer){ clearTimeout(timer) }`
 
 ## 4. 完整版代码
-
 
 ![原型链3](./img/debounce.png)
 
@@ -126,7 +126,7 @@ function throttle2(fn, wait) {
 
 ### (2) 防抖
 
-```js{6,20,25,39}
+```js{6,20,25,39,40}
 // ---------------------------------------------------------防抖函数
 function debounce(func, delay) {
   let timeout

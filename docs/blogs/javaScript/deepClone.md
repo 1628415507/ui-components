@@ -26,9 +26,9 @@ let obj2 = { ...obj }
 console.log(obj, obj2)
 ```
 
-#### （2）方法二（ES6）：Object.assign()
+#### （2）方法二（ES6）：`Object.assign()`
 
-> **Object.assign**：会**合并对象生成一个新对象**。  
+> **`Object.assign`**：会**合并对象生成一个新对象**。  
 > 如果对象的属性是普通类型改变之后新对象不会改变，如果是引用类型改变后新对象也会改变，所以 Object.assign 实际上还是浅拷贝。
 
 ```js{5}
@@ -45,7 +45,7 @@ console.log(newObj.b.item)   //kk
 
 #### （3）方法三
 
-- 复制非继承属性（[hasOwnProperty()](https://blog.csdn.net/a791226606/article/details/110679991)）
+- 复制非继承属性（[`hasOwnProperty()`](https://blog.csdn.net/a791226606/article/details/110679991)）
 - 只复制第一层
 
 ```js{5}
@@ -56,7 +56,6 @@ function shallowClone(obj) {
     if (!obj.hasOwnProperty(key)) break //判断一个对象里是否含有某个非继承属性
     obj3[key] = obj[key]
   }
-  // console.log(obj, obj3);
   return obj
 }
 ```
