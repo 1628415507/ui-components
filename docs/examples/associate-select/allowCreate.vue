@@ -5,9 +5,9 @@
     v-bind="$attrs"
     :configs="autoCompleteConfig"
     :allow-create="true"
-    :searchColumns="userSearchColumns"
+    :params="userSearchColumns"
     @getCreateVal="getCreateVal"
-    @handleAutoSelect="getSelectItem"
+    @changeSelect="getSelectItem"
   ></z-associate-select>
  
 </template>
@@ -19,7 +19,7 @@ const autoCompleteConfig = ref({
   url: '/jhj-base-management/sysUser/queryAssociate', // 后台请求接口
   multiple: false, // 是否多选
   // 显示列配置
-  showColumn: [
+  tableColumns: [
     {
       label: '登录账号',
       prop: 'userName',

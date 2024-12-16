@@ -19,13 +19,14 @@
           ref="inputRef"
           :id="id"
           size="small"
-          :disabled="props.disabled"
+          :disabled="disabled"
           clearable
-          @click.native="clickInput"
+          @click.stop="clickInput"
           @blur="emitBlur"
-          @focus="emitFocus"
+          @focus.self="emitFocus"
           @change="emitChange"
-          @keydown="search"
+          @input="handleInput"
+          @keydown="handleSearch"
           @clear="clearSelectValue"
           class="form-control smartInput"
           data-associate="true"
@@ -42,20 +43,17 @@
             ref="multipleInputRef"
             type="text"
             v-model="searchContent"
-            @input="requestData(searchContent)"
+            @keydown="handleSearch"
           ></el-input>
           <el-pagination
             small
             v-model:current-page="queryParams.pageNumber"
             v-model:page-size="queryParams.pageSize"
-            layout="total, prev, pager, next, jumper"
+            :layout="pageLayout"
             :total="totalRows"
             @size-change="handleSizeChange"
             @current-change="handleCurrentChange"
-          >
-            <span style="color: #606266" v-if="pageDataLength == 0">当前显示0条</span>
-            <span style="color: #606266" v-else>当前显示{{ datafrom }}-{{ datato }}条</span>
-          </el-pagination>
+          ></el-pagination>
         </div>
         <el-table
           :data="tableData"
@@ -64,16 +62,16 @@
           ref="associateTable"
           border
           v-loading="loading"
-          :cell-class-name="tableRowClassName"
           highlight-current-row
           highlight-selection-row
           @cell-click="clickOne"
           @select="handleSelectionChange"
           @select-all="handleSelectAll"
+          @keydown="handleSearch"
         >
           <el-table-column type="selection" v-if="selectionShow" width="55"></el-table-column>
           <el-table-column
-            v-for="(item, index) in dropCol"
+            v-for="(item, index) in tableColumn"
             :key="index"
             align="center"
             :width="item.width"
@@ -99,15 +97,7 @@ export default {
 }
 </script>
 <script setup>
-import {
-  watch,
-  getCurrentInstance,
-  ref,
-  defineProps,
-  defineEmits,
-  onMounted,
-  nextTick
-} from 'vue'
+import { watch, getCurrentInstance, ref, defineProps, defineEmits, onMounted, nextTick } from 'vue'
 import request from '../../../../utils/request'
 const { proxy } = getCurrentInstance()
 
@@ -121,7 +111,7 @@ const props = defineProps({
     default: () => ({
       url: '', //请求的接口参数
       multiple: false, // 是否多选
-      showColumn: [], // 显示列配置
+      tableColumns: [], // 显示列配置
       codeKey: '', //唯一标识字段
       nameKey: '' //标签展示的字段
     })
@@ -138,11 +128,15 @@ const props = defineProps({
     type: Boolean,
     default: false //是否可输可选，//查不到数据时不清空输入框的值
   },
+  setSelectVal: {
+    type: Boolean,
+    default: true //选择值是否回填
+  },
   defValueCode: {
     type: Number,
     default: null
   },
-  searchColumns: {
+  params: {
     type: Object,
     default: () => ({}) //查询条件
   },
@@ -157,14 +151,22 @@ const props = defineProps({
   trigger: {
     type: String,
     default: 'input' //['input','icon']//弹窗的触发方式
+  },
+  uppercase: {
+    type: Boolean, //输入自动转大写
+    default: false
+  },
+  pageLayout: {
+    type: String,
+    default: 'total, prev, pager, next, jumper'
   }
 })
 
-const emit = defineEmits(['handleAutoSelect', 'getCreateVal'])
+const emit = defineEmits(['changeSelect', 'getCreateVal', 'blur'])
 let count = ref(0)
 const facPopoverShow = ref(false) // popover提示框
-const tableHeight = ref(0)
-const dropCol = ref([])
+const tableScrollHeight = ref(0) //表格滚动条滚动的高度
+const tableColumn = ref([])
 const id = ref('')
 const timer = ref(null)
 const tableData = ref([]) // 获取后台的数据
@@ -175,23 +177,20 @@ const getIndex = ref(0)
 const multiple = ref(false) // 是否多选
 const selectionShow = ref(false) // 多选列是否显示
 const selectOption = ref([]) // 记录多选行数据
-const datafrom = ref(0) //
-const pageDataLength = ref(null) // 初始化表格的长度
-const datato = ref(0)
 const searchContent = ref('')
 const queryParams = ref({
   pageNumber: 1,
   pageSize: props.pageSize,
-  ...props.searchColumns
+  ...props.params
 })
 const loading = ref(false)
 const chooseData = ref([]) //选择的数据
-const chooseDataIndex = ref(0)
+const chooseDataIndex = ref(0) //当前点击行所在的索引
 const inputRef = ref()
 const popoverRef = ref()
 multiple.value = props.configs.multiple
-dropCol.value = props.configs.showColumn
-const chickCloseFlag = ref(false)
+tableColumn.value = props.configs.tableColumns
+const clickCloseFlag = ref(false) //是否是点击关闭，避免点击和聚焦事件同事触发
 const selectedRows = ref({})
 // 多选
 if (props.configs.multiple) {
@@ -205,7 +204,7 @@ function init() {
     // 重置当前页以及当前显示页数据
     queryParams.value.pageNumber = 1
     queryParams.value.pageSize = props.pageSize
-    tableHeight.value = 0
+    tableScrollHeight.value = 0
     proxy.$refs.associateTable.$refs.scrollBarRef.setScrollTop(0)
     requestData(input.value)
   }
@@ -216,28 +215,17 @@ function clickInput() {
     init()
   }
 }
-// 如果没有已选择的值，失去焦点时把控件的值清除
-function hide() {
-  if (!props.allowCreate) {
-    clearInputVal()
-  }
-  if (!chooseData.value?.length && props.allowCreate) {
-    emit('getCreateVal', input.value)
-  }
-  chickCloseFlag.value = false
-}
 function disappear(event) {
-  chickCloseFlag.value = true
-  facPopoverShow.value = false
-  tableWidth.value = 0
-  associateTable.value = null
+  clickCloseFlag.value = true
+  closePopover()
 }
 
 // function isInputHidden(inputElement) {
 //   return !inputElement || !inputElement.offsetParent
 // }
+
 // 输入时自动搜索
-function search(event) {
+function handleSearch(event) {
   // 对于特殊的按键不做任何处理
   const returnKeys = [9, 12, 16, 17, 18, 20, 27, 32, 33, 34, 35, 36, 37, 39, 45, 46, 144]
   if (returnKeys.indexOf(event.keyCode) !== -1) {
@@ -247,7 +235,7 @@ function search(event) {
     return
   }
   // 回车输入时将默认选中数据返回
-  if (event.keyCode === 13 && facPopoverShow.value) {
+  if (event.keyCode === 13 && facPopoverShow.value && !loading.value) {
     // 找出当前控件的下一个可用input框
     // const inputDoms = document.getElementsByClassName('el-input__inner')
     // let inputIndex = 0
@@ -268,6 +256,13 @@ function search(event) {
       if (!multiple.value) {
         clickOne(tableData.value[chooseDataIndex.value])
         // inputDoms[inputIndex].focus()
+      } else {
+        clickOne(tableData.value[chooseDataIndex.value])
+        // 多选-回车选中-关闭弹窗
+        clickCloseFlag.value = true //点击关闭
+        tableScrollHeight.value = 0 //表格滚动条滚动高度置0
+        proxy.$refs.associateTable.$refs.scrollBarRef.setScrollTop(0) //表格滚动条高度置0
+        closePopover()
       }
     } else {
       facPopoverShow.value = false
@@ -276,7 +271,7 @@ function search(event) {
   }
   // 上下键滑动表格
   if (event.keyCode === 40) {
-    if (!multiple.value && tableData.value.length > 0) {
+    if (tableData.value.length > 0) {
       if (chooseDataIndex.value < tableData.value.length - 1) {
         chooseDataIndex.value = chooseDataIndex.value + 1
         proxy.$refs.associateTable?.setCurrentRow(tableData.value[chooseDataIndex.value])
@@ -286,7 +281,7 @@ function search(event) {
     return
   }
   if (event.keyCode === 38) {
-    if (!multiple.value && tableData.value.length > 0) {
+    if (tableData.value.length > 0) {
       if (chooseDataIndex.value > 0) {
         chooseDataIndex.value = chooseDataIndex.value - 1
         proxy.$refs.associateTable?.setCurrentRow(tableData.value[chooseDataIndex.value])
@@ -295,26 +290,32 @@ function search(event) {
     }
     return
   }
+  loading.value = true
   clearTimeout(timer.value)
   timer.value = setTimeout(() => {
     // 请求后台接口进行可选项过滤
-    requestData(input.value)
-  }, 1000)
+    let val = multiple.value ? searchContent.value : input.value
+    requestData(val)
+  }, 500)
 }
 
 function scrollDown(downOrUp) {
   if (downOrUp) {
-    tableHeight.value = tableHeight.value + 20
+    tableScrollHeight.value = tableScrollHeight.value + 20
   } else {
-    tableHeight.value = tableHeight.value - 20
+    tableScrollHeight.value = tableScrollHeight.value - 20
   }
-  proxy.$refs.associateTable.$refs.scrollBarRef.setScrollTop(tableHeight.value)
+  proxy.$refs.associateTable.$refs.scrollBarRef.setScrollTop(tableScrollHeight.value)
 }
 
 watch(
   () => props.defValue,
   (newVal) => {
     input.value = newVal || ''
+    if (!newVal) {
+      emit('update:modelValue', '')
+      selectedRows.value[props.configs.codeKey] = ''
+    }
     selectedRows.value[props.configs.nameKey] = newVal || ''
   },
   { immediate: true }
@@ -322,6 +323,10 @@ watch(
 watch(
   () => props.modelValue,
   (newVal) => {
+    if (!newVal) {
+      emit('update:defValue', '')
+      selectedRows.value[props.configs.nameKey] = ''
+    }
     selectedRows.value[props.configs.codeKey] = newVal || ''
     if (!multiple.value && newVal && !chooseData.value.length) {
       chooseData.value = [selectedRows.value]
@@ -329,7 +334,27 @@ watch(
   },
   { immediate: true }
 )
+
 const multipleInputRef = ref()
+
+function emitAutoSelect(item) {
+  emit('changeSelect', item)
+  // 同步更新绑定值
+  const { codeKey, nameKey } = props.configs
+  let codeText = ''
+  let nameText = ''
+  if (props.isMuptiple) {
+    if (item?.length) {
+      codeText = item.map((obj) => obj[codeKey]).join(';')
+      nameText = item.map((obj) => obj[nameKey]).join(';')
+    }
+  } else {
+    codeText = item ? item[codeKey] : ''
+    nameText = item ? item[nameKey] : ''
+  }
+  emit('update:modelValue', codeText)
+  emit('update:defValue', nameText)
+}
 /**
  * 请求方法
  * @param value
@@ -337,11 +362,13 @@ const multipleInputRef = ref()
 function requestData(value) {
   if (count.value < 2) {
     let flag = props.beforeRequest ? props.beforeRequest() : true // 调用校验方法
-    if (!flag) {
+    if (flag == false) {
+      loading.value = false
       return
     }
   } else {
     count.value = 0
+    loading.value = false
     return
   }
   let requestValue = null
@@ -349,7 +376,7 @@ function requestData(value) {
     requestValue = !multiple.value ? value : searchContent.value
   } else {
     if (!(chooseData.value && chooseData.value.length > 0)) {
-      emit('handleAutoSelect', null)
+      emitAutoSelect(null)
     }
     requestValue = null
   }
@@ -375,7 +402,6 @@ function requestData(value) {
   })
     .then((res) => {
       // 请求后台
-      loading.value = false
       tableData.value = []
       if (res.data.rows?.length > 0) {
         tableData.value = res.data.rows
@@ -392,16 +418,20 @@ function requestData(value) {
         })
         totalRows.value = res.data.length
       }
+      tableData.value = tableData.value.map((item, index) => {
+        item.rowIndex = index //保存每行的索引
+        return item
+      })
       // 有值时，返回结果等于选择的值
-      if (!multiple.value && value && value == props.defValue && res.data.rows?.length) {
-        chooseData.value = res.data.rows
-      }
-      if (!multiple.value) {
-        chooseDataIndex.value = 0
-        proxy.$refs.associateTable.setCurrentRow(tableData.value[chooseDataIndex.value])
-      }
+      // if (!multiple.value && value && value == props.defValue && res.data.rows?.length) {
+      //   chooseData.value = res.data.rows
+      // }
+      chooseDataIndex.value = 0
       // 表格加载之后进行选中渲染
       nextTick(() => {
+        // if (!multiple.value) {
+        proxy.$refs.associateTable?.setCurrentRow(tableData.value[chooseDataIndex.value])
+        // }
         multiSelectedValue()
       })
     })
@@ -417,15 +447,10 @@ function requestData(value) {
       selectOption.value = createArray(selectedRows.value) // 初始化所有勾选的数据
       if (multiple.value) {
         nextTick(() => {
-          multipleInputRef.value.focus() //多选自动聚焦到查询输入框上
+          multipleInputRef.value?.focus() //多选自动聚焦到查询输入框上
         })
       }
     })
-}
-
-function tableRowClassName(row, rowIndex) {
-  // 把每一行的索引放进row
-  row.index = rowIndex
 }
 
 const tableWidth = ref(0) // 表格宽度
@@ -440,13 +465,13 @@ const calculateTableWidth = () => {
 watch(
   () => props.configs,
   (newVal) => {
-    dropCol.value = newVal.showColumn
+    tableColumn.value = newVal.tableColumns
   },
   { deep: true, immediate: true }
 )
 // 监听配置searchColumns
 watch(
-  () => props.searchColumns,
+  () => props.params,
   (newVal) => {
     queryParams.value = {
       ...queryParams.value,
@@ -477,7 +502,8 @@ function multiSelectedValue() {
 // 选中行数据
 function clickOne(row) {
   chooseData.value = [row]
-  getIndex.value = row.index
+  getIndex.value = row.rowIndex
+  chooseDataIndex.value = row.rowIndex
   clearTimeout(timer.value)
   if (multiple.value) {
     // 多选状态
@@ -503,21 +529,24 @@ function clickOne(row) {
     }
     handleSelectionChange(changeArray, row)
   } else {
-    focusIndex.value = row.index
+    focusIndex.value = row.rowIndex
     // 单选状态
     const value = row[props.configs.nameKey]
-    input.value = value
+    if (props.setSelectVal) {
+      input.value = value
+    }
     // 返回选中的行数据
-    emit('handleAutoSelect', row)
-    chickCloseFlag.value = true
-    facPopoverShow.value = false
-    tableWidth.value = 0
-    associateTable.value = null
+    emitAutoSelect(row)
+    clickCloseFlag.value = true
+    closePopover()
   }
 }
 // 关闭联想控件
 function closePopover() {
+  count.value = 0
+  tableWidth.value = 0
   facPopoverShow.value = false
+  associateTable.value = null
 }
 function formatInputVal(list = []) {
   let inputText = ''
@@ -546,7 +575,7 @@ function handleSelectAll(selection) {
   input.value = formatInputVal(allSelectedRows)
   chooseData.value = allSelectedRows
   selectOption.value = allSelectedRows
-  emit('handleAutoSelect', allSelectedRows)
+  emitAutoSelect(allSelectedRows)
 }
 
 // 获取多选行数据
@@ -567,7 +596,7 @@ function handleSelectionChange(selection, row) {
   //  console.log('【 allSelectedRows 】-558', input.value, allSelectedRows)
   chooseData.value = allSelectedRows
   selectOption.value = allSelectedRows
-  emit('handleAutoSelect', allSelectedRows)
+  emitAutoSelect(allSelectedRows)
 }
 
 function createArray(selectedObj) {
@@ -608,6 +637,8 @@ function clear_repeat(oldArr) {
 // 点击分页请求数据
 function handleCurrentChange(currentPage) {
   clearTimeout(timer.value)
+  tableScrollHeight.value = 0
+  proxy.$refs.associateTable.$refs.scrollBarRef.setScrollTop(tableScrollHeight.value)
   // 动态改变
   queryParams.value.pageNumber = currentPage
   // 实现翻页光标不消失
@@ -639,23 +670,40 @@ function handleSizeChange(size) {
 function scrollViewport() {
   getIndex.value = focusIndex.value
 }
-function clearInputVal() {
-  // 单选
-  if (!multiple.value) {
-    let chooseLabel = chooseData.value[0]?.[props.configs.nameKey]
-    if (chooseLabel !== input.value) {
+// 处理可输入值
+function handleCreateValEmit() {
+  if (multiple.value) {
+    return
+  }
+  // 判断是否是可输入值
+  let chooseLabel = chooseData.value[0]?.[props.configs.nameKey]
+  if (chooseLabel !== input.value) {
+    chooseData.value = [] //清空选项
+  }
+  const isCreateVal = chooseLabel !== input.value
+  // 单选状态
+  if (isCreateVal) {
+    if (!props.allowCreate) {
       input.value = ''
-      chooseData.value = []
-      emit('handleAutoSelect', {})
+      emitAutoSelect({})
+    }
+    if (props.allowCreate) {
+      emit('getCreateVal', input.value)
     }
   }
+}
+// 如果没有已选择的值，失去焦点时把控件的值清除
+function hide() {
+  handleCreateValEmit()
+  clickCloseFlag.value = false
 }
 // 失去焦点触发事件
 function emitBlur(event) {
   count.value = 0
-  if (!props.allowCreate && props.trigger == 'icon' && !facPopoverShow.value) {
-    clearInputVal()
+  if (!facPopoverShow.value) {
+    handleCreateValEmit()
   }
+
   // if (!multiple.value) {
   //   facPopoverShow.value = false
   // }
@@ -663,9 +711,15 @@ function emitBlur(event) {
 }
 // 获取焦点触发事件
 function emitFocus(event) {
-  if (props.trigger == 'input' && !chickCloseFlag.value) {
+  if (props.trigger == 'input' && !clickCloseFlag.value) {
     count.value++
     init()
+  }
+}
+// 输入转大写
+function handleInput(val) {
+  if (val && props.uppercase) {
+    input.value = input.value.toUpperCase()
   }
 }
 // input框值发生改变触发事件
@@ -684,14 +738,14 @@ function emitChange(val) {
             }
           }
         }
-        emit('handleAutoSelect', keywordList)
+        emitAutoSelect(keywordList)
       }
     }
   } else {
     if (multiple.value) {
-      emit('handleAutoSelect', [])
+      emitAutoSelect([])
     } else {
-      emit('handleAutoSelect', {})
+      emitAutoSelect({})
     }
   }
 }
@@ -705,10 +759,11 @@ function clearSelectValue() {
   input.value = ''
   selectOption.value = []
   chooseData.value = []
+  queryParams.value.keyword = ''
   if (multiple.value) {
-    emit('handleAutoSelect', [])
+    emitAutoSelect([])
   } else {
-    emit('handleAutoSelect', {})
+    emitAutoSelect({})
   }
 }
 defineExpose({ clearSelectValue, closePopover })
@@ -744,18 +799,6 @@ defineExpose({ clearSelectValue, closePopover })
   /* (高度自行选择) */
   /* //overflow: auto; */
   padding: 0;
-}
-
-.fl {
-  float: left;
-}
-
-.fr {
-  float: right;
-}
-
-.fbtn li {
-  float: left;
 }
 
 .smartInput {
