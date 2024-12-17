@@ -1,18 +1,19 @@
 <!--
  * @Description:系统用户（联想控件二次封装
  * @Date: 2024-02-27 18:20:28
- * @LastEditTime: 2024-07-16 13:56:29
+ * @LastEditTime: 2024-12-16 18:00:49
 -->
 <template>
   <z-associate-select
     ref="userRef"
     v-model="selectVal"
+    v-model:defValue="selectVal"
     v-bind="$attrs"
     :configs="autoCompleteConfig"
     :allow-create="allowCreate"
-    :searchColumns="userSearchColumns"
+    :params="userSearchColumns"
     @getCreateVal="getCreateVal"
-    @handleAutoSelect="getSelectItem"
+    @changeSelect="getSelectItem"
   ></z-associate-select>
 </template>
 
@@ -67,7 +68,7 @@ const autoCompleteConfig = ref({
   url: '/jhj-base-management/sysUser/queryAssociate', // 后台请求接口
   multiple: props.isMuptiple, // 是否多选
   // 显示列配置
-  showColumn: [
+  tableColumns: [
     {
       label: '登录账号',
       prop: 'userName',

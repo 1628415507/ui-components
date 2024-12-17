@@ -1,50 +1,64 @@
 <!--
  * @Description: 35字符分割线输入框
  * @Date: 2024-03-28 15:08:57
- * @LastEditTime: 2024-08-14 13:10:56
+ * @LastEditTime: 2024-12-16 17:18:54
 -->
 <template>
   <el-input
     v-model="inputVal"
     v-bind="$attrs"
     :type="type"
-    @change="handleChange"
-    @blur="handleChange(inputVal)"
+    @paste="handlePaste"
+    @blur="handleBlur(inputVal)"
+    :style="{ '--dividerOffset': dividerOffset + 'px' }"
     :class="{ divider: showDivider }"
   ></el-input>
 </template>
-<script>
-export default {
-  name: 'ZInputDivider'
-}
-</script>
+
 <script setup>
 import { computed, defineEmits, defineProps, defineExpose } from 'vue'
+import { ElMessage } from 'element-plus'
+const emits = defineEmits(['update:modelValue', 'blur'])
+
 const props = defineProps({
   modelValue: {
     type: String,
-    default: ''
+    default: '',
   },
   type: {
     type: String,
-    default: 'textarea'
+    default: 'textarea',
   },
   uppercase: {
     type: Boolean, //英文自动转大写，默认true
-    default: false
+    default: true,
   },
   limitHalfWidth: {
-    type: Boolean, // 只能输入半角字符，默认true
-    default: true
+    type: Boolean, // 只能输入半角字符(非中文)，默认true
+    default: true,
   },
   showDivider: {
     type: Boolean, // 是否显示分割线，默认true
-    default: true
-  }
+    default: true,
+  },
+  dividerOffset: {
+    type: Number, // 分割线的位置
+    default: 290,
+  },
+  showClearTips: {
+    type: Boolean, // 是否显示粘贴清空非中文的提示，默认false
+    default: false,
+  },
+  splitNum: {
+    type: Number, // 每多少字符换行
+    default: 35,
+  },
+  autoSplit: {
+    type: Boolean, // 失焦自动换行
+    default: false,
+  },
 })
-const { uppercase, limitHalfWidth } = props
-const n = 35
-const emits = defineEmits(['update:modelValue'])
+const { uppercase, limitHalfWidth, splitNum } = props
 const inputVal = computed({
   get() {
     emits('update:modelValue', formatInputValue(props.modelValue))
@@ -54,20 +68,40 @@ const inputVal = computed({
   set(val) {
     emits('update:modelValue', formatInputValue(val))
     // emits('update:modelValue', setVal?.replace(/\s*/g, '') || '')
-  }
+  },
 })
-function handleChange(val) {
+function handlePaste(e) {
+  let val = e?.clipboardData?.getData('text')
+  if (!props.showClearTips || !val) {
+    return
+  }
+  // 是否包含非英文字符
+  let patternChart = /[Ç]/g
+  let patternCn = /[^\x00-\xff]/g // 匹配汉字的正则表达式
+  if (patternCn.test(val) || patternChart.test(val)) {
+    ElMessage.warning('已为您清理非英文字符！')
+  }
+}
+
+function handleBlur(val) {
   let splitArr = val?.split(/[\n]/) || [] // 根据换行符分割字符串
   let newList = splitArr.map((item) => {
-    return item?.replace(/\s{2,}/g, ' ') || '' //多个空格替换成一个空格
+    let str = item?.replace(/\s{2,}/g, ' ')
+    str = str.replace(/[Ç]/g, 'C')
+    return str || '' //多个空格替换成一个空格
   })
   inputVal.value = newList.join('\n')
+  if (props.autoSplit) {
+    splitText()
+  }
+  emits('blur', inputVal.value)
   // console.log('【 newList 】-34', newList, inputVal.value)
 }
 function formatInputValue(val) {
   let newVal = val
-  // console.log('【 uppercase, limitHalfWidth 】-39', uppercase, limitHalfWidth)
+  // console.log('【 uppercase, limitHalfWidÇth 】-39', uppercase, limitHalfWidth)
   newVal = newVal?.replace(/[\\]/g, '') || '' //禁止输入反斜杠
+  newVal = newVal?.replace(/[Ç]/g, 'C') //禁止字符Ç
   if (uppercase) {
     newVal = newVal ? newVal.toUpperCase() : ''
     // console.log('【 uppercase-newVal 】-43', newVal)
@@ -82,15 +116,15 @@ function formatInputValue(val) {
 }
 function splitWord(str) {
   const result = []
-  for (let i = 0; i < str.length; i += n) {
-    result.push(str.substring(i, i + n))
+  for (let i = 0; i < str.length; i += splitNum) {
+    result.push(str.substring(i, i + splitNum))
   }
   return result
 }
 // A ABCDEABCDEABCDEABCDEABCDEABCDEABCDE 11 22
 // 将字符串按35字符进行拆分（包含空格的长度），未超过35字符的单词不进行拆分
 function splitRow(rowVal = '') {
-  if (rowVal.length <= n) {
+  if (rowVal.length <= splitNum) {
     return [rowVal]
   }
   let rowWords = rowVal?.split(/[\s]/) // 根据空格进行分割
@@ -101,7 +135,7 @@ function splitRow(rowVal = '') {
     const SPAN = i === 0 ? '' : ' ' //第一个单词不需要加空格
     let len = rowStr.length + SPAN.length + word.length //上一次拼接的长度+空格的长度+当前单词的长度
     // 如果拼上当前单词的长度小于35，继续拼接
-    if (len < n) {
+    if (len < splitNum) {
       rowStr = `${rowStr}${SPAN}${word}`
       if (i === rowWords.length - 1) {
         arr.push(rowStr)
@@ -109,7 +143,7 @@ function splitRow(rowVal = '') {
     } else {
       rowStr && arr.push(rowStr) //上一次拼接的长度
       // 处理下一个拼接
-      if (word.length >= n) {
+      if (word.length >= splitNum) {
         let splitWords = splitWord(word) // 对超过35的单词进行二次分割
         let words
         if (splitWords.length > 1) {
@@ -168,7 +202,7 @@ defineExpose({ splitText })
   &:before {
     content: '';
     position: absolute;
-    left: 290px;
+    left: var(--dividerOffset); //290px;
     display: block;
     height: 100%;
     border: 1px solid #e3e3e3;

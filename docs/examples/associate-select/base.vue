@@ -9,13 +9,14 @@
   </el-button> -->
   <el-button type="primary" @click="clearSelectValue">清空值</el-button>
   <div class="mb-05" />
+  {{ selectVal }},{{ defValue }}
   <z-associate-select
     ref="associateRef"
     v-model="selectVal"
-    v-bind="$attrs"
+    v-model:defValue="defValue"
     :configs="autoCompleteConfig"
-    :searchColumns="userSearchColumns"
-    @handleAutoSelect="getSelectItem"
+    :params="userSearchColumns"
+    @changeSelect="getSelectItem"
   ></z-associate-select>
 </template>
 
@@ -24,12 +25,14 @@
 // import {  ZAssociateSelect } from '../../../src/index.ts'//按需引入
 import { getCurrentInstance, ref, defineEmits } from 'vue'
 const { proxy } = getCurrentInstance()
-const selectVal = ref()
+const selectVal = ref('')
+const defValue = ref('')
+
 const autoCompleteConfig = ref({
   url: '/jhj-base-management/sysUser/queryAssociate', // 后台请求接口
   multiple: false, // 是否多选
   // 显示列配置
-  showColumn: [
+  tableColumns: [
     {
       label: '登录账号',
       prop: 'userName',
