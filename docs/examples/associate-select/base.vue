@@ -1,21 +1,30 @@
 <!--
  * @Description: 
  * @Date: 2024-07-16 13:49:04
- * @LastEditTime: 2024-08-19 09:45:46
+ * @LastEditTime: 2024-12-27 15:46:31
 -->
 <template>
-  <!-- <el-button type="primary" @click="autoCompleteConfig.multiple = !autoCompleteConfig.multiple">
-    是否多选：{{ autoCompleteConfig.multiple }}
-  </el-button> -->
+  <el-divider>默认单选</el-divider>
   <el-button type="primary" @click="clearSelectValue">清空值</el-button>
   <div class="mb-05" />
-  {{ selectVal }},{{ defValue }}
+  {{ selectVal }},{{ selectLabel }}
   <z-associate-select
     ref="associateRef"
     v-model="selectVal"
-    v-model:defValue="defValue"
-    :configs="autoCompleteConfig"
-    :params="userSearchColumns"
+    v-model:label="selectLabel"
+    :configs="associateConfig"
+    :params="associateParams"
+    @changeSelect="getSelectItem"
+  ></z-associate-select>
+  <el-divider>多选</el-divider>
+  {{ multipleSelectVal }},{{ multipleSelectLabel }}
+  <z-associate-select
+    ref="associateRef"
+    v-model="multipleSelectVal"
+    v-model:label="multipleSelectLabel"
+    :multiple="true"
+    :configs="associateConfig"
+    :params="associateParams"
     @changeSelect="getSelectItem"
   ></z-associate-select>
 </template>
@@ -26,11 +35,12 @@
 import { getCurrentInstance, ref, defineEmits } from 'vue'
 const { proxy } = getCurrentInstance()
 const selectVal = ref('')
-const defValue = ref('')
+const selectLabel = ref('')
+const multipleSelectVal = ref('')
+const multipleSelectLabel = ref('')
 
-const autoCompleteConfig = ref({
+const associateConfig = ref({
   url: '/jhj-base-management/sysUser/queryAssociate', // 后台请求接口
-  multiple: false, // 是否多选
   // 显示列配置
   tableColumns: [
     {
@@ -53,18 +63,19 @@ const autoCompleteConfig = ref({
   nameKey: 'userNameCn' // input显示填充字段值设置
 })
 // 查询条件(根据实际传参)
-const userSearchColumns = ref({
+const associateParams = ref({
   keyword: null,
   userType: '',
   isActive: 1
 })
 const emit = defineEmits(['getSelectVal'])
-function getSelectItem(item = {}) {
+function getSelectItem(item) {
   console.log('【 getSelectItem 】-65', item)
 }
 
 function clearSelectValue() {
-  proxy.$refs.associateRef.clearSelectValue()
+  selectVal.value = ''
+  // proxy.$refs.associateRef.clearSelectValue()
 }
 </script>
 
