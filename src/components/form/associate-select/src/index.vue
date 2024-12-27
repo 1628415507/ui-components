@@ -37,7 +37,7 @@
         </el-input>
       </template>
       <div class="friendSearchList">
-        <div class="dataLength" style="margin-bottom: 10px">
+        <div style="margin-bottom: 10px">
           <el-input
             v-if="multiple"
             ref="multipleInputRef"
@@ -69,7 +69,7 @@
           @select-all="handleSelectAll"
           @keydown="handleSearch"
         >
-          <el-table-column type="selection" v-if="selectionShow" width="55"></el-table-column>
+          <el-table-column type="selection" v-if="multiple" width="55"></el-table-column>
           <el-table-column
             v-for="(item, index) in tableColumn"
             :key="index"
@@ -97,7 +97,7 @@ export default {
 }
 </script>
 <script setup>
-import { watch, getCurrentInstance, ref, defineProps, defineEmits, onMounted, nextTick } from 'vue'
+import { watch, getCurrentInstance, ref, reactive, defineProps, defineEmits, onMounted, nextTick } from 'vue'
 import request from '../../../../utils/request'
 const { proxy } = getCurrentInstance()
 
@@ -106,19 +106,18 @@ const props = defineProps({
     type: String,
     default: ''
   },
+  label: {
+    type: String,
+    default: null // 初始显示值
+  },
   configs: {
     type: Object,
     default: () => ({
       url: '', //请求的接口参数
-      multiple: false, // 是否多选
       tableColumns: [], // 显示列配置
       codeKey: '', //唯一标识字段
       nameKey: '' //标签展示的字段
     })
-  },
-  defValue: {
-    type: String,
-    default: null // 初始显示值
   },
   disabled: {
     type: Boolean,
@@ -132,13 +131,9 @@ const props = defineProps({
     type: Boolean,
     default: true //选择值是否回填
   },
-  defValueCode: {
-    type: Number,
-    default: null
-  },
   params: {
     type: Object,
-    default: () => ({}) //查询条件
+    default: () => ({}) //查询参数
   },
   beforeRequest: {
     type: Function,
@@ -159,6 +154,10 @@ const props = defineProps({
   pageLayout: {
     type: String,
     default: 'total, prev, pager, next, jumper'
+  },
+  multiple: {
+    type: Boolean,
+    default: false //是否多选联想控件，如果是单选的可以不传值
   }
 })
 
@@ -174,7 +173,6 @@ const totalRows = ref(0)
 const input = ref('')
 const focusIndex = ref(0)
 const getIndex = ref(0)
-const multiple = ref(false) // 是否多选
 const selectionShow = ref(false) // 多选列是否显示
 const selectOption = ref([]) // 记录多选行数据
 const searchContent = ref('')
@@ -188,14 +186,8 @@ const chooseData = ref([]) //选择的数据
 const chooseDataIndex = ref(0) //当前点击行所在的索引
 const inputRef = ref()
 const popoverRef = ref()
-multiple.value = props.configs.multiple
-tableColumn.value = props.configs.tableColumns
 const clickCloseFlag = ref(false) //是否是点击关闭，避免点击和聚焦事件同事触发
 const selectedRows = ref({})
-// 多选
-if (props.configs.multiple) {
-  selectionShow.value = true
-}
 // 初始化加载表格数据
 function init() {
   if (!props.disabled) {
@@ -253,7 +245,7 @@ function handleSearch(event) {
     // }
     // 选中第一行值
     if (tableData.value.length > 0) {
-      if (!multiple.value) {
+      if (!props.multiple) {
         clickOne(tableData.value[chooseDataIndex.value])
         // inputDoms[inputIndex].focus()
       } else {
@@ -294,7 +286,7 @@ function handleSearch(event) {
   clearTimeout(timer.value)
   timer.value = setTimeout(() => {
     // 请求后台接口进行可选项过滤
-    let val = multiple.value ? searchContent.value : input.value
+    let val = props.multiple ? searchContent.value : input.value
     requestData(val)
   }, 500)
 }
@@ -309,7 +301,7 @@ function scrollDown(downOrUp) {
 }
 
 watch(
-  () => props.defValue,
+  () => props.label,
   (newVal) => {
     input.value = newVal || ''
     if (!newVal) {
@@ -324,11 +316,11 @@ watch(
   () => props.modelValue,
   (newVal) => {
     if (!newVal) {
-      emit('update:defValue', '')
+      emit('update:label', '')
       selectedRows.value[props.configs.nameKey] = ''
     }
     selectedRows.value[props.configs.codeKey] = newVal || ''
-    if (!multiple.value && newVal && !chooseData.value.length) {
+    if (!props.multiple && newVal && !chooseData.value.length) {
       chooseData.value = [selectedRows.value]
     }
   },
@@ -337,23 +329,23 @@ watch(
 
 const multipleInputRef = ref()
 
-function emitAutoSelect(item) {
-  emit('changeSelect', item)
+function emitAutoSelect(items) {
   // 同步更新绑定值
   const { codeKey, nameKey } = props.configs
   let codeText = ''
   let nameText = ''
-  if (props.isMuptiple) {
-    if (item?.length) {
-      codeText = item.map((obj) => obj[codeKey]).join(';')
-      nameText = item.map((obj) => obj[nameKey]).join(';')
+  if (props.multiple) {
+    if (items?.length) {
+      codeText = items.map((obj) => obj[codeKey]).join(';')
+      nameText = items.map((obj) => obj[nameKey]).join(';')
     }
   } else {
-    codeText = item ? item[codeKey] : ''
-    nameText = item ? item[nameKey] : ''
+    codeText = items ? items[codeKey] : ''
+    nameText = items ? items[nameKey] : ''
   }
   emit('update:modelValue', codeText)
-  emit('update:defValue', nameText)
+  emit('update:label', nameText)
+  emit('changeSelect', items)
 }
 /**
  * 请求方法
@@ -373,7 +365,7 @@ function requestData(value) {
   }
   let requestValue = null
   if (value) {
-    requestValue = !multiple.value ? value : searchContent.value
+    requestValue = !props.multiple ? value : searchContent.value
   } else {
     if (!(chooseData.value && chooseData.value.length > 0)) {
       emitAutoSelect(null)
@@ -386,9 +378,6 @@ function requestData(value) {
         queryParams.value[key] = requestValue
       }
     }
-  }
-  if (props.defValueCode) {
-    queryParams.value.defValueCode = props.defValueCode
   }
   loading.value = true
   request({
@@ -423,13 +412,13 @@ function requestData(value) {
         return item
       })
       // 有值时，返回结果等于选择的值
-      // if (!multiple.value && value && value == props.defValue && res.data.rows?.length) {
+      // if (!props.multiple && value && value == props.label && res.data.rows?.length) {
       //   chooseData.value = res.data.rows
       // }
       chooseDataIndex.value = 0
       // 表格加载之后进行选中渲染
       nextTick(() => {
-        // if (!multiple.value) {
+        // if (!props.multiple) {
         proxy.$refs.associateTable?.setCurrentRow(tableData.value[chooseDataIndex.value])
         // }
         multiSelectedValue()
@@ -445,7 +434,7 @@ function requestData(value) {
       }
       loading.value = false
       selectOption.value = createArray(selectedRows.value) // 初始化所有勾选的数据
-      if (multiple.value) {
+      if (props.multiple) {
         nextTick(() => {
           multipleInputRef.value?.focus() //多选自动聚焦到查询输入框上
         })
@@ -486,7 +475,7 @@ onMounted(() => {
 })
 // 多选值
 function multiSelectedValue() {
-  if (selectionShow.value && input.value) {
+  if (props.multiple && input.value) {
     const strsItem = props.modelValue?.split(';') || []
     const uniqueKey = props.configs.codeKey
     for (let filteredObj of tableData.value) {
@@ -505,7 +494,7 @@ function clickOne(row) {
   getIndex.value = row.rowIndex
   chooseDataIndex.value = row.rowIndex
   clearTimeout(timer.value)
-  if (multiple.value) {
+  if (props.multiple) {
     // 多选状态
     const uniqueKey = props.configs.codeKey
     for (let filteredObj of tableData.value) {
@@ -549,12 +538,8 @@ function closePopover() {
   associateTable.value = null
 }
 function formatInputVal(list = []) {
-  let inputText = ''
-  for (let item of list) {
-    // 循环选中行获得input显示的值
-    inputText = `${inputText + item[props.configs.nameKey]};`
-  }
-  return inputText
+  const labels = list.map((item) => item[props.configs.nameKey]).join(';')
+  return labels
 }
 // 全选/取消全选
 function handleSelectAll(selection) {
@@ -606,14 +591,12 @@ function createArray(selectedObj) {
     const nameKey = props.configs.nameKey
     const codeKeyArray = selectedRows.value[uniqueKey]?.split(';') || []
     const nameKeyArray = selectedRows.value[nameKey]?.split(';') || []
-    if (codeKeyArray.length > 0) {
-      for (let i = 0; i < codeKeyArray.length; i++) {
-        if (codeKeyArray[i]) {
-          const existRow = reactive({})
-          existRow[uniqueKey] = codeKeyArray[i]
-          existRow[nameKey] = nameKeyArray[i]
-          keywordList.push(existRow)
-        }
+    for (let i = 0; i < codeKeyArray.length; i++) {
+      if (codeKeyArray[i]) {
+        const existRow = reactive({})
+        existRow[uniqueKey] = codeKeyArray[i]
+        existRow[nameKey] = nameKeyArray[i]
+        keywordList.push(existRow)
       }
     }
   }
@@ -672,7 +655,7 @@ function scrollViewport() {
 }
 // 处理可输入值
 function handleCreateValEmit() {
-  if (multiple.value) {
+  if (props.multiple) {
     return
   }
   // 判断是否是可输入值
@@ -704,7 +687,7 @@ function emitBlur(event) {
     handleCreateValEmit()
   }
 
-  // if (!multiple.value) {
+  // if (!props.multiple) {
   //   facPopoverShow.value = false
   // }
   emit('blur', event)
@@ -727,7 +710,7 @@ function emitChange(val) {
   //requestData(val)
   if (val) {
     if (chooseData.value && chooseData.value.length > 0) {
-      if (multiple.value) {
+      if (props.multiple) {
         let keywordList = []
         const strsItem = input.value?.split(';') || []
         const uniqueKey = props.configs.nameKey
@@ -742,7 +725,7 @@ function emitChange(val) {
       }
     }
   } else {
-    if (multiple.value) {
+    if (props.multiple) {
       emitAutoSelect([])
     } else {
       emitAutoSelect({})
@@ -760,7 +743,7 @@ function clearSelectValue() {
   selectOption.value = []
   chooseData.value = []
   queryParams.value.keyword = ''
-  if (multiple.value) {
+  if (props.multiple) {
     emitAutoSelect([])
   } else {
     emitAutoSelect({})
@@ -832,31 +815,8 @@ defineExpose({ clearSelectValue, closePopover })
   }
 }
 
-.dataLength {
-  color: #000;
-}
-
 .friendSearchList tr {
   padding: 3px 12px;
-}
-
-.friendSearchList table.gridtable tbody tr:hover {
-  background-color: #36bc7f;
-  color: #fff;
-}
-
-.friendSearchList table.gridtable tbody tr.active {
-  background: #337ab7;
-  color: #fff;
-}
-
-.friendSearchList table.gridtable tbody tr.hover {
-  background-color: #36bc7f;
-  color: #fff;
-}
-
-.friendSearchList table.gridtable tbody tr.active:hover {
-  background-color: #36bc7f;
 }
 
 .friendSearchModal {

@@ -2,22 +2,20 @@
   <z-associate-select
     ref="associateRef"
     v-model="selectVal"
-    v-bind="$attrs"
-    :configs="autoCompleteConfig"
+    v-model:label="selectLabel"
+    :configs="associateConfig"
     :allow-create="true"
-    :params="userSearchColumns"
+    :params="associateParams"
     @getCreateVal="getCreateVal"
     @changeSelect="getSelectItem"
   ></z-associate-select>
- 
 </template>
 
 <script setup>
 import { getCurrentInstance, ref, defineEmits } from 'vue'
 const selectVal = ref()
-const autoCompleteConfig = ref({
+const associateConfig = ref({
   url: '/jhj-base-management/sysUser/queryAssociate', // 后台请求接口
-  multiple: false, // 是否多选
   // 显示列配置
   tableColumns: [
     {
@@ -40,20 +38,16 @@ const autoCompleteConfig = ref({
   nameKey: 'userNameCn' // input显示填充字段值设置
 })
 // 查询条件(根据实际传参)
-const userSearchColumns = ref({
+const associateParams = ref({
   keyword: null,
-  userType: '',
-  isActive: 1
+  userType: ''
 })
 const emit = defineEmits(['getSelectVal'])
-function getSelectItem(item = {}) {
-  console.log('【 getSelectItem 】-65', item)
-}
+function getSelectItem(item = {}) {}
 // 获取输入值
 function getCreateVal(val) {
   console.log('【 getCreateVal 】-68', val)
 }
-
 </script>
 
 <style lang="scss" scoped></style>

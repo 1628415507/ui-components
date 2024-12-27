@@ -1,7 +1,7 @@
 <!--
  * @Description:
  * @Date: 2024-07-16 13:49:04
- * @LastEditTime: 2024-10-31 09:22:26
+ * @LastEditTime: 2024-12-27 16:29:11
 -->
 
 # Associate Select 联想控件
@@ -29,18 +29,18 @@ examples/associate-select/allowCreate
 
 | 属性名        | 说明                                               | 类型       | 默认值 |
 | ------------- | -------------------------------------------------- | ---------- | ------ |
-| v-model       | 绑定值                                   | `string`   |        |
+| v-model       | 绑定值                                             | `string`   |        |
+| v-model:label | 初始显示值                                         | `string`   |        |
 | configs       | 联想控件配置                                       | `object`   |        |
 |               | configs.url : 请求的接口参数                       | `string`   |        |
-|               | configs.multiple : 是否多选                        | `string`   | false  |
 |               | configs.showColumn : 显示的列配置                  | `string`   |        |
 |               | configs.codeKey : 唯一标识字段                     | `string`   |        |
 |               | configs.nameKey : 标签展示的字段                   | `string`   |        |
-| defValue      | 初始显示值                                         | `string`   |        |
+| multiple      | 是否多选                                           | `string`   | false  |
 | allowCreate   | 是否可输可选，未选中数据时不清空输入框的值         | `boolean`  | false  |
 | beforeRequest | 调接口前的钩子函数， 若返回 false ，则阻止调接口。 | `function` | null   |
 | pageSize      | 接口分页                                           | `function` | 10     |
-| trigger       | 弹窗触发方式                                       | `string`   | input   |
+| trigger       | 弹窗触发方式                                       | `string`   | input  |
 |               | icon:点击图标触发                                  | `string`   |        |
 |               | input:点击输入框触发                               | `string`   |        |
 
