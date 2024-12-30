@@ -1,7 +1,7 @@
 /*
  * @Description: 业务组件
  * @Date: 2024-10-09 16:08:42
- * @LastEditTime: 2024-12-17 09:09:41
+ * @LastEditTime: 2024-12-30 17:12:13
  */
 export default [
   { text: 'TODO', link: '/resources/businesscomp/index.md' },
@@ -15,5 +15,6 @@ export default [
       { text: '自定义CSS', link: '/resources/businesscomp/css/index.md' },
       { text: '拖拽', link: '/resources/businesscomp/drag/index.md' },
     ]
-  }
+  },
+  { text: '自定义指令', link: '/resources/directive/index.md' },
 ]

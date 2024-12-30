@@ -1,7 +1,7 @@
 /*
  * @Description: 
  * @Date: 2024-06-26 11:40:35
- * @LastEditTime: 2024-08-19 09:42:19
+ * @LastEditTime: 2024-12-30 17:06:24
  */
 // ============= 预览
 // import { createApp } from 'vue'
@@ -22,6 +22,7 @@ import { installComponents } from './components/installComponents.ts'
 // console.log('【 components 】-22', components)
 // import * as components from './components/components.ts'
 // console.log('【 components 】-24', components,components.default)
+import directive from './directive' // directive
 
 // 按需引入
 import ZInputNumber from "./components/form/input-number"; // 引入封装好的组件
@@ -38,6 +39,7 @@ const install: any = (app: App, params?: any) => {
   // window['globalParams'] = params || { value: 'globalParams' }
   console.log('【  app.config 】-30', app.config)
   installComponents(app)//全局注册组件
+  directive(app)
 }
 export default { install };
 // ============= 按需引入 =============
