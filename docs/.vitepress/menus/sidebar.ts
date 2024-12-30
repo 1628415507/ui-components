@@ -5,11 +5,8 @@
  */
 import { sidebarExamples } from './sidebar/examples'  // 左侧菜单
 import { sidebarGuide } from './sidebar/guide'  // 左侧菜单
-import resourcesComponents from './sidebar/resourcesComponents'  // 左侧菜单
 // 左侧菜单
 export const sidebar = {
   '/guide': sidebarGuide,// 指南
   '/examples': sidebarExamples,  // 组件示例
-  // 资源
-  '/resources/businesscomp': resourcesComponents  // 业务组件
 }
