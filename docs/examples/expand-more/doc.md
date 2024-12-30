@@ -1,7 +1,7 @@
 <!--
  * @Description: 信息框
  * @Date: 2024-06-28 17:36:26
- * @LastEditTime: 2024-10-30 18:14:00
+ * @LastEditTime: 2024-12-30 09:42:48
 -->
 
 # Expand More 展开更多
@@ -13,6 +13,12 @@ examples/expand-more/index
 :::
 
 ## API
+
+### 属性
+
+| 属性名  | 说明   | 类型     | 默认值 |
+| ------- | ------ | -------- | ------ |
+| v-model | 绑定值 | `string` |        |
 
 ### 插槽
 

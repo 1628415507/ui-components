@@ -1,7 +1,7 @@
 <!--
  * @Description: 展开更多
  * @Date: 2024-04-09 13:01:16
- * @LastEditTime: 2024-07-31 15:33:06
+ * @LastEditTime: 2024-12-30 11:13:50
 -->
 <template>
   <div class="z-expand-more">
@@ -9,23 +9,14 @@
     <slot></slot>
     <!-- 更多部分 -->
     <div class="expand-wrap">
-      <el-icon
-        :size="23"
-        @click="showMore = !showMore"
-        class="expand-icon"
-        :title="showMore ? '收缩' : '展开'"
-      >
+      <el-icon :size="23" @click="showMore = !showMore" class="expand-icon" :title="showMore ? '收缩' : '展开'">
         <!-- <el-image v-show="showMore" :src="dArrowTop" fit="contain" />
         <el-image v-show="!showMore" :src="dArrowBottom" fit="contain" /> -->
         <DArrowRight v-show="!showMore" class="rotate" />
         <DArrowLeft v-show="showMore" class="rotate" />
       </el-icon>
       <!-- <transition name="el-zoom-in-top"> -->
-      <div
-        v-show="showMore"
-        class="expand-content"
-        :class="{ active: showMore }"
-      >
+      <div v-show="showMore" class="expand-content" :class="{ active: showMore }">
         <slot name="expand"></slot>
       </div>
       <!-- </transition> -->
@@ -44,12 +35,30 @@ export default {
 }
 </script>
 <script setup>
-import { ref } from 'vue'
+import { ref, watch, defineProps, defineEmits } from 'vue'
 let showMore = ref(false)
 // import dArrowTop from './dArrowTop.svg'
 // import dArrowBottom from './dArrowBottom.svg'
-
-// const activeNames = ref(['1'])
+const emits = defineEmits('update:modelValue')
+const props = defineProps({
+  modelValue: {
+    type: Boolean,
+    default: false
+  }
+})
+watch(
+  () => props.modelValue,
+  (val) => {
+    showMore.value = val
+  }
+)
+watch(
+  () => showMore.value,
+  (val) => {
+    showMore.value = val
+    emits('update:modelValue', val)
+  }
+)
 </script>
 
 <style lang="scss" scoped>
