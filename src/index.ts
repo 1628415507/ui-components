@@ -22,6 +22,8 @@ import { installComponents } from './components/installComponents.ts'
 // console.log('【 components 】-22', components)
 // import * as components from './components/components.ts'
 // console.log('【 components 】-24', components,components.default)
+import directive from './directive' // directive
+import 'vxe-table/styles/cssvar.scss'
 
 // 按需引入
 import ZInputNumber from "./components/form/input-number"; // 引入封装好的组件
@@ -42,6 +44,7 @@ const install: any = (app: App, params?: any) => {
   app.config.errorHandler = ((error, vm, info) => {
     console.error('【 全局-组件渲染报错处理 】-116', error, vm, info)
   })
+  directive(app)
 }
 export default { install };
 // ============= 按需引入 =============

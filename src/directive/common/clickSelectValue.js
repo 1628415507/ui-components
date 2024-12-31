@@ -1,3 +1,8 @@
+/*
+ * @Description: 点击选中输入框文本
+ * @Date: 2024-12-30 16:08:21
+ * @LastEditTime: 2024-12-30 17:21:38
+ */
 const handleSelectClick = (el) => {
   el.querySelector('input').select()
 }

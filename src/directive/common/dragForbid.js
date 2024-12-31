@@ -1,10 +1,13 @@
 /*
- * @Description:
+ * @Description:输入框禁止拖拽
  * @Date: 2024-10-30 13:52:27
- * @LastEditTime: 2024-10-30 14:32:20
+ * @LastEditTime: 2024-12-11 13:22:41
  */
 const handleDragClick = (event) => {
-  event.preventDefault() // 阻止默认的拖拽行为
+  console.log('【 dragHandler 】-7', event, event.srcElement.tagName)
+  if (['INPUT', 'TEXTAREA'].includes(event.srcElement.tagName.toUpperCase())) {
+    event.preventDefault() // 阻止默认的拖拽行为
+  }
 }
 
 export default {

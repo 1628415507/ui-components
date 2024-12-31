@@ -1,8 +1,10 @@
 /*
  * @Description: 回车键切换表单项聚焦
  * @Date: 2024-08-02 14:44:57
- * @LastEditTime: 2024-09-05 09:56:43
+ * @LastEditTime: 2024-12-30 17:20:26
  */
+import { nextTick } from 'vue'
+
 // 是否符合聚焦条件
 function focusable(element) {
   const noKeyFocus = element.dataset?.enterindex == -1 || element.tabindex == -1 // 不需要回车聚焦的元素(data-enterindex="-1")
@@ -20,10 +22,8 @@ function focusNextElement(event, curFocusIndex, focusableElements) {
   const srcElement = event.srcElement // || event.target //触发回车事件的元素
   // 表格聚焦到下一行时特殊处理（已处理过聚焦则跳过）
   if (srcElement.getAttribute('focused') == 'true') {
-    console.log('【 focused1111 】-23', srcElement.getAttribute('focused'))
     setTimeout(() => {
       srcElement.setAttribute('focused', false)
-      console.log('【 focused2222 】-23', srcElement.getAttribute('focused'))
     }, 300)
   } else {
     const nextElement = focusableElements[nextIndex] // || focusableElements[0]
@@ -46,7 +46,6 @@ const handleInputFocus = (el, binding, vnode, prevVnode) => {
   // 绑定回车监听事件
   el.addEventListener('keyup', handleEnterFocus)
   function handleEnterFocus(event) {
-    console.log('【 0000000000000000 】-39')
     // 回车
     if (event.keyCode === 13) {
       const selectors = el.querySelectorAll(types.join(','))

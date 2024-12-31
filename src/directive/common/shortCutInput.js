@@ -1,3 +1,9 @@
+/*
+ * @Description:
+ * @Date: 2024-12-30 16:08:21
+ * @LastEditTime: 2024-12-30 17:08:44
+ */
+import { ref } from 'vue'
 // const inputArr = ref([
 //   { key: 'control+alt+0', value: '这是0的文本' }
 // ])
