@@ -1,7 +1,7 @@
 /*
  * @Description: 
  * @Date: 2024-06-26 11:40:35
- * @LastEditTime: 2024-12-30 17:06:24
+ * @LastEditTime: 2024-12-31 16:41:13
  */
 // ============= 预览
 // import { createApp } from 'vue'
@@ -23,6 +23,7 @@ import { installComponents } from './components/installComponents.ts'
 // import * as components from './components/components.ts'
 // console.log('【 components 】-24', components,components.default)
 import directive from './directive' // directive
+import 'vxe-table/styles/cssvar.scss'
 
 // 按需引入
 import ZInputNumber from "./components/form/input-number"; // 引入封装好的组件

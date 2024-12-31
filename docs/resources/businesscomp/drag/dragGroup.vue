@@ -88,7 +88,7 @@ import { ref, reactive, onMounted, nextTick } from 'vue'
 import { ElMessage } from 'element-plus'
 import draggable from 'vuedraggable'
 import { todoListMock } from './mock.js'
-
+const dragDisabled = ref(false)
 const allConfigList = ref([]) //所有筛选项列表
 const selectedList = ref([]) //已筛选列表
 const selectedLimit = 10 //可挑选的数量
@@ -124,7 +124,7 @@ function startSelectedDrag(event) {
   }
   event.originalEvent.preventDefault()
 }
-
+function onMove() {}
 // 已筛选框-拖拽结束的事件
 function endSelectedDrag() {
   // handleSelectstart(true)
@@ -232,6 +232,6 @@ onMounted(() => {
   cursor: pointer !important;
   background: linear-gradient(180deg, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0.9) 100%);
   border-radius: 4px;
-  border: 1px solid  var(--theme-color) !important;
+  border: 1px solid var(--theme-color) !important;
 }
 </style>
