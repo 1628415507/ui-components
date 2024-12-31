@@ -38,9 +38,11 @@
     "markdown-it-container": "^4.0.0",
     "normalize.css": "^8.0.1",
     "prismjs": "^1.29.0",
+    "sortablejs": "^1.15.2",
     "vite-plugin-compression": "^0.5.1",
     "vite-plugin-vue-setup-extend": "^0.4.0",
-    "vue": "^3.4.21"
+    "vue": "^3.4.21",
+    "vxe-table": "^4.5.18"
   },
   "devDependencies": {
     "@types/node": "^20.12.2",
