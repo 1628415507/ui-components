@@ -1,10 +1,10 @@
 /*
  * @Description:两个表格间拖拽的方法
  * @Date: 2024-05-24 16:55:42
- * @LastEditTime: 2024-12-31 16:33:32
+ * @LastEditTime: 2025-01-02 17:22:26
  */
 import Sortable from 'sortablejs'
-import { nextTick, ref,onUnmounted } from 'vue'
+import { nextTick, ref } from 'vue'
 
 // 判断鼠标是否在div内
 function isInside(event, $table) {
@@ -107,12 +107,9 @@ function initTablesDrag(target, config) {
     putInstance?.destroy()
   }
 
-  onUnmounted(() => {
-    destroy()
-  })
-  // return {
-  //   destory
-  // }
+  return {
+    destroy
+  }
 }
 
-export { initTablesDrag }
+export default initTablesDrag
