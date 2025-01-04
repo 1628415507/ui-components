@@ -7,7 +7,7 @@
 <template>
   <div class="amap-wrap">
     <!-- 地图容器 -->
-    <div id="mapContainer"></div>
+    <div id="drawMapContainerId"></div>
     <!-- 左侧部分 -->
     <LeftBox
       :AMap="AMap"
@@ -662,7 +662,7 @@ export default {
         .then((AMap) => {
           this.AMap = AMap
           // ---------- 初始化地图容器id ----------
-          this.map = new AMap.Map('mapContainer', {
+          this.map = new AMap.Map('drawMapContainerId', {
             resizeEnable: true,
             zoom: 12 //地图显示的缩放级别
           })
@@ -708,7 +708,7 @@ export default {
 .amap-wrap {
   height: 100%;
   // 地图容器
-  #mapContainer {
+  #drawMapContainerId {
     padding: 0px;
     margin: 0px;
     width: 100%;

@@ -12,8 +12,8 @@
 
     <div class="map-use">
       <!-- <OrderTracking v-if="radio === 'OrderTracking'" /> -->
-      <DrawMap v-if="useMap == 'AMap'" :useMap="useMap" />
-      <DrawMap v-if="useMap == 'Leaflet'" :useMap="useMap" />
+      <RouteMap v-if="useMap == 'AMap'" :useMap="useMap" />
+      <RouteMap v-if="useMap == 'Leaflet'" :useMap="useMap" />
     </div>
     <!-- <LeafletMap v-if="radio === 'Leaflet'"></LeafletMap>
       <LeafletMapDemo v-if="radio === 'LeafletMapDemo'"></LeafletMapDemo> -->
@@ -21,9 +21,8 @@
 </template>
 
 <script>
-import DrawMap from './DrawMap/index.vue'
 // import TrackMap from '@/components/TrackMap/index.vue';
-// import RouteMap from '@/components/RouteMap/index.vue';
+import RouteMap from './RouteMap/index.vue'
 // import AMapLayout from '@/components/AMapLayout/index.vue';
 
 // import OrderTracking from '@/components/OrderTracking/index.vue';
@@ -33,7 +32,7 @@ import DrawMap from './DrawMap/index.vue'
 
 export default {
   components: {
-    DrawMap
+    RouteMap
     // OrderTracking
     // AmapDrawMap
     // LeafletMap,

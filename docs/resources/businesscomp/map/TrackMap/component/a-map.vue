@@ -7,7 +7,7 @@
 <template>
   <div class="amap-graspRoad">
     <!-- 地图容器 -->
-    <div id="container"></div>
+    <div id="trackMapContainerId"></div>
     <!-- 轨迹回放控制 -->
     <ControlBox
       v-if="actualPathArr && actualPathArr.length"
@@ -89,7 +89,7 @@ export default {
       await this.initMap() //DOM初始化完成进行地图初始化
       this.drawPathLine(this.pathData)
     } catch {
-      console.error('mounted-地图初始化失败111', e)
+      console.error('mounted-地图初始化失败111')
     }
   },
   methods: {
@@ -290,7 +290,7 @@ export default {
           .then((res) => {
             AMap = res
             //设置地图容器id
-            this.map = new AMap.Map('container', {
+            this.map = new AMap.Map('trackMapContainerId', {
               resizeEnable: true,
               zoom: 12, //地图显示的缩放级别
               zIndex: 99
@@ -352,7 +352,7 @@ export default {
 <style lang="scss" scoped>
 .amap-graspRoad {
   height: 100%;
-  #container {
+  #trackMapContainerId {
     padding: 0px;
     margin: 0px;
     width: 100%;

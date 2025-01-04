@@ -17,3 +17,9 @@ resources/businesscomp/map/DrawMapDemo
 ::: example
 resources/businesscomp/map/TrackMapDemo
 :::
+
+### 全程线路轨迹
+
+::: example
+resources/businesscomp/map/RouteMapDemo
+:::
