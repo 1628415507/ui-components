@@ -23,3 +23,9 @@ resources/businesscomp/map/TrackMapDemo
 ::: example
 resources/businesscomp/map/RouteMapDemo
 :::
+
+### 地图排线
+
+::: example
+resources/businesscomp/map/AMapLayoutDemo
+:::

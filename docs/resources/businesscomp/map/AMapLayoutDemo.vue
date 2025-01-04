@@ -5,23 +5,18 @@
 -->
 <template>
   <div class="map-example">
-    <el-radio-group v-model="useMap">
-      <el-radio-button label="AMap">AMap</el-radio-button>
-      <el-radio-button label="Leaflet">Leaflet</el-radio-button>
-    </el-radio-group>
-
     <div class="map-use">
-      <RouteMap v-if="useMap == 'AMap'" :useMap="useMap" />
-      <RouteMap v-if="useMap == 'Leaflet'" :useMap="useMap" />
+      <AMapLayout />
     </div>
   </div>
 </template>
 
 <script>
-import RouteMap from './RouteMap/index.vue'
+import AMapLayout from './AMapLayout/index.vue'
+
 export default {
   components: {
-    RouteMap
+    AMapLayout
   },
   data() {
     return {
@@ -45,5 +40,6 @@ export default {
 }
 .map-use {
   height: 100%;
+  /* background: pink; */
 }
 </style>
