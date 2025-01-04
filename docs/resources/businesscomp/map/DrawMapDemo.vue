@@ -4,7 +4,7 @@
  * @LastEditTime: 2025-01-03 18:12:52
 -->
 <template>
-  <div class="home">
+  <div class="map-demo">
     <el-radio-group v-model="useMap">
       <el-radio-button label="AMap">AMap</el-radio-button>
       <el-radio-button label="Leaflet">Leaflet</el-radio-button>
@@ -19,8 +19,8 @@
       </div>-->
     <div class="map-demo">
       <!-- <OrderTracking v-if="radio === 'OrderTracking'" /> -->
-      <DrawMap  v-if="useMap == 'AMap'" :useMap="useMap" />
-      <DrawMap  v-if="useMap == 'Leaflet'" :useMap="useMap" />
+      <DrawMap v-if="useMap == 'AMap'" :useMap="useMap" />
+      <DrawMap v-if="useMap == 'Leaflet'" :useMap="useMap" />
     </div>
     <!-- <LeafletMap v-if="radio === 'Leaflet'"></LeafletMap>
       <LeafletMapDemo v-if="radio === 'LeafletMapDemo'"></LeafletMapDemo> -->
@@ -56,7 +56,7 @@ export default {
 }
 </script>
 <style scoped>
-.home {
+.map-demo {
   height: 100vh;
   background: #ededed;
   padding: 10px;

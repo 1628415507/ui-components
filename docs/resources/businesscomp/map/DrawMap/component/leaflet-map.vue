@@ -105,9 +105,9 @@ export default {
       handler(val) {
         console.log('【 val 】-106', val)
         // TODO:每次更新都会重新渲染??
-        if (this.isInitComplete && !this.layers[val[0]?.layerKey]) {
-          this.drawDistrictItem(val[0])
-        }
+        // if (this.isInitComplete && !this.layers[val[0]?.layerKey]) {
+        //   this.drawDistrictItem(val[0])
+        // }
         this.listLayerKeys = val.map((item) => item.layerKey.toString())
       }
     }

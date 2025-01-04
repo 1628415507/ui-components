@@ -11,3 +11,9 @@
 ::: example
 resources/businesscomp/map/DrawMapDemo
 :::
+
+### 车辆轨迹回放
+
+::: example
+resources/businesscomp/map/TrackMapDemo
+:::
