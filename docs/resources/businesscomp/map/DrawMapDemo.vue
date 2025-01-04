@@ -11,33 +11,18 @@
     </el-radio-group>
 
     <div class="map-use">
-      <!-- <OrderTracking v-if="radio === 'OrderTracking'" /> -->
       <DrawMap v-if="useMap == 'AMap'" :useMap="useMap" />
       <DrawMap v-if="useMap == 'Leaflet'" :useMap="useMap" />
     </div>
-    <!-- <LeafletMap v-if="radio === 'Leaflet'"></LeafletMap>
-      <LeafletMapDemo v-if="radio === 'LeafletMapDemo'"></LeafletMapDemo> -->
   </div>
 </template>
 
 <script>
 import DrawMap from './DrawMap/index.vue'
-// import TrackMap from '@/components/TrackMap/index.vue';
-// import RouteMap from '@/components/RouteMap/index.vue';
-// import AMapLayout from '@/components/AMapLayout/index.vue';
-
-// import OrderTracking from '@/components/OrderTracking/index.vue';
-// import AmapDrawMap from '@/components/map/index.vue';
-// import LeafletMap from '@/components/LeafletMap/index.vue';
-// import LeafletMapDemo from '@/components/LeafletMapDemo/index.vue';
 
 export default {
   components: {
     DrawMap
-    // OrderTracking
-    // AmapDrawMap
-    // LeafletMap,
-    // LeafletMapDemo
   },
   data() {
     return {
