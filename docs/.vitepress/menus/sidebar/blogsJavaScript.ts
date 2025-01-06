@@ -1,7 +1,7 @@
 /*
  * @Description: 
  * @Date: 2024-10-09 16:08:42
- * @LastEditTime: 2024-10-31 16:35:35
+ * @LastEditTime: 2025-01-06 17:11:23
  */
 export default [
   { text: 'TODO', link: '/blogs/javaScript/todo.md' },
@@ -16,16 +16,16 @@ export default [
   // {
   //   text: '基本引用类型',
   //   items: [
-  //     { text: 'BFC', link: '/blogs/javaScript/bfc.md' },
+  // { text: 'JavaScript 原理', link: '/blogs/javaScript/code.md' },
   //   ]
   // },
-  // { text: 'JavaScript 原理', link: '/blogs/javaScript/code.md' },
   {
     text: '对象、类与面向对象编程',
     items: [
       { text: '原型', link: '/blogs/javaScript/prototype/index.md' },
     ]
   },
+  { text: '事件循环（Event loop）', link: '/blogs/javaScript/eventLoop/index.md' },
   {
     text: '手写代码',
     items: [
