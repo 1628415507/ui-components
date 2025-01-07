@@ -42,7 +42,7 @@ highlight: a11y-dark
 
 #### 2. 手写简易版的 Promise
 
-```js{11,26,28,36,38,45,61,67}
+```js{11,26,28,36,38,45,61,67,69,70}
 // 三个状态：PENDING、FULFILLED、REJECTED
 //  javascript 对象中的 constructor属性 指向的函数本身。
 const PENDING = 'PENDING' // 等待中
@@ -148,6 +148,10 @@ ps.then(
 )
 ```
 
+::: example
+blogs/javaScript/promise/demo
+:::
+
 #### 3. 手写 promise.all()
 
 promise.all() 里面*状态都改变*，那就会输出，得到一个数组
@@ -224,8 +228,9 @@ Promise.race = function (promisesArr) {
 
 1.  `async`函数：使用`async`关键字定义的函数会返回一个`Promise`对象。内部代码可以包含`await`关键字，用于暂停函数的执行，等待一个异步操作完成并返回结果。
 1.  `await`关键字：`await`关键字只能在`async`函数内部使用。当遇到`await`时，它会暂停`async`函数的执行，等待后面的表达式（通常是一个返回`Promise`对象的异步操作）解析为已完成状态，并且返回该操作的结果。
-1.  `Promise`对象：`await`关键字只能用于`Promise`对象，它会等待该`Promise`对象的状态变为已完成或已拒绝。如果状态为已完成，则`await`表达式返回已完成的值；如果状态为已拒绝，则会抛出异常。
-1.  错误处理：使用`try/catch`块来捕获`await`表达式中的异常，并进行相应的错误处理。如果`await`表达式中的`Promise`被拒绝，将会抛出一个错误，可通过`catch`块捕获并进行处理。
+1.  `Promise`对象：**`await`关键字只能用于`Promise`对象**，它会等待该`Promise`对象的状态变为已完成或已拒绝。如果状态为已完成，则`await`表达式返回已完成的值；如果状态为已拒绝，则会抛出异常。
+
+- 错误处理：使用`try/catch`块来捕获`await`表达式中的异常，并进行相应的错误处理。如果`await`表达式中的`Promise`被拒绝，将会抛出一个错误，可通过`catch`块捕获并进行处理。
 
 ## [ 问题延伸]
 
