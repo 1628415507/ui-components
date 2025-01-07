@@ -201,7 +201,7 @@ export default function createElement(vnode) {
 }
 ```
 
-## （四）[真实 DOM 的更新-diff 算法](https://www.bilibili.com/video/BV1v5411H7gZ?p=6&spm_id_from=pageDriver)
+## （四）[diff 算法-真实 DOM 的更新](https://www.bilibili.com/video/BV1v5411H7gZ?p=6&spm_id_from=pageDriver)
 
 ### 1. 前置知识点
 

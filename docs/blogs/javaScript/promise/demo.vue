@@ -22,7 +22,7 @@ function run() {
       val.value = value
       console.log('【 MyPromise 】-20', value)
     },
-    (reason) => {
+  (reason) => {
       val.value = reason
       console.log('【 MyPromise 】-22', reason)
     }

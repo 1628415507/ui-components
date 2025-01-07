@@ -1,7 +1,7 @@
 /*
  * @Description: 
  * @Date: 2024-10-14 17:14:53
- * @LastEditTime: 2024-11-18 09:17:20
+ * @LastEditTime: 2025-01-07 17:42:55
  */
 export default [
   { text: '汇总', link: '/blogs/framework/index.md' },
@@ -10,6 +10,7 @@ export default [
     items: [
       { text: 'vue', link: '/blogs/framework/vue/index.md' },
       { text: '虚拟DOM与Diff算法分析', link: '/blogs/framework/vue/diff/index.md' },
+      { text: 'MVC与MVVM模式的区别', link: '/blogs/framework/vue/mvvm.md' },
     ]
   },
   { text: 'TypeScript入门', link: '/blogs/framework/typeScript/index.md' },
