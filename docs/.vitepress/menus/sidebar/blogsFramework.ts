@@ -10,7 +10,7 @@ export default [
     items: [
       { text: 'vue', link: '/blogs/framework/vue/index.md' },
       { text: '虚拟DOM与Diff算法分析', link: '/blogs/framework/vue/diff/index.md' },
-      { text: 'vue 的双向绑定的原理', link: '/blogs/framework/vue/defineProperty.md' },
+      { text: 'vue 的双向绑定的原理', link: '/blogs/framework/vue/vModel/index.md' },
       { text: 'MVC与MVVM模式的区别', link: '/blogs/framework/vue/mvvm.md' }
     ]
   },
