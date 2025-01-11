@@ -8,6 +8,7 @@ export default [
   { text: '网络', link: '/blogs/network/index.md' },
   { text: '浏览器', link: '/blogs/network/browser.md' },
   { text: '浏览器存储', link: '/blogs/network/storage.md' },
+  { text: '浏览器缓存机制', link: '/blogs/network/cache.md' },
   { text: 'TCP', link: '/blogs/network/tcp.md' },
   { text: 'HTTP 和 HTTPS', link: '/blogs/network/https.md' },
   { text: 'XSS 和 CSRF', link: '/blogs/network/xss&csrf.md' }
