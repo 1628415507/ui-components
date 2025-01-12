@@ -16,5 +16,6 @@ export default [
   },
   { text: 'TypeScript入门', link: '/blogs/framework/typeScript/index.md' },
   { text: 'Cli相关', link: '/blogs/framework/cli/index.md' },
+  { text: 'Webpack的基础配置', link: '/blogs/framework/cli/base.md' },
   { text: 'Webpack', link: '/blogs/framework/cli/webpack.md' }
 ]
