@@ -225,7 +225,7 @@ module.exports = {
 #### 8. 压缩 css（`css-minimizer-webpack-plugin`、`mini-css-extract-plugin`）
 
 - 压缩 css 我们使⽤ `css-minimizer-webpack-plugin`，
-- 同时，应该使⽤ `mini-css-extract-plugin`把 css **提取成单独的⽂件**，
+- 同时，应该使⽤ `mini-css-extract-plugin`把 css **提取成单独的⽂件**，这样 JS 和 CSS 可以作为 2 个请求**并行下载**，页面打开速度可以再快一些。
 
 ```js{10,18,25}
 const MiniCssExtractPlugin = require('mini-css-extract-plugin') // 提取成单独的⽂件
