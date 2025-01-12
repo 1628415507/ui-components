@@ -24,6 +24,9 @@
     "./style.css": "./dist/style.css"
   },
   "dependencies": {
+    "@amap/amap-jsapi-loader": "^1.0.1",
+    "@geoman-io/leaflet-geoman-free": "^2.14.2",
+    "leaflet-polylinedecorator": "^1.6.0",
     "axios": "^1.7.2",
     "chalk": "^5.3.0",
     "consola": "^3.2.3",
@@ -34,6 +37,7 @@
     "escape-html": "^1.0.3",
     "faker": "^6.6.6",
     "js-cookie": "^3.0.5",
+    "leaflet": "^1.9.4",
     "markdown-it": "^14.1.0",
     "markdown-it-container": "^4.0.0",
     "normalize.css": "^8.0.1",

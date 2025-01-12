@@ -7,18 +7,18 @@
           ref="assignedTableRef"
           show-overflow
           :row-config="{ useKey: true }"
+          min-height="200px"
           height="200px"
           size="mini"
           :data="assignedTableData"
           border
           resizable
           align="center"
-          :showFooter="true"
         >
           <vxe-column type="seq" title="序号" width="60" align="center"></vxe-column>
-          <vxe-column field="grossWeight" title="毛重" width="60px"></vxe-column>
-          <vxe-column field="num" title="件数" width="60px"></vxe-column>
-          <vxe-column field="volume" title="体积" width="60px"></vxe-column>
+          <vxe-column field="grossWeight" title="毛重"></vxe-column>
+          <vxe-column field="num" title="件数"></vxe-column>
+          <vxe-column field="volume" title="体积"></vxe-column>
         </vxe-table>
       </z-info-card>
       <z-info-card header="未配" class="card-wrap">
@@ -30,10 +30,10 @@
           size="mini"
           border
           align="center"
+          min-height="200px"
           height="200px"
           :row-config="{ useKey: true }"
           resizable
-          :showFooter="true"
         >
           <vxe-column type="seq" title="序号" width="60" align="center"></vxe-column>
           <vxe-column field="grossWeight" title="毛重"></vxe-column>
@@ -45,26 +45,26 @@
   </div>
 </template>
 <script setup>
-import { reactive, watch, ref, onMounted, onUnmounted, nextTick } from 'vue'
-// 引入vxe-table的公共配置方法
-import { tableData2 } from './tableDrag/data.js'
-import { initTablesDrag } from './tableDrag/tablesDrag.js'
-import { VXETable, VxeTable, VxeColumn } from 'vxe-table'
+import { VxeTable, VxeColumn } from 'vxe-table'
+import 'vxe-table/lib/style.css'
+import { watch, ref, onMounted, nextTick } from 'vue'
+import { tableData2 } from './mock/data.js'
+
+import { useTablesDrag } from '../../../../src/hooks'
 
 const assignedTableData = ref([])
 const assignedTableRef = ref()
 const unAssignedTableRef = ref()
 const unAssignedTableData = ref(JSON.parse(JSON.stringify(tableData2)))
-onMounted(() => {})
-// 计算列表
-function calculateList() {
-  console.log('【 calculateList 】-111')
+// 拖拽结束的时候触发的事件
+function dragEndTable() {
+  console.log('【 拖拽结束的时候触发的事件 】-111')
 }
 function initDrag() {
-  initTablesDrag([assignedTableRef.value, unAssignedTableRef.value], {
+  useTablesDrag([assignedTableRef.value, unAssignedTableRef.value], {
     // 拖拽结束的时候触发的事件
     dragEnd: () => {
-      calculateList()
+      dragEndTable()
     }
   })
 }
@@ -73,11 +73,17 @@ watch([assignedTableRef, unAssignedTableRef], () => {
     initDrag()
   }
 })
+
+onMounted(() => {
+  nextTick(() => {
+    initDrag()
+  })
+})
 </script>
 
 <style scoped lang="scss">
 .distribution-wrap {
-  height: 300px;
+  height: 250px;
   overflow: hidden;
   .tables-wrap {
     position: relative;
@@ -90,3 +96,4 @@ watch([assignedTableRef, unAssignedTableRef], () => {
   }
 }
 </style>
+./tableDrag/useTablesDrag.js./mock/data.js

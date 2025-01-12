@@ -1,7 +1,7 @@
 /*
  * @Description: 业务组件
  * @Date: 2024-10-09 16:08:42
- * @LastEditTime: 2024-12-31 13:37:26
+ * @LastEditTime: 2025-01-03 17:43:17
  */
 export default [
   { text: 'TODO', link: '/resources/businesscomp/index.md' },
@@ -14,6 +14,7 @@ export default [
       { text: '自定义', link: '/resources/businesscomp/charts/index.md' },
       { text: '自定义CSS', link: '/resources/businesscomp/css/index.md' },
       { text: '拖拽', link: '/resources/businesscomp/drag/index.md' },
+      { text: '地图', link: '/resources/businesscomp/map/index.md' },
     ]
   },
   // { text: '自定义指令', link: '/resources/directive/index.md' },
