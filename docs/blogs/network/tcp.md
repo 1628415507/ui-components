@@ -82,7 +82,7 @@
 | 第二次握手<br>（服-`SYN+ACK`） | 服务端收到 SYN 后，给客户端返回一个**ACK+SYN（确认包）** 发送给客户端，**表示已收到 SYN，可以建立连接**；（然后服务端进入 SYN_RECEIVE 状态） |
 | 第三次握手<br>（客-`ACK`）     | 最后客户端再向服务端发送一个 ACK 包表示**确认**，服务器**验证 ACK 没有问题，则建立起连接**；然后双方进入 ESTABLISHED 状态。                  |
 
-![alt text](./img/tcp1.awebp)
+![alt text](./img/tcp1.gif)
 
 ![alt text](./img/tcp2.png)
 
@@ -119,7 +119,7 @@
 | 第三次挥手<br>（服-`FIN`）  | 服务器已经传输完毕，**再次发送 FIN 通知客户端**，数据已经传输完毕，服务端进入 LAST-ACK（最后确认）状态                                                              |
 | 第四次挥手<br>（客-`ACK`）  | 客户端**再次发送 ACK**,进入 TIME_WAIT 状态；服务器和客户端关闭连接；                                                                                                |
 
-![alt text](./img/tcp3.awebp)
+![alt text](./img/tcp3.gif)
 
 ![alt text](./img/tcp4.png)
 
