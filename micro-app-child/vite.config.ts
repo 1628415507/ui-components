@@ -39,8 +39,13 @@ export default defineConfig(({ command }) => {
     },
     base: './', // 打包路径
     server: {
-      port: 8888, // 服务端口号
-      open: true // 服务启动时是否自动打开浏览器
+      port: 3001, // 服务端口号
+      open: true, // 服务启动时是否自动打开浏览器
+      // 微前端，设置当前子应用支持跨域(vite默认开启跨域支持，不需要额外配置。)
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Credentials': true
+      }
       // cors: true ,// 允许跨域
       // 代理
       // proxy: {
