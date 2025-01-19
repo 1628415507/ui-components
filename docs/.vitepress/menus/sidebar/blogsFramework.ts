@@ -15,7 +15,16 @@ export default [
     ]
   },
   { text: 'TypeScript入门', link: '/blogs/framework/typeScript/index.md' },
-  { text: 'Cli相关', link: '/blogs/framework/cli/index.md' },
-  { text: 'Webpack的基础配置', link: '/blogs/framework/cli/base.md' },
-  { text: 'Webpack', link: '/blogs/framework/cli/webpack.md' }
+  {
+    text: 'Cli',
+    items: [
+      { text: 'Cli相关', link: '/blogs/framework/cli/index.md' },
+      { text: 'Webpack的基础配置', link: '/blogs/framework/cli/base.md' },
+      { text: 'Webpack', link: '/blogs/framework/cli/webpack.md' }
+    ]
+  },
+  {
+    text: '微前端',
+    items: [{ text: 'micro-app', link: '/blogs/framework/micro/micro-app/index.md' }]
+  }
 ]
