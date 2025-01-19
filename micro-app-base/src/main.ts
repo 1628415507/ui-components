@@ -13,17 +13,14 @@ import '@/style.css'
 // 引入基础库
 import router from '@/router'
 import { store } from '@/store'
-// 路由守卫，权限设置
-import '@/permission'
+import '@/permission' // 路由守卫，权限设置
 
 // 引入UI组件库、图标
 import ElementPlus from 'element-plus'
-// import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 import 'element-plus/dist/index.css'
+// 微前端
+import microApp from '@micro-zoe/micro-app'
 
+microApp.start()
 const app = createApp(App)
 app.use(ElementPlus).use(router).use(store).mount('#app')
-// 全局注册图标组件
-// for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
-//   app.component(key, component)
-// }

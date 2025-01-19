@@ -27,60 +27,66 @@ const asyncRoutes: Array<RouteRecordRaw> = [
   // demo
   {
     path: '/demo',
-    redirect: '/router', // 重定向到第一个菜单
+    redirect: '/micro', // 重定向到第一个菜单
     component: Layout,
     meta: { title: '测试 demo', hidden: true },
     children: [
       {
-        path: '/router',
-        meta: { title: '路由-demo' },
-        component: () => import('@/views/demo/router-demo.vue')
-      },
-      {
-        path: '/store',
-        meta: { title: 'Store-demo', hidden: true },
-        component: () => import('@/views/demo/store-demo.vue')
-      },
-      {
-        path: '/request',
-        name: 'Request',
-        meta: { title: '请求-demo', hidden: true },
-        component: () => import('@/views/demo/http-demo.vue')
+        path: '/micro',
+        name: 'Micro',
+        meta: { title: '微前端', hidden: true },
+        component: () => import('@/views/micro/index.vue')
       }
-    ]
-  },
-  // 测试多级菜单
-  {
-    path: '/level',
-    redirect: '/level-1', // 重定向到第一个菜单
-    component: Layout,
-    meta: { title: '测试多级菜单', hidden: true },
-    children: [
-      {
-        path: '/level-1',
-        meta: { title: '菜单1-1' },
-        component: () => import('@/views/demo/http-demo.vue')
-      },
-      {
-        path: '/level-2',
-        meta: { title: '菜单1-2' },
-        redirect: '/level-2-1', // 重定向到第一个菜单
-        component: () => import('@/views/demo/router-demo.vue'),
-        children: [
-          {
-            path: '/level-2-1',
-            meta: { title: '菜单1-2-1' },
-            component: () => import('@/views/demo/router-demo.vue')
-          },
-          {
-            path: '/level-2-2',
-            meta: { title: '菜单1-2-2' },
-            component: () => import('@/views/demo/router-demo.vue')
-          }
-        ]
-      }
+      // {
+      //   path: '/router',
+      //   meta: { title: '路由-demo' },
+      //   component: () => import('@/views/demo/router-demo.vue')
+      // },
+      // {
+      //   path: '/store',
+      //   meta: { title: 'Store-demo', hidden: true },
+      //   component: () => import('@/views/demo/store-demo.vue')
+      // },
+      // {
+      //   path: '/request',
+      //   name: 'Request',
+      //   meta: { title: '请求-demo', hidden: true },
+      //   component: () => import('@/views/demo/http-demo.vue')
+      // }
     ]
   }
+  // // 测试多级菜单
+  // {
+  //   path: '/level',
+  //   redirect: '/level-1', // 重定向到第一个菜单
+  //   component: Layout,
+  //   meta: { title: '测试多级菜单', hidden: true },
+  //   children: [
+  //     {
+  //       path: '/level-1',
+  //       meta: { title: '菜单1-1' },
+  //       component: () => import('@/views/demo/http-demo.vue')
+  //     },
+  //     {
+  //       path: '/level-2',
+  //       meta: { title: '菜单1-2' },
+  //       redirect: '/level-2-1', // 重定向到第一个菜单
+  //       component: () => import('@/views/demo/router-demo.vue'),
+  //       children: [
+  //         {
+  //           path: '/level-2-1',
+  //           meta: { title: '菜单1-2-1' },
+  //           component: () => import('@/views/demo/router-demo.vue')
+  //         },
+  //         {
+  //           path: '/level-2-2',
+  //           meta: { title: '菜单1-2-2' },
+  //           component: () => import('@/views/demo/router-demo.vue')
+  //         }
+  //       ]
+  //     }
+  //   ]
+  // }
   // {
   // 替代vue2中的'*'通配符路径
   // { path: '/:pathMatch(.*)*', redirect: '/' }
