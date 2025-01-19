@@ -27,3 +27,8 @@ app.use(ElementPlus).use(router).use(store).mount('#app')
 // for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
 //   app.component(key, component)
 // }
+// 卸载应用
+window.unmount = () => {
+  console.log('【 卸载应用 】-31')
+  app.unmount()
+}

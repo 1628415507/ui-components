@@ -7,6 +7,7 @@
 -->
 <template>
   <div class="login-wrap">
+    <microTest />
     <el-form
       ref="loginFormRef"
       :model="loginForm"
@@ -28,6 +29,7 @@
 </template>
 
 <script lang="ts" setup>
+import microTest from './microTest.vue'
 import { reactive, ref } from 'vue'
 import type { FormInstance } from 'element-plus'
 import { useRouter } from 'vue-router'
@@ -90,7 +92,7 @@ const submitForm = (formEl: FormInstance | undefined) => {
   display: flex;
   justify-content: center;
   align-items: center;
-
+  flex-direction: column;
   height: 100vh;
   background: $themeColor;
 }
