@@ -15,7 +15,13 @@ export default defineConfig(({ command }) => {
   return {
     // 插件
     plugins: [
-      vue(),
+      vue({
+        template: {
+          compilerOptions: {
+            isCustomElement: (tag) => /^micro-app/.test(tag)
+          }
+        }
+      }),
       // mock 数据的 dev环境
       viteMockServe({
         // supportTs: true, // 是否开启支持ts

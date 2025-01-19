@@ -24,17 +24,18 @@ const asyncRoutes: Array<RouteRecordRaw> = [
       }
     ]
   },
+
   // demo
   {
     path: '/demo',
-    redirect: '/micro', // 重定向到第一个菜单
+    redirect: '/basemicro', // 重定向到第一个菜单
     component: Layout,
-    meta: { title: '测试 demo', hidden: true },
+    meta: { title: '微前端', hidden: true },
     children: [
       {
-        path: '/micro',
+        path: '/basemicro',
         name: 'Micro',
-        meta: { title: '微前端', hidden: true },
+        meta: { title: '主应用页面', hidden: true },
         component: () => import('@/views/micro/index.vue')
       }
       // {
