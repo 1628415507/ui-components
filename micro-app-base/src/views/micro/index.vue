@@ -15,7 +15,9 @@
     3、baseroute：主应用当前文件页面的路由l<br />
     4.默认开启with沙箱，如果with沙箱无法正常运行，可以尝试切换到iframe沙箱。
   </h1>
+  <el-input v-model="num"></el-input>
   <el-button @click="sendData">向子应用发送数据:{{ num }}</el-button>
+  <el-button @click="pushUrl">控制子应用路由跳转:{{ num }}</el-button>
   <micro-app
     name="micro-app"
     url="http://localhost:3001/"
@@ -37,6 +39,9 @@ function sendData() {
   microApp.setData('micro-app', { name: 'jack', num: num.value }, () => {
     console.log('数据已经发送完成')
   })
+}
+function pushUrl() {
+  microApp.router.push({ name: 'micro-app', path: '/store' })
 }
 onMounted(() => {})
 </script>

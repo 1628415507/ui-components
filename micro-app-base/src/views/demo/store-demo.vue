@@ -7,6 +7,7 @@
 -->
 <template>
   <div>
+    <el-input v-model="num"></el-input>
     <h2>计数器(store)</h2>
     <p @click="add">同步修改：{{ count }}</p>
     <p @click="asyncAdd">异步修改：{{ count }}</p>
@@ -16,6 +17,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useStore } from '@/store'
+const num = ref()
 const store = useStore()
 // 从计算属性中获取vuex
 // 使用state获取vuex中的值

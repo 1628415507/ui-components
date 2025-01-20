@@ -37,23 +37,23 @@ const asyncRoutes: Array<RouteRecordRaw> = [
         name: 'Micro',
         meta: { title: '主应用页面', hidden: true },
         component: () => import('@/views/micro/index.vue')
+      },
+      {
+        path: '/router',
+        meta: { title: '路由-demo' },
+        component: () => import('@/views/demo/router-demo.vue')
+      },
+      {
+        path: '/store',
+        meta: { title: 'Store-demo', hidden: true },
+        component: () => import('@/views/demo/store-demo.vue')
+      },
+      {
+        path: '/request',
+        name: 'Request',
+        meta: { title: '请求-demo', hidden: true },
+        component: () => import('@/views/demo/http-demo.vue')
       }
-      // {
-      //   path: '/router',
-      //   meta: { title: '路由-demo' },
-      //   component: () => import('@/views/demo/router-demo.vue')
-      // },
-      // {
-      //   path: '/store',
-      //   meta: { title: 'Store-demo', hidden: true },
-      //   component: () => import('@/views/demo/store-demo.vue')
-      // },
-      // {
-      //   path: '/request',
-      //   name: 'Request',
-      //   meta: { title: '请求-demo', hidden: true },
-      //   component: () => import('@/views/demo/http-demo.vue')
-      // }
     ]
   }
   // // 测试多级菜单
