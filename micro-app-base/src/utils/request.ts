@@ -81,7 +81,7 @@ instance.interceptors.response.use(
       }
     } else {
       console.log('接口信息报错', res.message)
-      return Promise.reject(new Error(res.message || 'Error')) // 请求失败
+      return Promise.reject(res) // 请求失败
     }
   },
   (error) => {

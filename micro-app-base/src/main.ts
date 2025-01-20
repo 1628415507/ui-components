@@ -21,6 +21,6 @@ import 'element-plus/dist/index.css'
 // 微前端
 import microApp from '@micro-zoe/micro-app'
 
-microApp.start()
 const app = createApp(App)
 app.use(ElementPlus).use(router).use(store).mount('#app')
+microApp.start()
