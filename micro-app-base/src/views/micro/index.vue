@@ -15,7 +15,7 @@
     3、baseroute：主应用当前文件页面的路由l<br />
     4.默认开启with沙箱，如果with沙箱无法正常运行，可以尝试切换到iframe沙箱。
   </h1>
-  <el-button @click="sendData">向子应用发送数据:{{ params.num }}</el-button>
+  <el-button @click="sendData">向子应用发送数据:{{ num }}</el-button>
   <micro-app
     name="micro-app"
     url="http://localhost:3001/"
@@ -27,13 +27,14 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import microApp from '@micro-zoe/micro-app'
-const params = ref({ num: 0 })
+const params = ref({ type: '发送给子应用的数据' })
 // 发送数据-方式1-data传参
-// 方式2-setData
+// 发送数据-方式1-setData
+const num = ref()
 function sendData() {
-  params.value.num = Math.random()
+  num.value = Math.random()
   //   setData是异步执行的，多个setData会在下一帧合并为一次执行
-  microApp.setData('micro-app', params.value, () => {
+  microApp.setData('micro-app', { name: 'jack', num: num.value }, () => {
     console.log('数据已经发送完成')
   })
 }
