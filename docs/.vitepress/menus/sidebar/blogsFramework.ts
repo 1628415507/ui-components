@@ -24,6 +24,10 @@ export default [
     ]
   },
   {
+    text: '小程序',
+    items: [{ text: 'uni-app', link: '/blogs/framework/uniapp/index.md' }]
+  },
+  {
     text: '微前端',
     items: [{ text: 'micro-app', link: '/blogs/framework/micro/micro-app/index.md' }]
   }
