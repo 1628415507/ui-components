@@ -8,6 +8,7 @@ export default [
   {
     text: 'Vue',
     items: [
+      { text: 'vue 的生命周期', link: '/blogs/framework/vue/lifeCycle.md' },
       { text: 'vue', link: '/blogs/framework/vue/index.md' },
       { text: 'vue3', link: '/blogs/framework/vue/vue3.md' },
       { text: '虚拟DOM与Diff算法分析', link: '/blogs/framework/vue/diff/index.md' },

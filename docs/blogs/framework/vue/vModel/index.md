@@ -76,11 +76,12 @@ data.name = '李四' // 赋值的时候会触发set
 
 ### （3）具体版：
 
+![alt text](image.png)
 ![alt text](./img/image-3.png)
 
-#### 1.Observe
+#### 1.Observe（响应化处理）
 
-- `new Vue`的时候调用`observe`方法对 data 对象进行**递归遍历**，通过 `Object.defineProperty`方法给每个属性都加上 `setter` 和 `getter` ；
+- `new Vue`的时候调用`Observe`方法，对 data 对象进行**递归遍历**，通过 `Object.defineProperty`方法给每个属性都加上 `setter` 和 `getter` ；
 - Observer 的核心是通过`Object.defineProprtty()`来监听数据的变动;
 - 每当数据发生变化，就会触发 `setter`。这时候 Observer 就要通知订阅者(`dep.notify()`)，订阅者就是 dep 里面的 Watcher
   ![alt text](./img/Observer.png)
@@ -89,9 +90,11 @@ data.name = '李四' // 赋值的时候会触发set
 
 > `document.createDocumentFragment()`:文档片段,是一种轻量级的临时容器，用于在内存中构建和操作 DOM 结构，然后一次性插入到文档中，从而提高性能和效率。
 
-- Compile（指令解析器）主要做的事情是解析模板指令
+- Compile（指令解析器）主要做的事情是解析模板指令,对每个元素节点的指令进行扫描跟解析,根据指令模板替换数据,以及绑定相应的更新函数
 - **将模板`{ { } }`中的变量替换成数据**(对模板中的变量进行`new Wather`)，然后初始化**渲染页面视图**
+  ![alt text](image-1.png)
   ![alt text](./img/Compile.png)
+
 - 并将每个指令对应的节点**绑定更新函数(`update`)**，添加监听数据的订阅者，**一旦数据有变动，收到通知，更新试图**
 
 #### 3.Watcher
@@ -101,8 +104,11 @@ data.name = '李四' // 赋值的时候会触发set
   - 在自身实例化时往`属性订阅器(dep)`里面添加自己
   - 自身必须有一个`update()`方法
   - 待属性变动调用`dep.notice()`通知时，能调用自身的`update()`方法，并触发`Compile`中绑定的回调
-    ![alt text](./img/Compile.png)
-    ![alt text](./img/Watcher.png)
+
+> **初始化`new Vue`时，对 this.vm.$data 的属性进行了数据拦截监听，所以在`new Watcher` 时，先改变 dep 的指向，通过使用`this.vm.$data[this.prop]`读取值触发数据拦截的 get，就可以将对应的 watcher 实例添加到 deps 中**
+
+![alt text](./img/Compile.png)
+![alt text](./img/Watcher.png)
 
 - MVVM 作为绑定的入口，整合 Observer,Compile 和 Watcher 三者，
 

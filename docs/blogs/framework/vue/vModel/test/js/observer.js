@@ -6,7 +6,7 @@ function defineReactive(data, key, value) {
     get: function () {
       // ☆☆☆在new Wather的get方法里改变Dep.target的指向，
       // 然后通过读取this.vm.$data[this.prop]的值来触发observe中的get，
-      // 所以这里的Dep.target就指向了对应的每个watcher的示例
+      // 所以这里的Dep.target就指向了对应的每个watcher的实例
       if (Dep.target) {
         dep.addSub(Dep.target)
       }
