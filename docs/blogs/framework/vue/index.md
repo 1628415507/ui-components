@@ -109,3 +109,71 @@ function render() {
 - **单向数据流限制**
   - 问题：Vue 2 强调单向数据流，这在一定程度上简化了状态管理，但在处理复杂应用状态时可能会遇到一些限制。Vue 2 的组件通信主要依赖 props 和事件，虽然简单直观，但在处理复杂状态变化时可能会变得繁琐和冗长 ‌
   - 解决：使用 `Vuex` 这样的状态管理模式和库，集中管理应用的所有组件的状态，可以使用事件总线或 Vuex 进行通信 ‌
+
+## 【说说你对 vue 的 mixin 的理解，有什么应用场景?】
+
+- mixin 类似于对象
+- 当组件存在与 mixin 对象相同的选项的时候，进行递归合并的时候组件的选项会**覆盖** mixin 的选项，但是如果相同选项为**生命周期钩子**的时候，会**合并成一个数组，先执行 mixin 的钩子，再执行组件的钩子**
+  - 替换型：同名的 props、methods、inject、computed 会被后来者代替
+  - 合并型：data(有对象的话则递归进行合并)
+  - 队列型：全部生命周期钩子和 watch 被合并为一个数组，然后正序遍历一次执行
+  - 叠加型有:component、directives、filters，叠加型主要是通过原型链进行层层的叠加
+
+## 【vue 的修饰符】
+
+### 表单修饰符
+
+| 修饰符   | 示例                     |
+| -------- | ------------------------ |
+| `lazy`   | ![alt text](image-2.png) |
+| `number` | ![alt text](image-1.png) |
+| `trim`   | ![alt text](image-6.png) |
+
+### 事件修饰符
+
+| 修饰符                                                                 | 示例                      |
+| ---------------------------------------------------------------------- | ------------------------- |
+| `stop`                                                                 | ![alt text](image-3.png)  |
+| `prevent`                                                              | ![alt text](image-4.png)  |
+| `self`                                                                 | ![alt text](image-7.png)  |
+| `once`                                                                 | ![alt text](image-5.png)  |
+| `capture`                                                              | ![alt text](image-8.png)  |
+| `passive`                                                              | ![alt text](image-9.png)  |
+| [`native`](https://blog.csdn.net/u011690675/article/details/129736921) | ![alt text](image-10.png) |
+
+### 鼠标修饰符
+
+![alt text](image-11.png)
+
+### 键盘修饰符
+
+![alt text](image-12.png)
+
+## 【Vue 中的$nextTick 有什么作用?】
+
+![alt text](image-13.png)
+
+- nextTick 参数相关的有两个
+  - 第一个参数为:回调函数(可以获取最近的 DOM 结构)
+  - 第二个参数为:执行函数上下文（`textContent`）
+
+```js{2,4}
+this.message = ' '
+console.log(this.$el.textContent) // => '原始的值 '
+this.$nextTick(function () {
+  console.log(this.$el.textContent) // => '修改后的值'
+})
+```
+
+### 原理
+
+- 可以理解成，Vue 在更新 DOM 时是**异步执行**的。当数据发生变化，Vue 将开启一个异步更新队列，视图需要**等队列中所有数据变化完成之后，再统一进行更新**
+  ![alt text](image-15.png)
+  ![alt text](image-16.png)
+  ![alt text](image-17.png)
+  ![alt text](image-18.png)
+  ![alt text](image-19.png)
+- 小结:
+  1. 把回调函数放入 `callbacks` 等待执行
+  2. 将执行函数放到**微任务或者宏任务**中
+  3. 事件循环到了微任务或者宏任务，**执行函数依次执行 callbacks 中的回调**

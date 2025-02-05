@@ -364,10 +364,11 @@ export default function patchVnode(oldVnode, newVnode) {
 ![image.png](./img/diff-point.png)
 **（2）比较两个节点是否为同一个节点**
 
-```js
+```js{4}
 // 判断是否是同一个节点
 function checkSameVnode(a, b) {
   return a.sel === b.sel && a.key === b.key
+  // 如果没有设置 key ，那么 key 为 undefined ，这时候 undefined 是恒等于 undefined
 }
 ```
 
@@ -859,3 +860,12 @@ export default function updateChildren(parentElm, oldCh, newCh) {
 > - [视频讲解参考](https://www.bilibili.com/video/BV1v5411H7gZ)
 > - [图文内容参考](https://blog.csdn.net/weixin_44972008/article/details/115620198)
 > - [四种命中分析流程参考](https://juejin.cn/post/6844903902429577229#heading-6) > \-<https://juejin.cn/post/7025247844156047374#heading-2>
+
+#### 设置 key 与不设置 key 区别
+
+![alt text](image.png)
+
+- 从代码如果节点类型相同,没有设置 key ，那么 key 为 undefined ，**这时候 undefined 是恒等于 undefined**，**当进行 diff 算法判断的时候，每次 sameNode 都为 true**,就都会进入 patch，从而增加 dom 操作
+  ![alt text](image-2.png)
+- 而有 key 的情况，只有 key 真的相等时才会进行更新操作，减少了 dom 的更新和插入
+  ![alt text](image-3.png)
