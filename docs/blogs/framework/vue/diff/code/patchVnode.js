@@ -15,7 +15,7 @@ export default function patchVnode(oldVnode, newVnode) {
     // 2.1.1 判断 newVnode 与 oldVnode 的 text 属性是否相同
     // 如果newVnode中的text和oldVnode的text不同，那么直接让新text替换老elm中的text即可。
     // 如果oldVnode中是children，也会立即消失
-    if (newVnode.text !== oldVnode.text) {
+    if (newVnode.text !== oldVnode.text && oldVnode.elm) {
       oldVnode.elm.innerText = newVnode.text
     }
   } else {
