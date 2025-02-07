@@ -12,8 +12,8 @@
    - **JS 引擎**首先必须先执行所有的**初始化同步任务代码**
    - 每次准备取出第一个宏任务执行前，**都要将所有的微任务一个一个取出来执行**
 1. 关于 promise  
-   ① `then是同步执行的（同步放入微队列），then里面的回调是异步的，所以后面的回调不一定马上放到队列`  
-   ② `then里面的回调是否执行，要取决于他前面promise的执行结果，如果是resolve或reject就执行，如果还是pending就不会执行回调`  
+   ① `then是同步执行的，then里面的回调是异步的，所以后面的回调不一定马上放到队列`  
+   ② `then里面的回调是否放入微队列执行，要取决于他前面promise的执行结果，如果是resolve或reject就放入微队列等待执行，如果还是pending就不放入`  
    ③ `若没有resolve或reject，但所有.then执行完毕，返回undefined，也表示当前微任务结束`
 
 ### （二）例题
@@ -100,7 +100,7 @@ blogs/javaScript/eventLoop/loop2
 
 #### 3. [例题（难度 ☆☆☆☆☆）](https://www.bilibili.com/video/BV1MJ41197Eu?p=40&spm_id_from=pageDriver)
 
-```js{17,21}
+```js{14,17,21}
 setTimeout(() => {
   log('0')
 }, 0)
@@ -114,10 +114,10 @@ new Promise((resolve, reject) => {
       log('3')
       resolve()
     })
-      .then(() => {
+      .then(() => {//then同步执行，里面的回调异步
         log('4')
       })
-      .then(() => {
+      .then(() => {//then同步执行，里面的回调异步
         log('5')
       })
   })
@@ -152,26 +152,26 @@ blogs/javaScript/eventLoop/loop3
 
 - 遇到定时器 setTimeout，放入宏队列（log0）
 - 遇到第 1 个 _new Promise (1)_ 立即执行，**直接执行输出 log1**， ——1
-  - 跟着执行 resolve()立即完成,所以后面的.then()中的回调 log2 被放入微队列`（MicroTask2）`
+  - 跟着执行 resolve()立即完成,所以后面的.then()中的回调 log2 被放入微队列`（MicroTask2）`[此时微队列有：2]
     - 因为后续任务 log3、log4、log5、log6 依赖于微任务 log2,
     - 所以暂时不会将该部分放入微队列，
     - 需等执行到（log2）时才轮到
 - 遇到第 2 个 _new Promise(2)_ 立即执行，**直接执行输出 log 7** ， ——7
-  - 跟着执行 resolve()立即完成，所以后面的.then()中的回调 log8 被放入微队列`（MicroTask8）`
+  - 跟着执行 resolve()立即完成，所以后面的.then()中的回调 log8 被放入微队列`（MicroTask8）`[此时微队列有：2,8]
 
 2. 开始执行微任务
 
-- 执行微任务 MicroTask2，**输出 2**， ——2
+- 执行微任务 MicroTask2，**输出 2**， ——2[此时微队列有：8]
 - 遇到第 3 个*new Promise (3)* 立即执行，**输出 3**， ——3
-  - 跟着执行 resolve()立即完成，所以后面的.then()中的回调 log4 被放入微队列`（MicroTask4）`
-  - 跟着执行 log4 后的.then(),
-  - 因为此时 MicroTask4 刚进入微队列中，log5 依赖于 MicroTask4 的执行结果，所以 log5 不会被放入微队列中（原理 4-①②）
-- 往下走 MicroTask2 中没有 resolve 或 reject，但**所有.then 执行完毕**，微任务 MicroTask2 结束（原理 4-③、疑点 2）
-  - 所以 MicroTask2 的.then()中的回调 log6 被放入微队列中`（MicroTask6）`
-- 执行微任务 MicroTask8 ，**输出 8**，——8
-- 执行微任务 MicroTask4 ，**输出 4**，——4
-  - 此时微任务 MicroTask4 执行完毕，返回 undefined，所以之前 log5 中的回调被放入微任务队列中`（MicroTask5）`
-- 执行微任务（log6），**输出 6**，——6
+  - 跟着执行 resolve()立即完成，所以后面的.then()中的回调 log4 被放入微队列`（MicroTask4）`[此时微队列有：8,4]
+  - 跟着执行 log4 后的.then（**then 方法都是同步的**）,
+  - 因为此时 MicroTask4 刚进入微队列中，**4 的微队列前面还有 MicroTask8 没有执行**，所以 log4 还是 `pending` 状态，log5 依赖于 MicroTask4 的执行结果，所以 log5 中的回调不会被放入微队列中（原理 4-①②）
+- 接着往后走 MicroTask2 中没有 resolve 或 reject，但**所有.then 执行完毕**，微任务 MicroTask2 结束（原理 4-③、疑点 2）
+  - 所以 MicroTask2 的.then()中的回调 log6 被放入微队列中`（MicroTask6）`[此时微队列有：8,4,6]
+- 执行微任务 MicroTask8 ，**输出 8**，——8[此时微队列有：4,6]
+- 执行微任务 MicroTask4 ，**输出 4**，——4[此时微队列有：6]
+  - 此时微任务 MicroTask4 执行完毕，返回 undefined，所以之前 log5 中的回调被放入微任务队列中`（MicroTask5）`[此时微队列有：6,5]
+- 执行微任务（log6），**输出 6**，——6[此时微队列有：5]
 - 执行微任务（log5)，**输出 5**，——5
 
 3. 微任务执行完毕，执行宏任务，输出 0，——0
