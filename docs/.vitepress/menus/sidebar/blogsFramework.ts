@@ -1,7 +1,7 @@
 /*
  * @Description:
  * @Date: 2024-10-14 17:14:53
- * @LastEditTime: 2025-01-07 17:42:55
+ * @LastEditTime: 2025-02-07 14:30:14
  */
 export default [
   { text: '汇总', link: '/blogs/framework/index.md' },
@@ -15,7 +15,7 @@ export default [
     ]
   },
   { text: 'TypeScript入门', link: '/blogs/framework/typeScript/index.md' },
-  { text: 'Cli相关', link: '/blogs/framework/cli/index.md' },
+  // { text: 'Cli相关', link: '/blogs/framework/cli/index.md' },
   { text: 'Webpack的基础配置', link: '/blogs/framework/cli/base.md' },
-  { text: 'Webpack', link: '/blogs/framework/cli/webpack.md' }
+  // { text: 'Webpack', link: '/blogs/framework/cli/webpack.md' }
 ]
