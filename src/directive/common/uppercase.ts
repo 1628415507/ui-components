@@ -1,7 +1,7 @@
 /*
  * @Description: 输入框小写转大写
  * @Date: 2024-03-25 13:08:28
- * @LastEditTime: 2025-01-07 15:08:05
+ * @LastEditTime: 2025-02-08 13:22:49
  */
 function toUpperCase(e, vnode) {
   const upperCaseVal = e.target.value.toUpperCase()
@@ -10,6 +10,7 @@ function toUpperCase(e, vnode) {
 }
 export default {
   mounted(el, binding, vnode) {
+    if(binding.value === false) return
     let isChineseInput = false //是否是中文输入法
     // compositionstart:当用户开始使用IME输入字符组合时触发
     const compositionstartHander = () => {
