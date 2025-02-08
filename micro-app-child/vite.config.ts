@@ -3,27 +3,23 @@
  * @Author: Hongzf
  * @Date: 2022-11-21 18:11:28
  * @LastEditors: Please set LastEditors
- * @LastEditTime: 2023-07-17 17:08:09
+ * @LastEditTime: 2025-02-08 17:56:58
  */
-import { defineConfig } from 'vite'
-import vue from '@vitejs/plugin-vue'
+import { defineConfig, loadEnv } from 'vite'
 import { resolve } from 'path'
-// mock
-import { viteMockServe } from 'vite-plugin-mock'
+import createVitePlugins from './vite/plugins'
 // https://vitejs.dev/config/
-export default defineConfig(({ command }) => {
+export default defineConfig(({ mode, command }) => {
+  const env = loadEnv(mode, process.cwd())
+  const { VITE_APP_ENV, VITE_APP_CONTEXT_PATH } = env
+  console.log('【 VITE_APP_CONTEXT_PATH 】', VITE_APP_ENV, VITE_APP_CONTEXT_PATH)
   return {
+    base: VITE_APP_CONTEXT_PATH,//`${process.env.NODE_ENV === 'production' ? 'http://my-site.com' : ''}/child-vite/`,
+    // 部署生产环境和开发环境下的URL。
+    // 默认情况下，vite 会假设你的应用是被部署在一个域名的根路径上
+    // base: VITE_APP_ENV === 'production' ? VITE_APP_CONTEXT_PATH : VITE_APP_CONTEXT_PATH,
     // 插件
-    plugins: [
-      vue(),
-      // mock 数据的 dev环境
-      viteMockServe({
-        // supportTs: true, // 是否开启支持ts
-        mockPath: 'mock', // 设置mockPath为根目录下的mock目录
-        localEnabled: command === 'serve', // 设置是否监视mockPath对应的文件夹内文件中的更改
-        logger: true // 是否在控制台显示请求日志
-      })
-    ],
+    plugins: createVitePlugins(env, command),
     resolve: {
       alias: {
         '@': resolve(__dirname, 'src') // resolve('./src')
@@ -37,7 +33,6 @@ export default defineConfig(({ command }) => {
         }
       }
     },
-    base: './', // 打包路径
     server: {
       port: 3001, // 服务端口号
       open: true, // 服务启动时是否自动打开浏览器
