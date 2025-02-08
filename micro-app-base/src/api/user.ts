@@ -3,7 +3,7 @@
  * @Author: Hongzf
  * @Date: 2022-12-01 18:18:17
  * @LastEditors: Please set LastEditors
- * @LastEditTime: 2023-07-17 16:43:15
+ * @LastEditTime: 2025-02-06 18:00:07
  */
 import request from '@/utils/request'
 // 登录
@@ -28,8 +28,8 @@ export function login(data: Object) {
 // 获取菜单
 export function queryResource() {
   return request({
-    // url: '/mock/api/queryResource',
-    url: '/lvscm-security/login',
+    url: '/mock/api/queryResource',
+    // url: '/lvscm-security/login',
     method: 'get'
     // data
   })

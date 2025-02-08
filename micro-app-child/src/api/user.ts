@@ -28,8 +28,8 @@ export function login(data: Object) {
 // 获取菜单
 export function queryResource() {
   return request({
-    // url: '/mock/api/queryResource',
-    url: '/lvscm-security/login',
+    url: '/mock/api/queryResource',
+    // url: '/lvscm-security/login',
     method: 'get'
     // data
   })

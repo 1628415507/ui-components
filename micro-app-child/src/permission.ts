@@ -3,8 +3,8 @@
  * （在项目开发中每一次路由的切换或者页面的刷新都需要判断用户是否已经登录）
  * @Author: Hongzf
  * @Date: 2022-11-28 16:02:18
- * @LastEditors: Hongzf
- * @LastEditTime: 2022-12-02 16:38:02
+ * @LastEditors: Please set LastEditors
+ * @LastEditTime: 2025-02-07 16:05:11
  */
 import { NavigationGuardNext, RouteLocationNormalized, RouteRecordRaw } from 'vue-router'
 import router from '@/router'
@@ -14,6 +14,21 @@ import { getToken } from '@/utils/cookies' // get token from cookie
 router.beforeEach(
   (to: RouteLocationNormalized, from: RouteLocationNormalized, next: NavigationGuardNext) => {
     // console.log('【 to.path 】-40', to.path, from.path)
+    if (window.__MICRO_APP_ENVIRONMENT__) {
+      console.log('【 处于微前端环境中 】-20', window.__MICRO_APP_ENVIRONMENT__)
+    //   // console.log('microData?.childAppName---- air----')
+    //   // console.log(microData)
+
+    //   // if (microData?.appCode) {
+    //   //   if (microData?.sourceAppCode) {
+    //   //     handleMicroData(microData)
+    //   //   }
+    //   // } else if (globalData?.appCode) {
+    //   //   if (globalData?.sourceAppCode) {
+    //   //     handleMicroData(globalData)
+    //   //   }
+    //   // }
+    }
     // 是否是登录页
     if (to.path === '/login') {
       next()

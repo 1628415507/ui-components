@@ -3,7 +3,7 @@
  * @Author: Hongzf
  * @Date: 2022-11-21 18:11:28
  * @LastEditors: Please set LastEditors
- * @LastEditTime: 2023-07-17 17:08:09
+ * @LastEditTime: 2025-02-07 17:31:00
  */
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
@@ -46,15 +46,19 @@ export default defineConfig(({ command }) => {
     base: './', // 打包路径
     server: {
       port: 8888, // 服务端口号
-      open: true // 服务启动时是否自动打开浏览器
+      open: true, // 服务启动时是否自动打开浏览器
       // cors: true ,// 允许跨域
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Credentials': true
+      },
       // 代理
       // proxy: {
-      //   '/api': {
-      //     target: 'http://dev.lvscm.lvscm-front-ui.dps.gillion.com.cn/lvscm-gateway/',
-      //     changeOrigin: true,
-      //     rewrite: (path) => path.replace(/^\/api/, '')
-      //   }
+      //   // '/api': {
+      //   //   target: 'http://localhost:8888',
+      //   //   changeOrigin: true,
+      //   //   rewrite: (path) => path.replace(/^\/api/, '')
+      //   // }
       // }
     }
   }
