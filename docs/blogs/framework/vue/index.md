@@ -4,6 +4,14 @@
  * @LastEditTime: 2024-11-04 11:17:52
 -->
 
+## vue 的错误处理
+
+- 接口错误
+  - 响应拦截
+- 代码错误
+  - `Vue.config.errorHandler`
+  - errorCaptured:生命周期钩子，返回 false 以阻止错误继续向上传播。
+
 ## 【vue 中 Scoped Styles 是如何实现样式隔离的， 原理是啥？】
 
 在 Vue 中，`.vue` 单⽂件组件的 `<style>`标签可以添加⼀个 `scoped` 属性来实现样式的隔离。

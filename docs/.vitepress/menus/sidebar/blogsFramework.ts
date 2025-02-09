@@ -8,13 +8,13 @@ export default [
   {
     text: 'Vue',
     items: [
-      { text: 'vue 的生命周期', link: '/blogs/framework/vue/lifeCycle.md' },
-      { text: 'Vue组件之间的通信方式', link: '/blogs/framework/vue/emitOn.md' },
       { text: 'vue', link: '/blogs/framework/vue/index.md' },
       { text: 'vue3', link: '/blogs/framework/vue/vue3.md' },
-      { text: '虚拟DOM与Diff算法分析', link: '/blogs/framework/vue/diff/index.md' },
+      { text: 'vue 的生命周期', link: '/blogs/framework/vue/lifeCycle.md' },
+      { text: 'Vue组件之间的通信方式', link: '/blogs/framework/vue/emitOn.md' },
+      { text: 'MVC与MVVM模式的区别', link: '/blogs/framework/vue/mvvm.md' },
       { text: 'vue 的双向绑定的原理', link: '/blogs/framework/vue/vModel/index.md' },
-      { text: 'MVC与MVVM模式的区别', link: '/blogs/framework/vue/mvvm.md' }
+      { text: '虚拟DOM与Diff算法分析', link: '/blogs/framework/vue/diff/index.md' }
     ]
   },
   { text: 'TypeScript入门', link: '/blogs/framework/typeScript/index.md' },

@@ -13,6 +13,12 @@
 
 ## （一）虚拟 DOM 的创建
 
+> 什么是虚拟 DOM?
+>
+> - 虚拟 DOM 实际上它只是一层对真实 DOM 的抽象，以 JavaScript 对象(VNode 节点)作为基础的树，**用对象的属性来描述节点**，最终可以通过一系列操作使这棵树映射到真实环境上
+> - 在 Javascript 对象中，虚拟 DOM 表现为一个 0bject 对象。并且最少包含**标签名(tag )、属性(attrs)和子元素对象(children)**三个属性
+> - 创建虚拟 DOM 就是为了更好将虚拟的节点渲染到页面视图中，所以虚拟 DOM 对象的节点与真实 DOM 的属性一一照应
+
 ### 1. 一个虚拟 DOM 节点有哪些属性
 
 虚拟 DOM：一个能代表 DOM 树的  `JS对象`，通常含有**标签名、标签上的属性、事件监听和子元素们**，以及其他属性
@@ -780,7 +786,7 @@ export default function updateChildren(parentElm, oldCh, newCh) {
 
 ## [ 延伸问题]
 
-#### 【源码中如何定义“同一个节点”?】
+### 【源码中如何定义“同一个节点”?】
 
 > -旧节点的 key 要和新节点的 key 相同，且旧节点的选择器要和新节点的选择器相同
 >
@@ -790,32 +796,34 @@ export default function updateChildren(parentElm, oldCh, newCh) {
 > }
 > ```
 
-#### 1. [写 React / Vue 项目时为什么要在列表组件中写 key，其作用是什么？](https://github.com/Advanced-Frontend/Daily-Interview-Question/issues/1)
+### 1. [写 React / Vue 项目时为什么要在列表组件中写 key，其作用是什么？](https://github.com/Advanced-Frontend/Daily-Interview-Question/issues/1)
 
 - vue 和 react 都是采用 diff 算法来**对比新旧虚拟节点，从而更新节点**。
 - 在交叉对比中，当新节点跟旧节点`头尾交叉对比`没有结果时，会根据**新节点的 key**去对比**旧节点数组**中的 key，从而找到相应旧节点（这里对应的是一个 key => index 的**map 映射**）。如果没找到就认为是一个新增节点。
 - 而如果没有 key，那么就会采用遍历查找的方式去找到对应的旧节点。一种一个 map 映射，另一种是遍历查找。相比而言。**map 映射的速度更快**
   点
 
-#### 2. 虚拟 DOM 的优缺点 ⭐⭐⭐⭐⭐
+### 2. 虚拟 DOM 的优缺点
 
 - 优点
-  - 减少了 dom 操作，减少了**回流与重绘**
-  - 保证性能的下限，虽说性能不是最佳，但是它具备**局部更新**的能力，所以大部分时候还是比正常的 DOM 性能高很多的
+
+  - 虚拟 DOM 最大的优势在于抽象了原本的渲染过程，**实现了跨平台的能力**，而不仅仅局限于浏览器的 DOM，
+  - 支持 diff 算法，减少 JavaScript 操作真实 DOM 带来的性能消耗，减少了**回流与重绘**
+
 - 缺点
   - **首次**渲染大量 DOM 时，由于多了一层虚拟 DOM 的计算，会比 innerHTML 插入慢
 
-#### 3. Vue 的 Key 的作用 ⭐⭐⭐⭐
+### 3. Vue 的 Key 的作用
 
 - key 主要用在**虚拟 Dom 算法**中，每个虚拟节点 VNode 有一个**唯一标识 Key**，通过对比新旧节点的 key 来判断节点是否改变，
 - 用 key 就可以**大大提高渲染效率**，
 - 这个 key 类似于缓存中的 etag。
 
-#### 4. 为什么 v-for 会要有 key？⭐⭐⭐⭐⭐
+### 4. 为什么 v-for 会要有 key？⭐⭐⭐⭐⭐
 
 因为在 vue 中会有一个 diff 算法，假如子节点 AB 调换了位置，它会**比较 key 值**，会直接调换，而不是一个销毁重新生成的过程
 
-#### 5. [什么是 render 函数](https://www.jianshu.com/p/d96bebc2bbc8)⭐⭐⭐
+### 5. [什么是 render 函数](https://www.jianshu.com/p/d96bebc2bbc8)⭐⭐⭐
 
 - `render 函数`即**渲染函数**，它是个函数，它的参数也是个函数——即  `createElement`
 - 这形参也作为一个方法（可以动态创建标签），可传入三个参数：**标签名、属性、子元素**；
@@ -866,7 +874,7 @@ export default function updateChildren(parentElm, oldCh, newCh) {
 > - [图文内容参考](https://blog.csdn.net/weixin_44972008/article/details/115620198)
 > - [四种命中分析流程参考](https://juejin.cn/post/6844903902429577229#heading-6) > \-<https://juejin.cn/post/7025247844156047374#heading-2>
 
-#### 设置 key 与不设置 key 区别
+### 设置 key 与不设置 key 区别
 
 ![alt text](image.png)
 

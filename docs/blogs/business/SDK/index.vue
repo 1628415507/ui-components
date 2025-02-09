@@ -48,6 +48,6 @@ onMounted(() => {
 onErrorCaptured((error, vm, info) => {
   console.error('【 子组件-渲染错误 】-47', error, vm, info)
   window.insSDK.error('error', { ...error, remark: '子组件-渲染错误' })
-  return false
+  return false //，返回 false 以阻止错误继续向上传播。
 })
 </script>
