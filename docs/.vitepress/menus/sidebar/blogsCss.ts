@@ -5,7 +5,7 @@
  */
 export default [
   { text: '引言', link: '/blogs/css/index.md' },
-  { text: 'TODO', link: '/blogs/css/todo.md' },
+  // { text: 'TODO', link: '/blogs/css/todo.md' },
   {
     text: 'HTML',
     items: [
