@@ -5,7 +5,7 @@
  */
 export default [
   { text: 'TODO', link: '/blogs/javaScript/todo.md' },
-  { text: '汇总', link: '/blogs/javaScript/index.md' },
+  { text: '引言', link: '/blogs/javaScript/index.md' },
   {
     text: '变量、作用域与内存',
     items: [{ text: '垃圾回收机制 & 内存泄露', link: '/blogs/javaScript/memory.md' }]
@@ -30,7 +30,9 @@ export default [
       { text: '节流与防抖', link: '/blogs/javaScript/debounce/index.md' },
       { text: '其他', link: '/blogs/javaScript/else.md' }
     ]
-  }
+  },
+  { text: 'ES6 新特性', link: '/blogs/javaScript/es6/index.md' }
+
   // {
   //   text: 'CSS 拓展',
   //   items: [
