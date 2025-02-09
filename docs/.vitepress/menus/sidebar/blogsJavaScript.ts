@@ -4,7 +4,7 @@
  * @LastEditTime: 2025-01-06 17:11:23
  */
 export default [
-  { text: 'TODO', link: '/blogs/javaScript/todo.md' },
+  // { text: 'TODO', link: '/blogs/javaScript/todo.md' },
   { text: '引言', link: '/blogs/javaScript/index.md' },
   {
     text: '变量、作用域与内存',
