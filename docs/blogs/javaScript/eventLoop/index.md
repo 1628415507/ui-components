@@ -51,7 +51,7 @@ blogs/javaScript/eventLoop/loop1
 
 #### 2. [例题（难度 ☆☆☆）](https://www.bilibili.com/video/BV1MJ41197Eu?p=39&spm_id_from=pageDriver)
 
-```js
+```js{11}
 const first = () =>
   new Promise((resolve, reject) => {
     console.log(3)
@@ -62,7 +62,7 @@ const first = () =>
         console.log(5)
         resolve(6)
       }, 0)
-      resolve(1)
+      resolve(1) //思考：如果此行注释掉结果有什么区别？
     })
 
     resolve(2)
@@ -97,6 +97,11 @@ blogs/javaScript/eventLoop/loop2
 - p 的状态执行`resolve(1)`后立马转为成功，所以`p.then()`的回调先进入微任务队列;
 - p 运行完之后才执行到`resolve(2)`，这个时候`first().then()`的回调才进入微任务队列，
 - 所以先输出 1，再输出 2
+
+##### (3) 如果 resolve(1)注释掉，最后的结果是什么
+
+- 结果 3,7,4,2,**5,6**
+- 6 在 5 的后面是因为执行完 setTimeout 之后 p 才进入 resolve，p.then 中的函数才进入微队列(原理 ②：then 里面的回调是否放入微队列执行，要取决于他前面 promise 的执行结果，如果是 resolve 或 reject 就放入微队列等待执行，如果还是 pending 就不放入)
 
 #### 3. [例题（难度 ☆☆☆☆☆）](https://www.bilibili.com/video/BV1MJ41197Eu?p=40&spm_id_from=pageDriver)
 

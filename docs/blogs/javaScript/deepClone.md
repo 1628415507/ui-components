@@ -12,21 +12,18 @@
 
 ## （二） 手写浅拷贝、深拷贝
 
-**题目：**
-![image.png](https://p9-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/acbb33ad99484ed6a56fdd9b256865a2~tplv-k3u1fbpfcp-jj-mark:3024:0:0:0:q75.awebp)
-
 ### 1. 浅拷贝（和原来的有关系）：
 
 只是把对象的属性和属性值拷贝到另一个对象中，**只克隆第一层**，没有克隆地址
 
-#### （1）方法一（ES6）
+#### （1）ES6-扩展运算符
 
 ```js
 let obj2 = { ...obj }
 console.log(obj, obj2)
 ```
 
-#### （2）方法二（ES6）：`Object.assign()`
+#### （2）ES6-`Object.assign()`
 
 > **`Object.assign`**：会**合并对象生成一个新对象**。  
 > 如果对象的属性是普通类型改变之后新对象不会改变，如果是引用类型改变后新对象也会改变，所以 Object.assign 实际上还是浅拷贝。
@@ -43,9 +40,24 @@ console.log(newObj.aa) //1
 console.log(newObj.b.item)   //kk
 ```
 
-#### （3）方法三
+#### （3）hasOwnProperty
 
 - 复制非继承属性（[`hasOwnProperty()`](https://blog.csdn.net/a791226606/article/details/110679991)）
+
+```js{8,10}
+let obj = {
+  name: 'obj的hasOwnProperty属性',
+  //obj的hasOwnProperty属性
+  eat: {
+    eatname: '非obj的hasOwnProperty属性'
+  }
+}
+console.log(obj.hasOwnProperty('name')) //true
+console.log(obj.hasOwnProperty('eat')) //true
+console.log(obj.hasOwnProperty('eatname')) //false
+console.log(obj.eat.hasOwnProperty('eatname')) //true
+```
+
 - 只复制第一层
 
 ```js{5}
@@ -62,16 +74,28 @@ function shallowClone(obj) {
 
 ### 2. 深拷贝：
 
-#### （1）方法一
+#### （1）方法一: `JSON.parse(JSON.stringify(obj))`
 
 - `JSON.stringify()`：将 JavaScript 值转换为**JSON 字符串**。
 - `JSON.parse:JSON.parse()` ：方法用于将一个**SON 字符串转换为对象**。
+- [`JSON.stringify(obj)`的缺点](https://www.cnblogs.com/ai888/p/18569179)
 
-```js
-let obj4 = JSON.parse(JSON.stringify(obj)) //弊端
-```
+  - 无法序列化所有类型的数据： JSON.stringify() 无法处理一些 JavaScript 数据类型，例如：
+    - 函数： 会被忽略或转换为 null。
+    - Symbol： 会被忽略或转换为 null。
+    - undefined： 在对象属性中会被忽略，在数组中会被转换为 null。
+    - 循环引用： 会导致抛出 TypeError 异常。
+    - BigInt： 一些旧的浏览器或 JavaScript 引擎不支持，可能会导致错误或丢失精度。
+    - Map、Set、WeakMap、WeakSet： 需要先转换为数组或对象才能被序列化。
+    - 自定义类实例： 默认情况下只会序列化其可枚举属性，并且通常**会丢失原型链信息**。
+  - 丢失信息： 序列化过程中可能会丢失一些信息
+    - 日期对象： 会被转换为字符串，而不是日期对象本身。
+    - 正则表达式： 会被转换为空对象 {}。
+      ::: example
+      blogs/javaScript/stringify
+      :::
 
-#### （2）方法二
+#### （2）方法二:递归
 
 > - [JavaScript constructor 属性详解](https://www.cnblogs.com/chenweizhen/p/6422995.html)
 > - prototype 的属性值中天生自带一个 constructor 属性， 其 constructor 属性值指向**当前原型所属的类**

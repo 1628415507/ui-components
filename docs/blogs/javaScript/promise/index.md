@@ -42,7 +42,7 @@ highlight: a11y-dark
 
 #### 2. 手写简易版的 Promise
 
-```js{11,26,28,36,38,45,61,67,69,70}
+```js{11,25,27,35,37,44,59,64,66,67,69}
 // 三个状态：PENDING、FULFILLED、REJECTED
 //  javascript 对象中的 constructor属性 指向的函数本身。
 const PENDING = 'PENDING' // 等待中
@@ -64,13 +64,12 @@ class Promise {
     this.failCB = [] // 失败存放的数组
     // 【1-1】调用此方法就是成功
     let resolve = (value) => {
-      // 状态为 PENDING 时才可以更新状态，
-      //防止 executor 中调用了两次 resovle/reject 方法
+      // 状态为 PENDING 时才可以更新状态，防止 executor 中调用了两次 resovle/reject 方法
       if (this.status === PENDING) {
         console.log(2, '成功则调用 resolve 方法')
         this.status = FULFILLED
         this.value = value
-        this.successCB.forEach((f) => f()) //???
+        this.successCB.forEach((f) => f()) // 一开始调用的时候如果外部还没有执行resolve或reject，则需要先放到successCB和failCB里
       }
     }
     // 【1-2】调用此方法就是失败
@@ -80,7 +79,7 @@ class Promise {
         console.log(3, '失败则调用 reject 方法')
         this.status = REJECTED
         this.reason = reason
-        this.failCB.forEach((f) => f())//???
+        this.failCB.forEach((f) => f())// 一开始调用的时候如果外部还没有执行resolve或reject，则需要先放到successCB和failCB里
       }
     }
     // 【1-3】立即执行函数
@@ -101,15 +100,13 @@ class Promise {
     console.log(4, 'then:当前状态', this.status)
     // 【2-1】成功后用户需要执行的函数
     if (this.status === FULFILLED) {
-      //onFulfilled：成功后用户需要执行的函数
       console.log(5, '成功后执行 onFulfilled函数')
-      onFulfilled(this.value)
+      onFulfilled(this.value)//onFulfilled：成功后用户需要执行的函数
     }
     // 【2-2】失败后用户需要执行的函数
     if (this.status === REJECTED) {
-      //onRejected：失败后用户需要执行的函数
       console.log(6, '失败后执行 onRejected函数')
-      onRejected(this.reason)
+      onRejected(this.reason) //onRejected：失败后用户需要执行的函数
     }
     // 【2-3】一开始调用的时候如果外部还没有执行resolve或reject，则需要先放到successCB和failCB里
     // 等后续执行resolve或reject的时候再执行
@@ -226,7 +223,7 @@ Promise.race = function (promisesArr) {
 
 - `async/await`是基于`Promise`构建的一种语法糖，它利用了`Promise`的特性来支持暂停和恢复函数的执行，并使用`try/catch`来处理异步操作中的错误。
 
-1.  `async`函数：使用`async`关键字定义的函数会返回一个`Promise`对象。内部代码可以包含`await`关键字，用于暂停函数的执行，等待一个异步操作完成并返回结果。
+1.  `async`函数：使用`async`关键字定义的函数会**返回一个`Promise`对象**。内部代码可以包含`await`关键字，用于暂停函数的执行，等待一个异步操作完成并返回结果。
 1.  `await`关键字：`await`关键字只能在`async`函数内部使用。当遇到`await`时，它会暂停`async`函数的执行，等待后面的表达式（通常是一个返回`Promise`对象的异步操作）解析为已完成状态，并且返回该操作的结果。
 1.  `Promise`对象：**`await`关键字只能用于`Promise`对象**，它会等待该`Promise`对象的状态变为已完成或已拒绝。如果状态为已完成，则`await`表达式返回已完成的值；如果状态为已拒绝，则会抛出异常。
 
