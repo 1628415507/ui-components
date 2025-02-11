@@ -221,6 +221,32 @@ Promise.race = function (promisesArr) {
 
 ### （一）async/await 的实现原理
 
+- [Generator 函数](https://zhuanlan.zhihu.com/p/12830594392?utm_psn=1872568642765451264)
+- `*`表示 Generator 函数
+- 在 generator 函数执行到 yield 语句时，就“暂停”了。
+- 得等待函数外部指令 next()才继续执行。
+- 每次 next()，就能获得对应位置 yield 后的表达式
+- next（param）可以传参。通过参数去实时改变 generate 函数内的运行。这个参数，会变成上一个 yield 的值
+- 每一次 next()返回的对象中，有个 done 属性，**done 为 true 代表执行完成**
+
+```js
+function* test() {
+  console.log('函数开始和a之间的运行')
+  let a = yield 1
+  console.log('a和b之间的执行')
+  let b = yield a
+  console.log(b)
+}
+let iteratorObj = test()
+console.log(iteratorObj.next()) //1
+console.log(iteratorObj.next(99)) //99
+iteratorObj.next()
+```
+
+::: example
+blogs/javaScript/promise/generator
+:::
+
 - `async/await`是基于`Promise`构建的一种语法糖，它利用了`Promise`的特性来支持暂停和恢复函数的执行，并使用`try/catch`来处理异步操作中的错误。
 
 1.  `async`函数：使用`async`关键字定义的函数会**返回一个`Promise`对象**。内部代码可以包含`await`关键字，用于暂停函数的执行，等待一个异步操作完成并返回结果。
@@ -231,9 +257,9 @@ Promise.race = function (promisesArr) {
 
 ## [ 问题延伸]
 
-#### [1. js 实现限制函数并发量限制](https://juejin.cn/post/7106710015171362853#heading-4)
+### [1. js 实现限制函数并发量限制](https://juejin.cn/post/7106710015171362853#heading-4)
 
-#### 2. async/await 和 Promise 有什么区别
+### 2. async/await 和 Promise 有什么区别
 
 - `async/await`是一种用于处理异步操作的语法糖，它基于`Promise`构建，并提供更简洁、更直观的编码方式。它们的区别如下：
 

@@ -94,16 +94,7 @@ var link = function(height = 50,  url = 'http://azat.co') {  
 允许在大括号里面，直接写入变量和函数，作为对象的属性和方法 \
  如：在 ES6 的对象文本中，既可以直接分配 getAccounts: getAccounts, 也可以只需用一个 getAccounts
 
-## （七）箭头函数（三没有、三不能）
-
-### 1. 箭头函数的特点
-
-- **没有 arguments 实参集合**，取而代之**用...剩余运算符解决** ;
-- **没有自己的 this**。他的 this 是继承当前**上下文中的 this** ;
-- **没有函数原型 prototype**
-- **不能作为构造函数 new**， 因为箭头函数相当于**匿名函数**，不能被 new 箭头函数;
-- **不能使用 call、apply、bind 改变箭头函数中 this 指向** ;
-- 不能当做 Generator 函数，不能使用 yield 关键字;
+## [（七）箭头函数（三没有、三不能）](/blogs/javaScript/function.html#【箭头函数的特点】)
 
 ### [ 延伸问题 ]
 

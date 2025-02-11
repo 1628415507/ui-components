@@ -32,6 +32,7 @@ function toJsonStringify() {
     func: () => {}, //函数会被忽略或转换为 null
     // objKey: obj.name, // 循环引用： 会导致抛出 TypeError 异常
     // bigIntKey: BigInt(9999), //会导致报错
+    // 正则表达式： 会被转换为空对象 {}
     date: new Date() //会被转换为字符串，而不是日期对象本身
   }
 
