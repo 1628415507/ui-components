@@ -25,6 +25,7 @@ function toJson() {
   console.log(jsonString) // 输出: {"name":"Example","date":"2024-11-21T00:52:34.567Z"}
 }
 function toJsonStringify() {
+  const obj1 = {}
   const obj = {
     name: 'Example',
     symbolKey: Symbol('aa'), //Symbol会被忽略或转换为 null
@@ -35,6 +36,8 @@ function toJsonStringify() {
     // 正则表达式： 会被转换为空对象 {}
     date: new Date() //会被转换为字符串，而不是日期对象本身
   }
+  obj.else = obj1 //obj和obj2循环引用会抛出异常
+  // obj1.else = obj //obj和obj2循环引用会抛出异常
 
   const jsonString = JSON.stringify(obj)
   console.log(jsonString) // 输出: {"name":"Example","date":"2024-11-21T00:52:34.567Z"}

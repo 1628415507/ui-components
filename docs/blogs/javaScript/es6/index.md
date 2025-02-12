@@ -10,8 +10,9 @@ theme: juejin
 - Map、Set
   - Map 是一种键值对的**有序列表**，其中键和值可以是任意类型，并且**保持插入顺序**。
   - Set 是一种存储唯一值的集合，其中值可以是任何类型，并且不会重复。**重复的值不会被添加**
-- WeakMap 和 WeakSet
-  - WeakMap 和 WeakSet 类似于 Map 和 Set，但其中的键只能是对象，并且不会阻止垃圾回收。
+- [WeakMap ](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/WeakMap)和 WeakSet
+  - WeakMap 和 WeakSet 类似于 Map 和 Set，**但其中的键只能是对象，并且不会阻止垃圾回收**。
+  - WeakMap 中一旦一个对象**作为键**被回收，那么在 WeakMap 中相应的值便成为了进行垃圾回收的候选对象
 
 ## （一）块作用域构造 Let and Const 变量提升
 
