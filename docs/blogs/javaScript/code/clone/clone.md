@@ -1,29 +1,27 @@
-## （一） [谈一谈深克隆和浅克隆](https://blog.csdn.net/sinat_17775997/article/details/70482279)
+## [谈一谈深克隆和浅克隆](https://blog.csdn.net/sinat_17775997/article/details/70482279)
 
-### （1）浅克隆（`只复制内存地址`）:
+（1）浅克隆（`只复制内存地址`）:
 
 - 浅克隆：只是拷贝了**基本类型的数据**，而引用类型数据，复制后也是会发生引用
 - 换句话说，浅复制仅仅是指向**被复制的内存地址**，如果原地址中对象被改变了，那么浅复制出来的对象也会相应改变。
 
-### （2）深克隆（和原来的没关系， `创建一个新对象`）
+（2）深克隆（和原来的没关系， `创建一个新对象`）
 
 - 属性中**引用的其他对象**也会被克隆，不再指向原有对象地址。
 - `JSON.parse`、`JSON.stringify()`
 
-## （二） 手写浅拷贝、深拷贝
-
-### 1. 浅拷贝（和原来的有关系）：
+## 手写浅拷贝（和原来的有关系）：
 
 只是把对象的属性和属性值拷贝到另一个对象中，**只克隆第一层**，没有克隆地址
 
-#### （1）ES6-扩展运算符
+### 1. ES6-扩展运算符
 
 ```js
 let obj2 = { ...obj }
 console.log(obj, obj2)
 ```
 
-#### （2）ES6-`Object.assign()`
+### 2. ES6-`Object.assign()`
 
 > **`Object.assign`**：会**合并对象生成一个新对象**。  
 > 如果对象的属性是普通类型改变之后新对象不会改变，如果是引用类型改变后新对象也会改变，所以 Object.assign 实际上还是浅拷贝。
@@ -40,7 +38,7 @@ console.log(newObj.aa) //1
 console.log(newObj.b.item)   //kk
 ```
 
-#### （3）hasOwnProperty
+### 3. hasOwnProperty
 
 - 复制非继承属性（[`hasOwnProperty()`](https://blog.csdn.net/a791226606/article/details/110679991)）
 
@@ -72,9 +70,9 @@ function shallowClone(obj) {
 }
 ```
 
-### 2. 深拷贝：
+## 手写深拷贝
 
-#### （1）方法一: `JSON.parse(JSON.stringify(obj))`
+### 1. 方法一: `JSON.parse(JSON.stringify(obj))`
 
 - `JSON.stringify()`：将 JavaScript 值转换为**JSON 字符串**。
   - JSON.stringify() 接受第二个参数,可以传入一个数组或函数来指定要序列化的属性，或者传入一个数字来指定缩进空格数。
@@ -96,7 +94,7 @@ function shallowClone(obj) {
       blogs/javaScript/code/clone/stringify
       :::
 
-#### （2）方法二:递归
+### 2. 方法二:递归
 
 > - [JavaScript constructor 属性详解](https://www.cnblogs.com/chenweizhen/p/6422995.html)
 > - prototype 的属性值中天生自带一个 constructor 属性， 其 constructor 属性值指向**当前原型所属的类**
@@ -211,6 +209,6 @@ console.log('arr === arr2', arr === arr2) //false
 console.log('arr[0] === arr2[0]', arr[0] === arr2[0]) //false
 ```
 
-#### [（3）递归遇到循环引用怎么处理](https://blog.csdn.net/badbaby52906/article/details/135843123)
+### [3. 递归遇到循环引用怎么处理](https://blog.csdn.net/badbaby52906/article/details/135843123)
 
 - js 中的循环引用是指**两个或多个对象之间相互引用**的情况。这种情况下，这些对象就不能被垃圾回收机制正常回收，会导致内存泄漏。

@@ -7,7 +7,7 @@
   <el-button @click="runDeepClone()">deepClone</el-button>
 </template>
 <script setup>
-import { deepClone } from './deepClone.ts'
+import { deepClone } from './deepCloneUtil'
 const obj1 = {}
 const obj = {
   id: 1,
