@@ -76,7 +76,7 @@ data.name = '李四' // 赋值的时候会触发set
 
 ### （3）具体版：
 
-![alt text](image.png)
+![alt text](./img/mvvm.png)
 ![alt text](./img/image-3.png)
 
 #### 1.Observe（响应化处理）
@@ -92,7 +92,7 @@ data.name = '李四' // 赋值的时候会触发set
 
 - Compile（指令解析器）主要做的事情是解析模板指令,对每个元素节点的指令进行扫描跟解析,根据指令模板替换数据,以及绑定相应的更新函数
 - **将模板`{ { } }`中的变量替换成数据**(对模板中的变量进行`new Wather`)，然后初始化**渲染页面视图**
-  ![alt text](image-1.png)
+  ![alt text](./img/image-1.png)
   ![alt text](./img/Compile.png)
 
 - 并将每个指令对应的节点**绑定更新函数(`update`)**，添加监听数据的订阅者，**一旦数据有变动，收到通知，更新试图**
