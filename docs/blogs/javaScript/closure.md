@@ -37,7 +37,7 @@
 
 ## （五）闭包的应用
 
-### 1. [防抖和节流](/blogs/javaScript/debounce/)
+### 1. [防抖和节流](/blogs/javaScript/code/debounce)
 
 ### 2. for 循环中的保留 i 的操作
 
