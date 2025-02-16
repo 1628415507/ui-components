@@ -1,0 +1,98 @@
+<!--
+ * @Author: Hongzf
+ * @Date: 2022-09-22 14:09:46
+ * @LastEditors: Please set LastEditors
+ * @LastEditTime: 2024-11-04 17:21:03
+ * @Description: 
+-->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <!-- <meta content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover" name="viewport" /> -->
+  <title>实现简单的history路由</title>
+  <script src="./history.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      height: 100%;
+    }
+
+    #content {
+      height: calc(100vh - 50px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 3em;
+    }
+
+    #nav {
+      height: 50px;
+      position: fixed;
+      left: 0;
+      bottom: 0;
+      width: 100%;
+      display: flex;
+    }
+
+    #nav button {
+      width: 25%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border: 1px solid black;
+    }
+
+    /* #nav a:not(:last-of-type) {
+                border-right: none;
+            } */
+  </style>
+</head>
+
+<body>
+  <main id="content"></main>
+  <nav id="nav">
+    <button id="button1">button1</button>
+    <button id="button2">button2</button>
+    <button id="button3">button3</button>
+    <button id="button4">button4</button>
+  </nav>
+</body>
+<script>
+  const router = new VueRouter([
+    {
+      target: '#button1',
+      path: '/',
+      name: 'home',
+      component: '<div>首页内容</div>'
+    },
+    {
+      target: '#button2',
+      path: '/shop',
+      name: 'shop',
+      component: '<div>tab1内容</div>'
+    },
+    {
+      target: '#button3',
+      path: '/shopping-cart',
+      name: 'shopping-cart',
+      component: '<div>tab2内容</div>'
+    },
+    {
+      target: '#button4',
+      path: '/mine',
+      name: 'mine',
+      component: '<div>tab3内容</div>'
+    }
+  ])
+</script>
+
+</html>
