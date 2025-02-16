@@ -1,7 +1,7 @@
 <!--
  * @Description:
  * @Date: 2024-08-23 16:04:10
- * @LastEditTime: 2024-10-31 09:35:35
+ * @LastEditTime: 2025-01-13 11:45:11
 -->
 
 # [BFC（Block Formatting Contexts (块级格式化上下文)）](https://blog.csdn.net/DFF1993/article/details/80394150)
@@ -59,7 +59,7 @@ blogs/css/bfc/block
 - 由于块级元素 A 发生了浮动，所以和未发生浮动的块级元素 B 不在同一层内，所以会发生 div 遮挡问题。
 - 可以给元素 B 添加`overflow: hidden`，触发 BFC 来解决遮挡问题。
 - 原理
-  > - BFC 的特性 3：每个元素的 margin box 的左边， 与包含块 border box 的左边相接触(对于从左往右的格式化，否则相反)。即使存在浮动也是如此。
+  <!-- > - BFC 的特性 3：每个元素的 margin box 的左边， 与包含块 border box 的左边相接触(对于从左往右的格式化，否则相反)。即使存在浮动也是如此。 -->
   > - BFC 的特性 4：BFC 的区域不会与 float box 重叠。
 
 ::: example
@@ -87,7 +87,7 @@ blogs/css/bfc/demo2
 blogs/css/bfc/demo3
 :::
 
-### ~~（4）避免多列布局由于宽度计算四舍五入而自动换行~~
+<!-- ### ~~（4）避免多列布局由于宽度计算四舍五入而自动换行~~ -->
 
 ## 6. [常用的 BFC 清除浮动——clearfix](https://blog.csdn.net/weixin_41041379/article/details/81871980)
 

@@ -62,7 +62,7 @@ export const nav: DefaultTheme.NavItem[] = [
         link: '/blogs/network' // 对应docs/column/Algorithm下的index.md文件
       },
       {
-        text: '进阶', //算法。浏览器‘正则表达式
+        text: '专项', //算法。浏览器‘正则表达式
         link: '/blogs/framework' // 对应docs/column/Algorithm下的index.md文件
       },
       {

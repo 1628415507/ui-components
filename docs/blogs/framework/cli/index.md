@@ -25,7 +25,7 @@ ESLint 是⼀个插件化的静态代码分析⼯具，⽤于识别 JavaScript �
 
 ### 1.什么是基建？
 
-![alt text](image.png)
+![alt text](./img/image.png)
 
 ### 2.为什么要做前端基建？
 

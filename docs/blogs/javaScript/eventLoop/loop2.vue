@@ -4,7 +4,9 @@
  * @LastEditTime: 2025-01-06 17:47:03
 -->
 <template>
-  <el-button @click="loop">执行结果</el-button>
+  <el-button @click="loop()">执行结果</el-button>
+  <el-button @click="loop(false)">不执行resolve(1)的结果</el-button>
+  <br />
   ：{{ res.join(',') }}
 </template>
 <script setup>
@@ -14,7 +16,7 @@ function log(val) {
   res.value.push(val)
   console.log(val)
 }
-function loop() {
+function loop(flag = true) {
   res.value = []
   const first = () =>
     new Promise((resolve, reject) => {
@@ -26,7 +28,7 @@ function loop() {
           log(5)
           resolve(6)
         }, 0)
-        resolve(1)
+        flag && resolve(1) //思考：如果此行注释掉结果有什么区别？
       })
 
       resolve(2)

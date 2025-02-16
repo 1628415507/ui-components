@@ -12,6 +12,7 @@ class Mvue {
         this.init();
     }
     init() {
+        //对data进行数据拦截、监听
         observer(this.$data);
         new Compile(this);
     }
