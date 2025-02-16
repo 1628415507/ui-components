@@ -39,7 +39,6 @@ Compile.prototype = {
                 let prop = reg.exec(text)[1]
                 this.compileText(node, prop) //替换模板
             }
-
             //编译子节点
             if (node.childNodes && node.childNodes.length) {
                 this.compileNode(node)
@@ -59,6 +58,13 @@ Compile.prototype = {
             }
         })
     },
+    compileText: function (node, prop) {
+        let text = this.vm.$data[prop]//触发observer中，Object.defineProperty里的 get方法
+        this.updateView(node, text)
+        new Watcher(this.vm, prop, (value) => {
+            this.updateView(node, value)
+        })
+    },
     // 更新Model模板值
     compileModel: function (node, prop) {
         let val = this.vm.$data[prop]//读取值的时候触发了  Object.defineProperty的get
@@ -73,16 +79,10 @@ Compile.prototype = {
             if (val === newValue) {
                 return
             }
-            this.vm.$data[prop] = newValue
+            this.vm.$data[prop] = newValue // 触发set
         })
     },
-    compileText: function (node, prop) {
-        let text = this.vm.$data[prop]
-        this.updateView(node, text)
-        new Watcher(this.vm, prop, (value) => {
-            this.updateView(node, value)
-        })
-    },
+
 
     updateModel: function (node, value) {
         node.value = typeof value == 'undefined' ? '' : value
