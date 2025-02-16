@@ -10,8 +10,9 @@ theme: juejin
 - Map、Set
   - Map 是一种键值对的**有序列表**，其中键和值可以是任意类型，并且**保持插入顺序**。
   - Set 是一种存储唯一值的集合，其中值可以是任何类型，并且不会重复。**重复的值不会被添加**
-- WeakMap 和 WeakSet
-  - WeakMap 和 WeakSet 类似于 Map 和 Set，但其中的键只能是对象，并且不会阻止垃圾回收。
+- [WeakMap ](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/WeakMap)和 WeakSet
+  - WeakMap 和 WeakSet 类似于 Map 和 Set，**但其中的键只能是对象，并且不会阻止垃圾回收**。
+  - WeakMap 中一旦一个对象**作为键**被回收，那么在 WeakMap 中相应的值便成为了进行垃圾回收的候选对象
 
 ## （一）块作用域构造 Let and Const 变量提升
 
@@ -94,16 +95,7 @@ var link = function(height = 50,  url = 'http://azat.co') {  
 允许在大括号里面，直接写入变量和函数，作为对象的属性和方法 \
  如：在 ES6 的对象文本中，既可以直接分配 getAccounts: getAccounts, 也可以只需用一个 getAccounts
 
-## （七）箭头函数（三没有、三不能）
-
-### 1. 箭头函数的特点
-
-- **没有 arguments 实参集合**，取而代之**用...剩余运算符解决** ;
-- **没有自己的 this**。他的 this 是继承当前**上下文中的 this** ;
-- **没有函数原型 prototype**
-- **不能作为构造函数 new**， 因为箭头函数相当于**匿名函数**，不能被 new 箭头函数;
-- **不能使用 call、apply、bind 改变箭头函数中 this 指向** ;
-- 不能当做 Generator 函数，不能使用 yield 关键字;
+## [（七）箭头函数（三没有、三不能）](/blogs/javaScript/function.html#【箭头函数的特点】)
 
 ### [ 延伸问题 ]
 

@@ -9,7 +9,7 @@
 > - 节流适用于需要以固定的速率处理事件的情况，比如**滚动事件**、**鼠标移动**事件等。
 
 ::: example
-blogs/javaScript/debounce/throttle
+blogs/javaScript/code/debounce/throttle
 :::
 
 - 节流函数的实现原理是
@@ -53,7 +53,7 @@ dragdiv.addEventListener(
 - 防抖适用于需要等待一段时间后进行操作的情况，比如**用户输入搜索框**、**窗口大小**调整等。
 
 ::: example
-blogs/javaScript/debounce/debounce
+blogs/javaScript/code/debounce/debounce
 :::
 
 - **代码：**

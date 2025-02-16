@@ -21,10 +21,10 @@
 
 ### （一）原型
 
-- 原型：`实例共享的属性和方法组成的对象(prototype)`
+- 原型：**实例**共享的属性和方法组成的对象(prototype)
 - 原型分为**隐式原型和显式原型**，每个对象都有一个隐式原型`__proto__`，它指向**自己的构造函数的显式原型**`prototype`
 - 每一个实例的`__proto__ `存储这个「共用属性组成的对象」的地址，即`prototype`。
-- 所有的 `prototype` 的`__proto__`最终指向的是 Object 的 prototype，Object 的隐式原型是 `null`
+- 所有的 `prototype` 的`__proto__`最终指向的是 Object 的 prototype `Object 的 prototype`，Object 的隐式原型是 `null`
 - 原型出现的目的：为了**减少不必要的内存消耗**。
   ![原型链1](./img/prototype0.png)
 
@@ -62,3 +62,39 @@
 - 而实例有一个内部指针（`proto`）指向原型。
 
 ![原型链3](./img/prototype5.png)
+
+## 3. instanceof 作用与原理
+
+- 作用：instanceof 是用来**判断一个实例是否属于某个类型**。
+- 原理：instanceof 原理实际上就是**查找目标对象的原型链**，查**找构造函数的原型对象**是否在**实例对象的原型链上**，如果在返回 true，如果不在返回 false
+- instanceof 不能用来判断基本数据类型
+
+```js
+let Dog = function () {}
+let tidy = new Dog()
+tidy instanceof Dog //true
+```
+
+- 手写原理：
+
+```js{2,8,12,16}
+function myInstance(L, R) {
+// 关键：L.__proto__ == R.prototype
+    // 1. L代表instanceof实例，R代表原型
+    let LP = L.__proto__; //实例对象的原型链上
+    let RP = R.prototype; // 构造函数的原型对象
+    while (true) {
+        // 2.如果找到最后一层为null都没找到
+        if (LP == null) {
+            return false;
+        }
+        // 3. 判断构造函数的原型对象是否在实例对象的原型链上
+        if (LP == RP) {
+            return true;
+        }
+        // 4. 逐层向上查找
+        LP = LP.__proto__;
+    }
+}
+console.log(myInstance({},Object));
+```

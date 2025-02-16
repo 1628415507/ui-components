@@ -146,42 +146,6 @@ console.log(reg.constructor.name); // RegExp
   >     console.log(Array.prototype.toString.call(reg));// "[object RegExp]"
   > ```
 
-### （2）instanceof 作用与原理 ⚄
-
-- 作用：instanceof 是用来**判断一个实例是否属于某个类型**。
-- 原理：instanceof 原理实际上就是**查找目标对象的原型链**，查**找构造函数的原型对象**是否在**实例对象的原型链上**，如果在返回 true，如果不在返回 false
-- instanceof 不能用来判断基本数据类型
-
-```js
-let Dog = function () {}
-let tidy = new Dog()
-tidy instanceof Dog //true
-```
-
-- 手写原理：
-
-```js{2,8,12,16}
-function myInstance(L, R) {
-// 关键：L.__proto__ == R.prototype
-    // 1. L代表instanceof实例，R代表原型
-    let LP = L.__proto__; //实例对象的原型链上
-    let RP = R.prototype; // 构造函数的原型对象
-    while (true) {
-        // 2.如果找到最后一层为null都没找到
-        if (LP == null) {
-            return false;
-        }
-        // 3. 判断构造函数的原型对象是否在实例对象的原型链上
-        if (LP == RP) {
-            return true;
-        }
-        // 4. 逐层向上查找
-        LP = LP.__proto__;
-    }
-}
-console.log(myInstance({},Object));
-```
-
 ### （4）为什么 typeof null 是 Object?⚄
 
 > 因为在 JavaScript 中，不同的对象都是使用**二进制存储**的，如果**二进制前三位都是 0 的话，系统会判断为是 Object 类型**，而**null 的二进制全是 0**，自然也就判断为 Object，这个 bug 是初版本的 JavaScript 中留下的  
