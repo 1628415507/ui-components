@@ -12,5 +12,6 @@ export default [
   { text: 'TCP', link: '/blogs/network/tcp.md' },
   { text: '从浏览器输入 url 后都经历了什么', link: '/blogs/network/url.md' },
   { text: 'HTTP 和 HTTPS', link: '/blogs/network/https.md' },
-  { text: 'XSS 和 CSRF', link: '/blogs/network/xss&csrf.md' }
+  { text: 'XSS 和 CSRF', link: '/blogs/network/xss&csrf.md' },
+  { text: 'WebSocket', link: '/blogs/network/webSocket/webSocket.md' }
 ]
