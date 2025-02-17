@@ -12,7 +12,7 @@
   ```js
   window.addEventListener('hashchange', this.refresh, false)
   ```
-  ![alt text](hashchange.png)
+  ![alt text](./img/hashchange.png)
 - 下列 3 种情况改变 URL 都会触发 `hashchange` 事件
   - 通过浏览器前进后退触发`popstate`改变 URL;
   - 通过`<a>`标签改变 URL;
