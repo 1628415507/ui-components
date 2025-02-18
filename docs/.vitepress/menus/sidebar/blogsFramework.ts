@@ -9,12 +9,25 @@ export default [
     text: 'Vue',
     items: [
       { text: 'vue', link: '/blogs/framework/vue/index.md' },
+      {
+        text: 'API',
+        items: [
+          { text: 'vue 的生命周期', link: '/blogs/framework/vue/lifeCycle.md' },
+          { text: 'Vue组件之间的通信方式', link: '/blogs/framework/vue/emitOn.md' }
+        ]
+      },
+      { text: 'vue-router', link: '/blogs/framework/vue/router/router.md' },
       { text: 'vue3', link: '/blogs/framework/vue/vue3.md' },
-      { text: 'vue 的生命周期', link: '/blogs/framework/vue/lifeCycle.md' },
-      { text: 'Vue组件之间的通信方式', link: '/blogs/framework/vue/emitOn.md' },
       { text: 'MVC与MVVM模式的区别', link: '/blogs/framework/vue/mvvm.md' },
-      { text: 'vue 的双向绑定的原理', link: '/blogs/framework/vue/vModel/index.md' },
-      { text: '虚拟DOM与Diff算法分析', link: '/blogs/framework/vue/diff/index.md' }
+      {
+        text: 'Vue 原理',
+        items: [
+          { text: '浏览器原生路由实现', link: '/blogs/framework/vue/router/principle.md' },
+          { text: '虚拟DOM与Diff算法分析', link: '/blogs/framework/vue/diff/index.md' },
+          { text: 'vue 的双向绑定的原理', link: '/blogs/framework/vue/vModel/index.md' },
+          { text: '插槽的实现原理', link: '/blogs/framework/vue/slots/index.md' }
+        ]
+      }
     ]
   },
   { text: 'TypeScript入门', link: '/blogs/framework/typeScript/index.md' },
