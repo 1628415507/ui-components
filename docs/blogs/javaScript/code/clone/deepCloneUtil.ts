@@ -6,7 +6,7 @@ export function deepClone(obj: any, weakMap = new WeakMap()) {
   // 判断是否存在循环引用
   if (weakMap.has(obj)) {
     console.log('【 存在循环引用 】-13')
-    return weakMap.get(obj) //避免循环引用造成死循环
+    return weakMap.get(obj) //不进入后面的递归代码，避免循环引用造成死循环
   }
   //【1】. 判断值类型和引用类型：
   // 非对象、数组：typeof来判断对象和数组，因为这种类型都会返回object

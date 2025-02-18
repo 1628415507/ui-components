@@ -381,7 +381,6 @@ onErrorCaptured((error, vm, info) => {
 </script>
 ```
 
-
 ## 大文件上传
 
 ### 分片上传
@@ -606,6 +605,12 @@ channel.addEventListener('message', function (event) {
 
 ### Service Workers
 
+- ServiceWorker 是一个**运行在浏览器背后**的独立线程，它拥有**访问网络的能力**，可以实现资源缓存、消息推送、后台数据同步等功能.
+
+  - 资源缓存：它能拦截和缓存网络请求，提高加载速度和优化用户体验。
+  - 消息推送：即便在应用或浏览器未运行的情况下，Service Worker 也能接收后台推送通知。
+  - 后台数据同步：使用 Background Sync API, 它可以在后台同步数据，这在断网或网络不稳定时特别有用。
+
 - 利用 Service Workers，各个标签页可以通过 `clients.matchAll()` 方法找到所有其他客户端（如打开的标签页），然后使用 `postMessage` 发送消息。
 - Service Workers 可以通过 Focus 和 Navigate 事件来控制页面的焦点和导航等。
   详见`\tabMessage\ServiceWorker\tab1.html`和`\tabMessage\ServiceWorker\tab2.html`
@@ -704,216 +709,6 @@ window.addEventListener('message', function (event) {
   }
 })
 ```
-
-## 【使⽤浏览器原⽣ hash 或 history 路由来组织⻚⾯路由？】
-
-### 1. hash 模式
-
-- 详见`\router\hash模式.html`
-- 改变 URL 中的 hash 部分不会引起页面刷新
-- 通过 `hashchange` 事件监听 URL 的变化
-- 改变 URL 的方式只有 3 种，这几种情况改变 URL 都会触发 `hashchange` 事件
-  - 通过浏览器前进后退触发`popstate`改变 URL;
-  - 通过`<a>`标签改变 URL;
-  - 通过 `window.location` 改变 URL;
-
-```html{17,18,38,49,57}
-<body>
-  <main id="content"></main>
-  <nav id="nav">
-    <a href="#/">首页</a>
-    <a href="#/shop">tab1</a>
-    <a href="#/shopping-cart">tab2</a>
-    <a href="#/mine">tab3</a>
-  </nav>
-</body>
-<script>
-  class VueRouter {
-    constructor(routes = []) {
-      this.routes = routes // 路由映射
-      this.currentHash = '' // 当前的hash
-      this.refresh = this.refresh.bind(this)
-      // 监听页面加载load和hashchange事件
-      window.addEventListener('load', this.refresh, false)
-      window.addEventListener('hashchange', this.refresh, false)
-    }
-    // 获取路由
-    getUrlPath(url) {
-      const hash = url.indexOf('#') >= 0 ? url.slice(url.indexOf('#') + 1) : '/' // 获取hash
-      return hash
-    }
-    // hash路由切换时刷新页面
-    refresh(event) {
-      console.log('【 event 】-75', event)
-      // URL hash发生改变的时候，拿到当前的hash
-      let newHash = ''
-      let oldHash = null
-      if (event.newURL) {
-        oldHash = this.getUrlPath(event.oldURL || '') // 旧的路由
-        newHash = this.getUrlPath(event.newURL || '') // 新的路由
-      } else {
-        newHash = this.getUrlPath(window.location.hash)
-      }
-      this.currentHash = newHash
-      this.matchComponent() // 匹配路由对应的页面
-    }
-    // 切换页面组件
-    matchComponent() {
-      let curRoute = this.routes.find((route) => route.path === this.currentHash)
-      console.log('【 curRoute 】-91', curRoute)
-      if (!curRoute) {
-        // 当前URL中的hash不存在的时候，默认取第一个，当然真实场景下，可能会有各种情况，取决于业务逻辑
-        curRoute = this.routes.find((route) => route.path === '/')
-      }
-      const { component } = curRoute
-      document.querySelector('#content').innerHTML = component
-    }
-  }
-
-  const router = new VueRouter([
-    {
-      path: '/',
-      name: 'home',
-      component: '<div>首页内容</div>'
-    },
-    {
-      path: '/shop',
-      name: 'shop',
-      component: '<div>tab1内容</div>'
-    },
-    {
-      path: '/shopping-cart',
-      name: 'shopping-cart',
-      component: '<div>tab2内容</div>'
-    },
-    {
-      path: '/mine',
-      name: 'mine',
-      component: '<div>tab3内容</div>'
-    }
-  ])
-</script>
-```
-
-1. 使⽤ `history.pushState()` 和 `history.replaceState()` ⽅法来添加和修改浏览器历史条⽬。
-2. 侦听 `popstate` 事件来响应浏览器历史的变化。
-3. 根据当前的 URL 状态，⼿动渲染对应的 React 组件。
-
-### 2. history 模式
-
-- 详见`\router\history模式.html`
-- 通过浏览器`前进后退`改变 URL 时会触发 `popstate` 事件，
-- 通过`pushState/replaceState`或`<a>`标签改变 URL 不会触发 `popstate` 事件
-
-```html{16,17,18,20,34,40,43,48,73,78}
-<body>
-  <main id="content"></main>
-  <nav id="nav">
-    <button id="button1">button1</button>
-    <button id="button2">button2</button>
-    <button id="button3">button3</button>
-    <button id="button4">button4</button>
-  </nav>
-</body>
-<script>
-  class VueRouter {
-    constructor(routes = []) {
-      this.routes = routes // 路由映射
-      this.currentPath = '' // 当前的hash
-      this.refresh = this.refresh.bind(this)
-      history.pushState = this._wr('pushState')
-      history.replaceState = this._wr('replaceState')
-      this.addEventListener()
-      // 监听浏览器的前进后退改变
-      window.onpopstate = (event) => {
-        console.log('【  window.onpopstate 】-86', event, event.state)
-        this.refresh(event)
-      }
-    }
-    // 重写history.pushState和history.replaceState方法
-    _wr(type) {
-      let orig = history[type] //调用原来的history.pushState和history.replaceState方法
-      return function () {
-        let rv = orig.apply(this, arguments)
-        let e = new Event(type) //创建函数
-        e.arguments = arguments
-        // 调用 dispatchEvent() 是触发一个事件的最后一步。
-        // 被触发的事件应事先通过 Event() 构造函数创建并初始化完毕。
-        window.dispatchEvent(e)
-        return rv // 返回重写后的方法
-      }
-    }
-    // 添加事件监听
-    addEventListener() {
-      window.addEventListener('load', this.refresh, false)
-      this.routes.forEach((route) => {
-        const target = document.querySelector(route.target)
-        target.addEventListener('click', () => {
-          history.pushState({ state: 1 }, null, route.path)
-        })
-      })
-      // 监听路由变化
-      window.addEventListener('pushState', (e) => {
-        //监听pushState自定义事件，拿到上面通过pushState传入的参数，做出对应的页面渲染，
-        this.refresh(e)
-      })
-    }
-    // 获取路由
-    getUrlPath(args) {
-      const path = window.location.pathname
-      return path
-    }
-    // hash路由切换时刷新页面
-    refresh(event) {
-      console.log('【 window.location 】-112', window.location)
-      this.currentPath = this.getUrlPath()
-      this.matchComponent() // 匹配路由对应的页面
-    }
-    // 切换页面组件
-    matchComponent() {
-      let curRoute = this.routes.find((route) => route.path === this.currentPath)
-      if (!curRoute) {
-        // 当前URL中的hash不存在的时候，默认取第一个，当然真实场景下，可能会有各种情况，取决于业务逻辑
-        curRoute = this.routes.find((route) => route.path === '/')
-      }
-      const { component } = curRoute
-      console.log('【 curRoute 】-122', curRoute)
-      document.querySelector('#content').innerHTML = component
-    }
-  }
-  const router = new VueRouter([
-    {
-      target: '#button1',
-      path: '/',
-      name: 'home',
-      component: '<div>首页内容</div>'
-    },
-    {
-      target: '#button2',
-      path: '/shop',
-      name: 'shop',
-      component: '<div>tab1内容</div>'
-    },
-    {
-      target: '#button3',
-      path: '/shopping-cart',
-      name: 'shopping-cart',
-      component: '<div>tab2内容</div>'
-    },
-    {
-      target: '#button4',
-      path: '/mine',
-      name: 'mine',
-      component: '<div>tab3内容</div>'
-    }
-  ])
-</script>
-```
-
-- ServiceWorker 是一个**运行在浏览器背后**的独立线程，它拥有**访问网络的能力**，可以实现资源缓存、消息推送、后台数据同步等功能.
-  - 资源缓存：它能拦截和缓存网络请求，提高加载速度和优化用户体验。
-  - 消息推送：即便在应用或浏览器未运行的情况下，Service Worker 也能接收后台推送通知。
-  - 后台数据同步：使用 Background Sync API, 它可以在后台同步数据，这在断网或网络不稳定时特别有用。
 
 ## 如何禁⽌别⼈调试⾃⼰的前端⻚⾯代码?
 
