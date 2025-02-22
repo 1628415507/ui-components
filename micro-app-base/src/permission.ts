@@ -3,8 +3,8 @@
  * （在项目开发中每一次路由的切换或者页面的刷新都需要判断用户是否已经登录）
  * @Author: Hongzf
  * @Date: 2022-11-28 16:02:18
- * @LastEditors: Hongzf
- * @LastEditTime: 2022-12-02 16:38:02
+ * @LastEditors: Please set LastEditors
+ * @LastEditTime: 2025-02-22 14:34:30
  */
 import { NavigationGuardNext, RouteLocationNormalized, RouteRecordRaw } from 'vue-router'
 import router from '@/router'
@@ -19,7 +19,7 @@ router.beforeEach(
       next()
     } else {
       const hasToken = getToken()
-      // console.log('【 hasToken 】-18', hasToken)
+      console.log('【 hasToken 】-18', hasToken)
       // 判断是否登录
       if (hasToken) {
         const store = useStore()
