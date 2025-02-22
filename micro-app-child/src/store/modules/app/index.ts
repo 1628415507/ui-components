@@ -2,8 +2,8 @@
  * @Description: 系统相关的数据
  * @Author: Hongzf
  * @Date: 2022-11-21 18:51:07
- * @LastEditors: Hongzf
- * @LastEditTime: 2022-12-15 18:31:37
+ * @LastEditors: Please set LastEditors
+ * @LastEditTime: 2025-02-22 17:59:36
  */
 import { ActionTree, Module, MutationTree } from 'vuex'
 import { RouteRecordRaw } from 'vue-router'
@@ -68,8 +68,9 @@ const actions: ActionTree<AppState, RootState> = {
     let routes: any = []
     // 调取接口获取动态路由
     queryResource().then((res) => {
+      const menu = res.data
       // console.log('【 res 】-55', res)
-      routes = filterAsyncRoutes(res.data)
+      routes = filterAsyncRoutes(menu)
       console.log('【 routes2 】-58', routes)
       // debugger TODO
       // commit('SET_ROUTES', asyncRoutes)

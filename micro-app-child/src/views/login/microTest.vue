@@ -21,7 +21,7 @@ const getData = () => {
   console.log('【 window 】-23', window, window.__MICRO_APP_BASE_ROUTE__)
   // if (window.__MICRO_APP_BASE_ROUTE__) {
   // @ts-ignore
-  window.microApp.addDataListener((data: Object) => {
+  window?.microApp?.addDataListener((data: Object) => {
     parentData.value = data
     console.log('【 接收主应用的数据-parentData 】-27', parentData)
   }, true)

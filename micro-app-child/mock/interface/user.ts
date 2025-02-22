@@ -2,10 +2,10 @@
  * @Description:
  * @Author: Hongzf
  * @Date: 2022-12-01 18:21:33
- * @LastEditors: Hongzf
- * @LastEditTime: 2022-12-02 16:26:03
+ * @LastEditors: Please set LastEditors
+ * @LastEditTime: 2025-02-20 20:38:26
  */
-const menuData = [
+export const menuData = [
   // 首页
   {
     resourceUrl: '/home',
@@ -21,30 +21,30 @@ const menuData = [
     // ]
   },
   // demo
-  {
-    resourceUrl: '/demo',
-    redirect: '/router', // 重定向到第一个菜单
-    component: '',
-    resourceTitle: '测试 demo',
-    childrenResourceList: [
-      {
-        resourceUrl: '/router',
-        resourceTitle: '路由-demo',
-        component: '/demo/router-demo'
-      },
-      {
-        resourceUrl: '/store',
-        resourceTitle: 'Store-demo',
-        component: 'demo/store-demo'
-      },
-      {
-        resourceUrl: '/request',
-        name: 'Request',
-        resourceTitle: '请求-demo',
-        component: 'demo/http-demo'
-      }
-    ]
-  }
+  // {
+  //   resourceUrl: '/demo',
+  //   redirect: '/router', // 重定向到第一个菜单
+  //   component: '',
+  //   resourceTitle: '测试 demo',
+  //   childrenResourceList: [
+  //     {
+  //       resourceUrl: '/router',
+  //       resourceTitle: '路由-demo',
+  //       component: '/demo/router-demo'
+  //     },
+  //     {
+  //       resourceUrl: '/store',
+  //       resourceTitle: 'Store-demo',
+  //       component: 'demo/store-demo'
+  //     },
+  //     {
+  //       resourceUrl: '/request',
+  //       name: 'Request',
+  //       resourceTitle: '请求-demo',
+  //       component: 'demo/http-demo'
+  //     }
+  //   ]
+  // }
 ]
 
 const userInterface = [

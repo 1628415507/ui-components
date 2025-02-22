@@ -1,7 +1,7 @@
 /*
  * @Description: 插件
  * @Date: 2025-02-08 15:58:38
- * @LastEditTime: 2025-02-08 17:55:47
+ * @LastEditTime: 2025-02-22 18:01:07
  */
 import vue from '@vitejs/plugin-vue'
 // mock
@@ -24,6 +24,31 @@ export default function createVitePlugins(viteEnv, command) {
         }
       }
     }),
+    // // 自定义插件
+    // (function () {
+    //   let basePath = ''
+    //   return {
+    //     name: "vite:micro-app",
+    //     apply: 'build',
+    //     configResolved(config) {
+    //       basePath = `${config.base}${config.build.assetsDir}/`
+    //     },
+    //     writeBundle (options, bundle) {
+    //       for (const chunkName in bundle) {
+    //         if (Object.prototype.hasOwnProperty.call(bundle, chunkName)) {
+    //           const chunk = bundle[chunkName]
+    //           if (chunk.fileName && chunk.fileName.endsWith('.js')) {
+    //             chunk.code = chunk.code.replace(/(from|import\()(\s*['"])(\.\.?\/)/g, (all, $1, $2, $3) => {
+    //               return all.replace($3, new URL($3, basePath))
+    //             })
+    //             const fullPath = join(options.dir, chunk.fileName)
+    //             writeFileSync(fullPath, chunk.code)
+    //           }
+    //         }
+    //       }
+    //     },
+    //   }
+    // })(),
     // mock 数据的 dev环境
     viteMockServe({
       // supportTs: true, // 是否开启支持ts

@@ -1,8 +1,8 @@
 /*
  * @Author: Hongzf
  * @Date: 2022-11-17 16:00:08
- * @LastEditors: Hongzf
- * @LastEditTime: 2022-11-29 16:01:12
+ * @LastEditors: Please set LastEditors
+ * @LastEditTime: 2025-02-22 17:57:05
  * @Description:
  */
 import { createApp } from 'vue'
@@ -22,7 +22,7 @@ import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
 
 const app = createApp(App)
-app.use(ElementPlus).use(router).use(store).mount('#app')
+app.use(ElementPlus).use(router).use(store).mount('#microAppChildId')
 // 全局注册图标组件
 // for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
 //   app.component(key, component)
