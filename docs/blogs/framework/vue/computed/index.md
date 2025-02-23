@@ -70,18 +70,27 @@ function defineComputed(target, key) {//vm,key
 
 ## 4. 处理响应式 get(`createComputedGetter`)
 
-- 当用户取值时会触发 get(createComputedGetter)，拿到计算属性对应的 watcher，**看 dirty 是否为 true，如果为 true 则求值**
+```js
+computed: {
+  // newName求值时，会触发计算属性本身的getter，
+  // 求值中读到依赖的属性，所以还会触发依赖的属性的getter
+  newName(){
+    return this.manName + this.womanName;//this.manName 和 this.womanName的get也被触发
+  }
+}
+```
+
+- 当用户取值时会触发 get(createComputedGetter)，拿到计算属性对应的 watcher，**看 dirty 是否为 true，如果为 true 则求值(`evaluate`)**
   > - **通过`Object.defineProperty`定义属性方法时，this 指向的是被定义或修改的对象本身**，
   > - 所以 createComputedGetter 中的 this 指向被定义的对象 target(**即 vm**)，
   > - vm 在 initComputed 方法中定义了`_computedWatchers`
   > - 所以通过作用域，这里的 this 可以获取 vm 的`_computedWatchers`
-- 同时让计算属性 watcher 中依赖的属性收集最外层的渲染 watcher，可以做到依赖的属性变化了，触发计算属性更新 dirty 并且可以触发页面更新
-
-  > - 当 Computed 依赖的变量修改时，dirty 会变为 true
-
+- 求值时时需要读取依赖的属性的值，**读取时就会触发依赖的属性自己的 get(☆)**
+- 就可以让计算属性 watcher 中依赖的属性收集最外层的渲染 watcher，可以做到依赖的属性变化了，触发计算属性更新 dirty，并且可以触发页面更新
+  > - 当 Computed 依赖的变量修改时，dirty 会变为 true（？？）
 - 如果依赖的值没有发生变化，则采用缓存
 
-```js{4,8,9,12,13}
+```js{4,8,9,12,14}
 function createComputedGetter(key) {
   // 高阶函数、返回函数
   return function () {
@@ -90,11 +99,12 @@ function createComputedGetter(key) {
     if (watcher) {
       // 在实例化watcher时dirty默认为true，表示需要计算
       if (watcher.dirty) {
-        watcher.evaluate() // 进行计算属性的求值,求值后将dirty变为false
+        watcher.evaluate() // 进行计算属性的求值(☆求值时会触发依赖的属性的get),求值后将dirty变为false
       }
       // (类似逻辑详见blogs\framework\vue\vModel\test\js\observer.js和watcher.js)
       if (Dep.target) {
-        watcher.depend() // 收集当前watcher，这里是页面渲染触发的这个方法，所以为render-watcher
+        //Dep.target 指向当前的computed-watcher？？？，因为evaluate()中取值触发了get()，get中将Dep.target指向了computed-watcher中的this
+        watcher.depend() // ？？？收集当前watcher，这里是页面渲染触发的这个方法，所以为render-watcher
       }
       return watcher.value // 返回求到的值或之前缓存的值
     }
@@ -151,14 +161,25 @@ class Watcher {
 1. 计算属性会创建一个计算属性 watcher，这个 watcher(lazy:true)不会立刻执行
 2. 通过 object.defineProperty 将计算属性定义到实例上，变成响应式
 3. 当用户取值时会触发 getter，拿到计算属性对应的 watcher，看 dirty 是否为 true，如果为 true 则求值
-4. 并且让计算属性 watcher 中依赖的属性收集最外层的渲染 watcher，可以做到依赖的属性变化了，触发计算属性更新 dirty 并且可以触发页面更新
+4. 求值时时需要读取依赖的属性的值，读取时就会触发依赖的属性自己的 get，并且让计算属性 watcher 中依赖的属性收集最外层的渲染 watcher，可以做到依赖的属性变化了，触发计算属性更新 dirty 并且可以触发页面更新
 5. 如果依赖的值没有发生变化(dirty 为 `false`)，则采用缓存
 
 ## 示例
 
+### 示例 1
+
 ## ![alt text](image.png)
+
+### 示例 2
+
+![alt text](image-2.png)
+![alt text](image-1.png)
 
 > 参考链接
 >
 > - [原理级讲解视频](https://www.bilibili.com/video/BV1YM411w7Zc/?spm_id_from=333.788.videopod.episodes&vd_source=9d75580d0b23d1137d56e03a996ac726&p=12)
 > - [搞懂 computed 和 watch 原理](https://juejin.cn/post/6844903926819454983?searchId=20250221000806796EC6AB26DBF9D382A3#heading-6)
+
+## 疑问
+
+1. computed 是怎么更新渲染到页面上的？
