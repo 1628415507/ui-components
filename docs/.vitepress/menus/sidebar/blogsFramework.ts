@@ -27,7 +27,8 @@ export default [
           { text: 'vue 的双向绑定的原理', link: '/blogs/framework/vue/vModel/index.md' },
           { text: 'computed的实现原理', link: '/blogs/framework/vue/computed/index.md' },
           { text: '插槽的实现原理', link: '/blogs/framework/vue/slots/index.md' },
-          { text: 'nextTick的实现原理', link: '/blogs/framework/vue/nextTick/index.md' }
+          { text: 'nextTick的实现原理', link: '/blogs/framework/vue/nextTick/index.md' },
+          { text: 'keepAlive的实现原理', link: '/blogs/framework/vue/keepAlive/index.md' }
         ]
       }
     ]
