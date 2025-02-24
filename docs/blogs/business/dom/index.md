@@ -106,18 +106,7 @@ blogs/business/dom/lazyImage/intersectionObserver
 
 - 可以通过⾃定义监听器来实现懒加载时，要应该避免在滚动事件处理程序中频繁进⾏图⽚加载，因为这可能会影响性能。
 - 应在**滚动停⽌时**进⾏图⽚加载。
-- [前置知识点](https://blog.csdn.net/lph159/article/details/142134594)
-
-| 属性                                                                       | 说明                                                                                                                                                                        | 图解                                              |
-| -------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------- |
-| `scrollTop`                                                                | 元素顶部与文档顶部之间的距离，也就是滚动条<br/>**滚动的距离当滚动条位于容器底部时，以下条件成立`scrollTop + clientHeight  = scrollHeight;`**。                              | ![alt text](./lazyImage/img/scrollTop.png)        |
-| `window.innerHeight`                                                       | 浏览器窗口的内部高度(包括滚动条),会随着浏览器窗口的放大缩小变化                                                                                                             |                                                   |
-| `clientHeight`                                                             | 获取屏幕可视区域的高度，包含元素的高度+内边距;<br/>**不包含**水平滚动条，边框和外边距                                                                                       | ![clientHeight](./lazyImage/img/clientHeight.png) |
-| `clientWidth`                                                              | 获取屏幕可视区域的宽度。该属性包括内边距 padding；<br/>**不包括**边框 border、外边距 margin 和垂直滚动条（如果有的话）。                                                    |                                                   |
-| `offsetHeight`                                                             | 元素的 offsetHeight 是一种元素 CSS 高度的衡量标准，<br/>**包括**元素的**边框+内边距+元素的水平滚动条**（如果存在且渲染的话）                                                | ![offsetHeight](./lazyImage/img/offsetHeight.png) |
-| [`offsetTop`](https://blog.csdn.net/qq_42816270/article/details/138028929) | 表示元素顶部到其 `offsetParent` 元素内边框的距离，而 offsetParent 是**最近的定位父元素**或最近的 table、td、th、body 元素。当元素没有定位父元素时，offsetParent 默认为 body | ![offsetTop](./lazyImage/img/offsetTop.png)       |
-| 判断元素是否进入父元素视口                                                 | `offsetTop < window.innerHeight + scrollTop`                                                                                                                                | ![alt text](./lazyImage/img/image.png)            |
-| `clientX/clientY `                                                         | 鼠标相对于浏览器文档显示区的水平 X 坐标,不包括工具栏和滚动条                                                                                                                |                                                   |
+  |
 
 详见`lazyImage/scrollListener.html`
 

@@ -1,3 +1,12 @@
+## 封装思路
+
+- 设置接口请求前缀:根据开发、测试、生产环境的不同，前缀需要加以区分
+- 请求头: 设置请求必须携带一些参数才可以请求(例如:会员业务
+- 状态码:根据接口返回的不同 status 来执行不同的操作
+- 请求方法:根据 get、post 等方法进行一个再次封装，使用起来更为方便
+- 请求拦截器:根据请求的请求头设定，来决定哪些请求可以访问
+- 响应拦截器: 这块就是根据后端返回来的状态码判定执行不同业务
+
 ## axios 请求超时⾃动重新请求
 
 <!-- - 详见`docs\examples\blogs\business\fetchWithRetries.ts`
@@ -58,12 +67,13 @@ request.interceptors.response.use(
 - 一个 token/signal 可以取消多个请求，一个请求也可同时使用 token/signal；
 
 ### [(1)使用 AbortController](https://blog.csdn.net/yxlyttyxlytt/article/details/139914500)
+
 #### 单独使用
+
 - 支持 Fetch API 的 AbortController 取消请求；
   :::
   blogs/business/axios/cancelToken/abortController
   :::
-
 
 ```js{2,3,6}
 function hanldleAbortController() {
@@ -74,8 +84,11 @@ function hanldleAbortController() {
   controller.abort(); // 不支持 message 参数
 }
 ```
+
 #### 全局配置
+
 调试时可将`docs\examples\blogs\business\cancelToken\abortController-request.js`替换`src\utils\request.js`
+
 ```js{16,17,18,29,35,48,51,53,54,60,63,79}
 import axios from 'axios'
 
@@ -297,3 +310,21 @@ function generateReqKey(config) {
 }
 
 ```
+
+## axios 是如何区分是 nodejs 环境还是 浏览器环境 的？
+
+- Axios 是⼀个跨平台的 HTTP 客⼾端库，可以在浏览器和 Node.js 中使⽤。Axios 通过判断当前环境来
+  确定是在浏览器还是在 Node.js 环境中运⾏。
+- 在浏览器环境中，Axios 默认会使⽤浏览器提供的 `XMLHttpRequest` 对象来发送 HTTP 请求。
+- 在 Node.js 环境中，Axios 会检查是否存在 `process` 全局对象，以及 process 对象中是否存在`nextTick` ⽅法。**如果存在以上两个条件，Axios 就默认在 Node.js 环境中运⾏**，并使⽤ Node.js 内置的 http 模块发送 HTTP 请求。
+- 如果需要明确指定运⾏环境，可以使⽤ `axios.defaults.adapter` 属性来设置适配器（adapter），以便在需要时⼿动选择使⽤ XMLHttpRequest 或 Node.js 内置的 http 模块。
+- 例如，在 Node.js 环境中可以这样设置适配器：
+
+```js
+const axios = require('axios')
+const httpAdapter = require('axios/lib/adapters/http')
+axios.defaults.adapter = httpAdapter
+```
+
+- 通过上述⽅式，Axios 可以根据环境⾃动选择适当的底层实现来发送 HTTP 请求，使其在不同的环境中
+  都能正常⼯作。

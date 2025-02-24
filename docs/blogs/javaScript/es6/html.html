@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>es6</title>
+</head>
+
+<body>
+    <div id="app">
+    </div>
+    <script>
+        var a // 变量申明没赋值,会被函数申明覆盖
+        // a = 1 // 赋值则不会被覆盖
+        function a() {// 变量申明函数申明
+            return true
+        }
+        var a = () => { }
+        console.log('【 a 】-31', a,)
+    </script>
+</body>
+
+</html>

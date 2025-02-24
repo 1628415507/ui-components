@@ -10,12 +10,9 @@
 <style lang="scss" scoped>
 .triangle:after {
   content: ' ';
-  $num:20px;
-  width: 0px;
-  height: 0px;
-  border-right: $num solid transparent;
-  border-top: $num solid var(--theme-color);
-  border-left: $num solid transparent;
-  border-bottom: $num solid transparent;
+  width: 0px; // 宽高均为零
+  height: 0px; // 宽高均为零
+  border: 20px solid transparent; // 三面边框皆透明
+  border-top: 20px solid var(--theme-color); // 三角形的那头有颜色
 }
 </style>

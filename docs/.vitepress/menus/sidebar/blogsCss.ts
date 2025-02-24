@@ -4,7 +4,7 @@
  * @LastEditTime: 2024-10-31 09:40:59
  */
 export default [
-  { text: '汇总', link: '/blogs/css/index.md' },
+  { text: '引言', link: '/blogs/css/index.md' },
   { text: 'TODO', link: '/blogs/css/todo.md' },
   {
     text: 'HTML',
@@ -14,12 +14,13 @@ export default [
     ]
   },
   {
-    text: 'CSS原理',
-    items: [{ text: 'BFC', link: '/blogs/css/bfc/index.md' }]
-  },
-  {
-    text: 'CSS API',
-    items: [{ text: 'API', link: '/blogs/css/api/index.md' }]
+    text: 'CSS',
+    items: [
+      { text: 'BFC', link: '/blogs/css/bfc/index.md' },
+      { text: 'CSS API', link: '/blogs/css/api/index.md' },
+      { text: 'CSS布局', link: '/blogs/css/layout/index.md' },
+      { text: '回流和重绘', link: '/blogs/css/layoutPainting.md' }
+    ]
   },
   {
     text: 'CSS 应用',

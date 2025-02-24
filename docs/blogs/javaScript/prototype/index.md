@@ -1,8 +1,9 @@
 <!--
- * @Description: 
+ * @Description:
  * @Date: 2024-10-11 18:10:58
  * @LastEditTime: 2024-10-31 16:36:12
 -->
+
 # [原型](https://juejin.cn/post/7105588080991535111/)
 
 > 构造函数，是一种特殊的方法。主要用来在创建对象时**初始化对象**， 即为对象成员变量赋初始值，总与 new 运算符一起使用在创建对象的语句中。
@@ -16,14 +17,14 @@
 - 所有的**对象数据类型**（class），都天生自带一个`proto`属性，该属性的属性值指向**当前实例所属类的原型**，`__.proto.__是存在于实例和函数的原型对象关系`
 - 每个构造函数 C 刚被制造出来的时候，它的 c.prototype 上面都会有一个 constructor 属性，并且执行它本身，即`c.prototype.constructor === c`; -->
 
-## 2. 如何理解原型和原型链的？※
+## 1. 如何理解原型和原型链的？※
 
 ### （一）原型
 
-- 原型：`实例共享的属性和方法组成的对象(prototype)`
+- 原型：**实例**共享的属性和方法组成的对象(prototype)
 - 原型分为**隐式原型和显式原型**，每个对象都有一个隐式原型`__proto__`，它指向**自己的构造函数的显式原型**`prototype`
-- 每一个实例的`__proto__ `存储这个「共用属性组成的对象」的地址,即`prototype`。
-- 所有的 `prototype` 的`__proto__`最终指向的是 Object()的 prototype，Object 的隐式原型是 `null`
+- 每一个实例的`__proto__ `存储这个「共用属性组成的对象」的地址，即`prototype`。
+- 所有的 `prototype` 的`__proto__`最终指向的是 Object 的 prototype `Object 的 prototype`，Object 的隐式原型是 `null`
 - 原型出现的目的：为了**减少不必要的内存消耗**。
   ![原型链1](./img/prototype0.png)
 
@@ -35,7 +36,6 @@
 - 所有的 prototype 都是对象，自然它的`__proto__`最终指向的是 Object()的 prototype
 - **所有的构造函数的隐式原型指向的都是`Function()`的显示原型**
 - Object 的隐式原型是 null -->
-
 
 ### （二）原型链
 
@@ -49,16 +49,52 @@
   ![原型链2](./img/prototype2.png)
   ![原型链3](./img/prototype3.png)
 
-### 原型关系
+### （三）原型关系
 
 - 每个 构造函数 都有显示原型 `prototype`
 - 每个实例都有隐式原型`_proto_`
 - 实例的`_proto_`指向对应 构造函数 的 `prototype`
 
-### 2. 构造函数、原型和实例的关系
+## 2. 构造函数、原型和实例的关系
 
-- 每个构造函数都有一个原型对象（prototype），
-- 原型有一个属性（constructor）指回构造函数，
-- 而实例有一个内部指针（**proto**）指向原型。
+- 每个构造函数都有一个原型对象（`prototype`），
+- 原型有一个属性（`constructor`）指回构造函数，
+- 而实例有一个内部指针（`proto`）指向原型。
 
- ![原型链3](./img/prototype5.png)
+![原型链3](./img/prototype5.png)
+
+## 3. instanceof 作用与原理
+
+- 作用：instanceof 是用来**判断一个实例是否属于某个类型**。
+- 原理：instanceof 原理实际上就是**查找目标对象的原型链**，查**找构造函数的原型对象**是否在**实例对象的原型链上**，如果在返回 true，如果不在返回 false
+- instanceof 不能用来判断基本数据类型
+
+```js
+let Dog = function () {}
+let tidy = new Dog()
+tidy instanceof Dog //true
+```
+
+- 手写原理：
+
+```js{2,8,12,16}
+function myInstance(L, R) {
+// 关键：L.__proto__ == R.prototype
+    // 1. L代表instanceof实例，R代表原型
+    let LP = L.__proto__; //实例对象的原型链上
+    let RP = R.prototype; // 构造函数的原型对象
+    while (true) {
+        // 2.如果找到最后一层为null都没找到
+        if (LP == null) {
+            return false;
+        }
+        // 3. 判断构造函数的原型对象是否在实例对象的原型链上
+        if (LP == RP) {
+            return true;
+        }
+        // 4. 逐层向上查找
+        LP = LP.__proto__;
+    }
+}
+console.log(myInstance({},Object));
+```

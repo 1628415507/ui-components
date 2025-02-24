@@ -9,6 +9,7 @@ import menus from './menus/index' // 菜单
 
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
+  ignoreDeadLinks: true, //引用本地路径打包报错忽略
   base: '/ui-components/', //基本路径
   title: 'UI-COMPONENTS',
   description: '组件库文档',
