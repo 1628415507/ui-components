@@ -2,6 +2,8 @@
 
 - keep-alive 是 vue 中的内置组件，能在组件切换过程中将状态保留在内存中，防止重复渲染 DOM
 - keep-alive 包裹动态组件时，会缓存不活动的组件实例，而不是销毁它们
+- keep-alive keep-alive 有一个最大缓存限制，使用的是 LRU 算法
+  > LRU(Least Recently Used)算法:（最久未使用法，使用了就放到最上边，先删最下边）
 
 ## 【基本用法】
 
@@ -28,9 +30,15 @@
 - 首次进入组件时:`beforeRouteEnter`>`beforeCreate` >`created`> `mounted` > **`activated`** >..>`beforeRouteLeave` >**`deactivated`**
 - 再次进入组件时:`beforeRouteEnter`>**`activated`**>..>`beforeRouteLeave`>**`deactivated`**
 
+### 3. 使用作用场景
+
+- 如 tabs 标签页 后台导航，vue 性能优化
+- router-view 也是一个组件,如果直接被**包在 keep-alive 里面**,所有路径匹配到的视图组件都会被缓存
+
 ## 【源码解析】
 
 - 该组件没有 template，而是用了`render`，**在组件渲染的时候会自动执行 render 函数**
+- 它将满足条件（pruneCache 与 pruneCache）的组件在 cache 对象中缓存起来，在需要重新渲染的时候再将 vnode 节点从 cache 对象中取出并渲染
 - this.cache 是一个对象，用来存储需要缓存的组件，它将以如下形式存储:
 
 ```js

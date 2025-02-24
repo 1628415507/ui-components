@@ -13,10 +13,10 @@ export default [
         text: 'API',
         items: [
           { text: 'vue 的生命周期', link: '/blogs/framework/vue/lifeCycle.md' },
-          { text: 'Vue组件之间的通信方式', link: '/blogs/framework/vue/emitOn.md' }
+          { text: 'Vue组件之间的通信方式', link: '/blogs/framework/vue/emitOn.md' },
+          { text: 'vue-router', link: '/blogs/framework/vue/router/router.md' }
         ]
       },
-      { text: 'vue-router', link: '/blogs/framework/vue/router/router.md' },
       { text: 'vue3', link: '/blogs/framework/vue/vue3.md' },
       { text: 'MVC与MVVM模式的区别', link: '/blogs/framework/vue/mvvm.md' },
       {

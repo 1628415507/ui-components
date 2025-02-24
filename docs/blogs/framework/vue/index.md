@@ -156,32 +156,3 @@ function render() {
 ### 键盘修饰符
 
 ![alt text](image-12.png)
-
-## 【Vue 中的$nextTick 有什么作用?】
-
-![alt text](image-13.png)
-
-- nextTick 参数相关的有两个
-  - 第一个参数为:回调函数(可以获取最近的 DOM 结构)
-  - 第二个参数为:执行函数上下文（`textContent`）
-
-```js{2,4}
-this.message = ' '
-console.log(this.$el.textContent) // => '原始的值 '
-this.$nextTick(function () {
-  console.log(this.$el.textContent) // => '修改后的值'
-})
-```
-
-### 原理
-
-- 可以理解成，Vue 在更新 DOM 时是**异步执行**的。当数据发生变化，Vue 将开启一个异步更新队列，视图需要**等队列中所有数据变化完成之后，再统一进行更新**
-  ![alt text](image-15.png)
-  ![alt text](image-16.png)
-  ![alt text](image-17.png)
-  ![alt text](image-18.png)
-  ![alt text](image-19.png)
-- 小结:
-  1. 把回调函数放入 `callbacks` 等待执行
-  2. 将执行函数放到**微任务或者宏任务**中
-  3. 事件循环到了微任务或者宏任务，**执行函数依次执行 callbacks 中的回调**
