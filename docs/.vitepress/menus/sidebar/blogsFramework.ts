@@ -23,6 +23,7 @@ export default [
         text: 'Vue 原理',
         items: [
           { text: '浏览器原生路由实现', link: '/blogs/framework/vue/router/principle.md' },
+          { text: 'vue的三种watcher', link: '/blogs/framework/vue/watcher.md' },
           { text: '虚拟DOM与Diff算法', link: '/blogs/framework/vue/diff/index.md' },
           { text: 'vue 的双向绑定的原理', link: '/blogs/framework/vue/vModel/index.md' },
           { text: 'computed的实现原理', link: '/blogs/framework/vue/computed/index.md' },

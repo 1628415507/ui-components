@@ -29,6 +29,7 @@ function initState(vm) {
 ## 2. 创建计算属性监听(`initComputed`)
 
 - 计算属性会创建一个计算属性监听`computed-watcher`，这个 `watcher(lazy:true)`不会立刻执行
+- 在 `initComputed` 中，首先定义了一个空的 watchers 对象来存储所有的计算属性对应的 watcher；接着遍历组件中定义的计算属性，且对其添加 watcher 进行监听（调用 defineComputed 添加 `get` 和 `set`）
 
 ```js{2,4,5,8}
 function initComputed(vm, computed) {
