@@ -1,3 +1,11 @@
+## cavans API
+
+- context.beginPath(); // 开始路径
+- context.moveTo(10, 10); // 移动画笔
+- context.lineTo(100, 100); // 绘画出一条直线
+- context.closePath(); // 闭合路径
+- context.stroke(); // 进行勾勒
+
 ## 【使⽤ canvas 实现电影院选票功能】
 
 - `canvas.getContext('2d')`：

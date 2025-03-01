@@ -20,6 +20,7 @@ export default [
       { text: '同源策略与跨域请求', link: '/blogs/network/cors.md' },
       { text: '浏览器数据存储', link: '/blogs/network/storage.md' },
       { text: '浏览器缓存机制', link: '/blogs/network/cache.md' },
+      { text: '浏览器的渲染过程', link: '/blogs/network/layoutPainting/layoutPainting.md' },
       { text: '从浏览器输入 url 后都经历了什么', link: '/blogs/network/url.md' }
     ]
   },
