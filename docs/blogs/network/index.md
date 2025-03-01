@@ -4,7 +4,7 @@
  * @LastEditTime: 2024-11-05 13:46:53
 -->
 
-## 【DNS 协议了解多少】
+## DNS 协议了解多少
 
 ### DNS 基本概念
 
@@ -37,3 +37,87 @@
 5. **使⽤ CDN**：CDN（内容分发⽹络）是⼀种将内容存储在全球多个位置的系统。这些位置通常都有专⽤的 DNS 服务器，可以⼤⼤加快站点的加载速度。
 
 通过使⽤**⾼速 DNS 服务器、缓存 DNS 记录、减少 DNS 查找、使⽤ CDN 和 DNS 缓存⼯具**等⽅法，可以显著提⾼ DNS 解析速度，从⽽加快应⽤程序响应时间。
+
+## [对称加密和非对称加密](https://juejin.cn/post/7428612258726674467?searchId=20250301192434C83AEEC06D352FBE1D12)
+
+前端数据加密主要基于以下两种加密方式：
+||对称加密|非对称加密|
+|---|---|----|
+|概念|使用**相同的密钥**进行加密和解密| 使用一对密钥，**公钥用于加密，私钥用于解密**|
+|优点|加密和解密**速度快**，适合大量数据的加密|安全性高，无需传输密钥|
+|缺点|密钥管理困难，需要传输密钥|加密和解密速度慢，适合少量数据的加密|
+|常见算法|`AES` (Advanced Encryption Standard)|`RSA` (Rivest-Shamir-Adleman)|
+
+### 前端数据加密的常见方法和技术
+
+| 方法                                            | 优点                           | 缺点                                        |
+| ----------------------------------------------- | ------------------------------ | ------------------------------------------- |
+| 使用 JavaScript 库，<br/>如 `CryptoJS`, `Forge` | 易用性高、功能强大             | 加密强度受限、性能开销较大、<br/>兼容性问题 |
+| 使用 Web Crypto API                             | 安全性高、性能较好、兼容性较好 | 学习成本较高、功能相对简单                  |
+| 使用 HTTPS 协议                                 | 安全性高、部署简单、兼容性好   | 无法加密所有数据、性能开销较大              |
+
+### CryptoJS 加密示例
+
+- 安装 CryptoJS:
+  `npm install crypto-js`
+
+#### AES 对称加密示例
+
+优点:
+
+- 安全性高: AES 算法是目前最安全的对称加密算法之一，广泛应用于数据加密领域。
+- 加密强度高: AES 算法支持 128 位、192 位和 256 位密钥长度，加密强度高。
+- 计算速度快: AES 算法的计算速度较快，适合用于大量数据的加密。
+
+缺点:
+
+- 密钥管理复杂: 对称加密算法需要安全地管理密钥，防止密钥泄露。
+- 无法验证数据来源: 对称加密算法无法验证数据来源的真实性。
+
+```js{5,6,13,18}
+// 引入 CryptoJS
+import CryptoJS from 'crypto-js'
+
+// 定义密钥和明文数据
+const key = CryptoJS.enc.Utf8.parse('1234567890abcdef') // 密钥长度必须为 16、24 或 32 字节
+const AESConfig={
+  mode: CryptoJS.mode.ECB, // 加密模式
+  padding: CryptoJS.pad.Pkcs7 // 填充方式
+}
+const plaintext = 'Hello, World!'
+// ------------------------------ 加密 ------------------------------
+// 加密:用定义好的KEY对将文本内容进行加密
+const encrypted = CryptoJS.AES.encrypt(plaintext, key, AESConfig)
+
+console.log('密文:', encrypted.toString())// 输出密文
+// ------------------------------ 解密 ------------------------------
+// 解密：用定义好的KEY对加密过的文本内容进行解密
+const decrypted = CryptoJS.AES.decrypt(encrypted, key,AESConfig)
+
+// 输出明文
+console.log('明文:', decrypted.toString(CryptoJS.enc.Utf8))
+```
+
+#### RSA 非对称加密示例
+
+```js{4,10,16}
+import CryptoJS from 'crypto-js' // 引入 CryptoJS
+
+// 生成 RSA 密钥对
+const { privateKey, publicKey } = CryptoJS.RSA.generateKeyPair(2048)
+
+// 定义明文数据
+const plaintext = 'Hello, World!'
+
+// 公钥加密
+const encrypted = CryptoJS.RSA.encrypt(plaintext, publicKey)
+
+// 输出密文
+console.log('密文:', encrypted.toString())
+
+// 私钥解密
+const decrypted = CryptoJS.RSA.decrypt(encrypted, privateKey)
+
+// 输出明文
+console.log('明文:', decrypted.toString(CryptoJS.enc.Utf8))
+```
