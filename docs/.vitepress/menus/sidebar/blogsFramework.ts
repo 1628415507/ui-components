@@ -41,13 +41,15 @@ export default [
     items: [
       { text: 'Cli相关', link: '/blogs/framework/cli/index.md' },
       { text: 'Webpack的基础配置', link: '/blogs/framework/cli/base.md' },
-      { text: 'Webpack', link: '/blogs/framework/cli/webpack.md' },
-      { text: 'Webpack性能优化', link: '/blogs/framework/cli/performance.md' }
+      { text: 'Webpack', link: '/blogs/framework/cli/webpack.md' }
     ]
   },
   {
     text: '性能优化',
-    items: [{ text: '图片优化', link: '/blogs/framework/performance/img.md' }]
+    items: [
+      { text: 'Webpack性能优化', link: '/blogs/framework/performance/webpack.md' },
+      { text: '图片优化', link: '/blogs/framework/performance/img.md' }
+    ]
   },
   {
     text: '小程序',

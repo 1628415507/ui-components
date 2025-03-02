@@ -8,7 +8,7 @@
 
 ## 图⽚压缩
 
-webpack 对图⽚进⾏压缩，可以使⽤`file-loader`和`image-webpack-loader`
+webpack 对图⽚进⾏压缩，可以使⽤[`file-loader`和`image-webpack-loader`](/blogs/framework/performance/webpack.html#_10-%E5%8E%8B%E7%BC%A9%E5%9B%BE%E7%89%87-image-webpack-loader)
 
 ## 雪碧图（CSS Sprites）
 
@@ -99,7 +99,7 @@ blogs/framework/performance/lazyImage/intersectionObserver
 - 核心思想：通过 src 加载一张本地的默认图片，然后通过 data-url 引入真实的地址。当图片进入视口以后，使用 data-url 的图片地址，替换 src 的图片地址。实现图片只有进入视口时才加载的效果。
 - 可以通过⾃定义监听器来实现懒加载时，要应该避免在滚动事件处理程序中频繁进⾏图⽚加载，因为这可能会影响性能。
 - 应在**滚动停⽌时**进⾏图⽚加载。
-  ![alt text](image.png)
+  ![alt text](./img/image.png)
 
 详见`lazyImage/scrollListener.html`
 
