@@ -1,9 +1,9 @@
 <template>
   <!-- 可视区域的容器 -->
   <div ref="listRef" class="infinite-list-container" @scroll="scrollEvent($event)">
-    <!-- 容器内的占位，高度为总列表高度，用于形成滚动条 -->
+    <!-- 【容器内的占位，高度为总列表高度，用于形成滚动条】 -->
     <div class="infinite-list-phantom" :style="{ height: listHeight + 'px' }"></div>
-    <!-- 列表项的渲染区域 -->
+    <!-- 【列表项的渲染区域】 -->
     <div class="infinite-list" :style="{ transform: getTransform }">
       <div
         ref="itemsRef"
@@ -26,7 +26,7 @@ export default {
     //   type: Array,
     //   default: () => []
     // },
-    // //每项高度
+    // 【每项高度】
     itemSize: {
       type: Number,
       default: 30
@@ -44,20 +44,20 @@ export default {
     }
   },
   computed: {
-    //列表总高度
+    // 【列表总高度=数据总数*每项的高度】
     listHeight() {
       return this.listData.length * this.itemSize
     },
-    //可显示的列表项数
+    // 【可显示的列表项数=屏幕高度/每项的高度】
     visibleCount() {
-      return Math.ceil(this.screenHeight / this.itemSize)
+      return Math.ceil(this.screenHeight / this.itemSize) // Math.ceil对一个数进行上舍入,返回值大于或等于给定的参数
     },
-    //偏移量对应的style
+    // 偏移量对应的style
     getTransform() {
       // transform: translate3d(x, y, z);
-      return `translate3d(0,${this.startOffset}px,0)`// 向上平移的距离
+      return `translate3d(0,${this.startOffset}px,0)` // 【向上平移的距离】
     },
-    //获取真实显示列表数据
+    // 获取真实显示列表数据：截取开始索引到结束索引之间的数据
     visibleData() {
       return this.listData.slice(this.start, Math.min(this.end, this.listData.length))
     }
@@ -78,12 +78,15 @@ export default {
     scrollEvent() {
       //当前滚动位置
       let scrollTop = this.$refs.listRef.scrollTop //滚动条滚动的距离
-      //此时的开始索引
+      console.log('【 scrollTop 】-81', scrollTop)
+      //此时的开始索引=滚动条已经滚动的高度/数据项的高度
       this.start = Math.floor(scrollTop / this.itemSize)
-      //此时的结束索引
+      //此时的结束索引=开始索引+列表可显示数量
       this.end = this.start + this.visibleCount
-      //此时的偏移量
-      this.startOffset = scrollTop - (scrollTop % this.itemSize)
+      //此时的偏移量=滚动的高度-滚动的高度%每项的高度
+      this.startOffset = scrollTop - (scrollTop % this.itemSize) //
+      // 直接写成this.startOffset = scrollTop就没有滚动上去的动画效果????
+      console.log('【 scrollTop % this.itemSize 】-88', scrollTop % this.itemSize)
       console.log('【 this.end 】-89', scrollTop, this.end, this.startOffset)
     }
   }
