@@ -47,11 +47,15 @@ export default [
   {
     text: '性能优化',
     items: [
+      { text: '汇总', link: '/blogs/framework/performance/index.md' },
       { text: 'Webpack性能优化', link: '/blogs/framework/performance/webpack.md' },
       { text: '图片优化', link: '/blogs/framework/performance/img.md' },
       {
         text: '场景应用',
-        items: [{ text: '虚拟滚动', link: '/blogs/framework/performance/virtualScroll/virtualScroll.md' }]
+        items: [
+          { text: '埋点监控', link: '/blogs/framework/performance/monitor.md' },
+          { text: '虚拟滚动', link: '/blogs/framework/performance/virtualScroll/virtualScroll.md' }
+        ]
       }
     ]
   },

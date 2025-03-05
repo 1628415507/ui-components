@@ -1,7 +1,7 @@
 class StatisticSDK {
   constructor(productID, baseURL) {
     console.log('【 StatisticSDK-初始化 】-3', productID, baseURL)
-    this.productID = productID
+    this.productID = productID // 项目id
     this.baseURL = baseURL
     this.performanceURL = '/sdk-performance' //接口路径 'http://performance/'
     this.errorURL = '/sdk-error'
@@ -12,12 +12,14 @@ class StatisticSDK {
   }
   // 1.数据发送:使⽤navigator.sendBeacon 来发送请求
   send(query = {}, url) {
-    console.log('【 StatisticSDK-数据发送 】-9', query)
-    query.productID = this.productID
+    console.log('【 send 】-9', query.event, query)
+    // 组装发送的参数
     let data = new URLSearchParams()
+    data.append('productID', this.productID)//项目id
     for (const [key, value] of Object.entries(query)) {
       data.append(key, value)
     }
+    // 发送数据
     navigator.sendBeacon(url || this.baseURL, data)
   }
   // 2.⽤⼾⾏为与⽇志上报
@@ -36,11 +38,12 @@ class StatisticSDK {
     // DOM加载完成：DCL(DOMContentEventLoad)
     // const dcl = domContentLoadedEventEnd-navigationStart
     // 图片、样式等外链资源加载完成：L(Load)=loadEventEnd-navigationStart
-    console.log('【 initPerformance 】-27', performance.timing)
+    console.log('【 initPerformance 】-27', performance, performance.timing)
     this.send({ event: 'performance', performanceTiming: JSON.stringify(performance.timing) }, this.performanceURL)
   }
   // 4.错误上报
   error(err, errInfo = {}) {
+    console.log('【 err, errInfo 】-46', err, errInfo)
     const { message, stack } = err
     this.send(
       {
