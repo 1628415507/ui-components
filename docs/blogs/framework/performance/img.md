@@ -136,7 +136,7 @@ document.addEventListener("scroll",
 <div>
   <picture>
     <source media="(min-width: 1200px)" srcset="./img/large-image.png" />
-    <source media="(min-width: 768px)" srcset="./img/getBoundingClientRect.png" />
+    <source media="(min-width: 768px)" srcset="./img/768px.png" />
     <img src="./img/normal-image.png" alt="Fallback Image" />
   </picture>
 </div>

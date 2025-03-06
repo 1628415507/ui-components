@@ -172,8 +172,6 @@ tabs 标签页 后台导航，vue 性能优化
 
 - keep-alive 可以实现组件缓存，当组件切换时不会对当前组件进行卸载。
 - 常用的两个属性 `include/exclude`，允许组件**有条件的进行缓存。**
-  ![alt text](./img/keepAlive.png)
-  ![alt text](./img/keepAlive2.png)
 
 ### 5. 两个生命周期
 
