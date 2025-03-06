@@ -1,15 +1,3 @@
-/*
- * @Description:
- * @Date: 2024-11-14 15:36:48
- * @LastEditTime: 2024-11-14 15:42:54
- */
-fetch('http://example.com/api/data', {
-  credentials: 'include'
+import(/* webpackChunkName: "runtime" */ './path/to/runtime').then((runtime) => {
+  // 运⾏时 chunk 加载完成后的逻辑
 })
-  .then((response) => response.text())
-  .then((data) => {
-    console.log(data)
-  })
-  .catch((error) => {
-    console.error('Error:', error)
-  })
