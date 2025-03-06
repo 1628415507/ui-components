@@ -38,11 +38,11 @@ const install: any = (app: App, params?: any) => {
   app.config.globalProperties.globalParams = params
   // window['globalParams'] = params || { value: 'globalParams' }
   // console.log('【  app.config 】-30', app.config)
-  installComponents(app)//全局注册组件
+  installComponents(app) //全局注册组件
   // 渲染错误处理
   app.config.errorHandler = (error, vm, info) => {
     console.error('【 全局-组件渲染报错处理 】-116', error, vm, info)
-  })
+  }
   directive(app)
 }
 export default { install }
