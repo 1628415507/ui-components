@@ -1,6 +1,6 @@
 // 覆盖主题颜色
 :root {
-  --vp-c-indigo-1: #42b983;
+  --vp-c-indigo-1: var(--theme-color);
   // --vp-c-indigo-1: #da5583
 }
 
@@ -33,7 +33,9 @@
   h4{
     font-size: 18px;
   }
-
+  h5{
+    margin:16px 0 16px 0;
+  }
   // 表格样式调整
   th,
   td {

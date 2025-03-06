@@ -51,7 +51,7 @@ console.log(data.name) // 获取数据的时候会触发get  张三
 data.name = '李四' // 赋值的时候会触发set
 ```
 
-这样就是可以实现数据的获取和赋值的监听
+这样就可以实现数据的获取和赋值的监听
 
 ## 【发布者-订阅者模式】 ⚄
 
@@ -190,7 +190,7 @@ Dep.target = null
   ![alt text](./img/image-1.png)
   ![alt text](./img/Compile.png)
 
-```js{28,31,33,39,55,64,65}
+```js{10,11,12,28,31,33,39,55,64,65}
 // 解析el中的所有'{{}}'中的变量并添加到wather监听
 function Compile(vm) {
   this.vm = vm
@@ -204,7 +204,7 @@ Compile.prototype = {
     this.compileNode(this.fragment) //重新渲染文档片段，解析更新值
     this.el.appendChild(this.fragment) //解析完成挂载到真实dom中,一次性插入到文档中
   },
-  // 将真实Dom节点转成虚拟的文档片段
+  // 【将真实Dom节点转成虚拟的文档片段】
   nodeFragment: function (el) {
     const fragment = document.createDocumentFragment() //创建文档片段
     let child = el.firstChild //获取el下的所有子节点
@@ -237,7 +237,7 @@ Compile.prototype = {
       }
     })
   },
-  // 解析属性名是v-开头的指令(v-model)的属性
+  // 【解析属性名是v-开头的指令(v-model)的属性】
   compile: function (node) {
     let nodeAttrs = [...node.attributes]
     nodeAttrs.forEach((attr) => {
@@ -258,7 +258,7 @@ Compile.prototype = {
       this.updateView(node, value)
     })
   },
-  // 更新Model模板值
+  // 【更新Model模板值】
   compileModel: function (node, prop) {
     let val = this.vm.$data[prop] //读取值的时候触发了  Object.defineProperty的get
     this.updateModel(node, val) //更新Model模板值
@@ -304,31 +304,31 @@ Compile.prototype = {
 ![alt text](./img/Compile.png)
 ![alt text](./img/Watcher.png)
 
-```js{5,13,16,17,18,19,20,21}
-function Watcher(vm, prop, callback) {
+```js{6,13,17,18,19,20,21,22}
+class Watcher {
+  constructor(vm, prop, callback) {
     this.vm = vm;
     this.prop = prop;
     this.callback = callback;
     this.value = this.get();//通过此方法将全局Dep.target对象绑定到当前的watcher实例上
-}
-Watcher.prototype = {
-    update: function () {
-        const value = this.vm.$data[this.prop];
-        const oldVal = this.value;
-        if (value !== oldVal) {
-            this.value = value;
-            this.callback(value);//执行回调函数
-        }
-    },
-    get: function () {
-        Dep.target = this; //绑定当前watcher的实例
-        //☆☆☆ 因为this.vm.$data的属性被监听，
-        // 所以使用this.vm.$data[this.prop]时
-        // 会触发监听器 Object.defineProperty里的 get方法
-        const value = this.vm.$data[this.prop];//触发Object.defineProperty里的 get方法
-        Dep.target = null;
-        return value;
+  }
+  update() {
+    const value = this.vm.$data[this.prop];
+    const oldVal = this.value;
+    if (value !== oldVal) {
+      this.value = value;
+      this.callback(value);//执行回调函数
     }
+  }
+  get() {
+    Dep.target = this; // 将Dep.target绑定到当前watcher的实例
+    // ☆☆☆ 因为this.vm.$data中的属性被监听，
+    // 所以使用this.vm.$data[this.prop]时
+    // 会触发监听器 Object.defineProperty里的 get方法
+    const value = this.vm.$data[this.prop];//触发Object.defineProperty里的 get方法
+    Dep.target = null;
+    return value;
+  }
 }
 ```
 
