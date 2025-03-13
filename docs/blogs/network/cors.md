@@ -15,33 +15,38 @@ highlight: a11y-dark
 
 ### 同源策略的限制内容
 
-同源策略限制以下几种行为：
+1. 非同源的`Cookie`、`LocalStorage` 和 `IndexDB` 无法读取
+1. 非同源的 DOM 和 JS 对象无法获得
+1. 非同源的`AJAX` 请求不能发送，被浏览器拦截了
 
-- Cookie、LocalStorage 和 IndexDB 无法读取
-- DOM 和 JS 对象无法获得
-- AJAX 请求不能发送，被浏览器拦截了，
-- **但是有三个标签是允许跨域加载资源：**
-  - `<img src=XXX>`
-  - `<link href=XXX>`
-  - `<script src=XXX>`
-
-## （二）跨域原理及跨域解决方案
+## （二）跨域
 
 ### 跨域的原因
 
 - 跨域，是指浏览器不能执行其他网站的脚本。它是由浏览器的**同源策略**造成的。
-- 跨域原理：即是通过各种方式，`避开浏览器的安全限制`。
+- **同源策略要求协议、域名和端口号必须完全一致**，因此，即使是一级域名相同，二级域名不同的情况下，也会被视为跨域 ‌
+  > - 可以通过将二级域名的 cookie 域设置成一级域名，path 设置成‘/’实现共享 cookie
+  > - 顶级域名:又叫一级域名。一串字符串中间一个点隔开,例如`baidu.com`
+  > - 二级域名就是最靠近顶级域名左侧的字段。  
+  >   **tieba**.`baidu.com`，**news**.`baidu.com`，tieba 和 news 就是二级域名
 - **跨域并不是请求发不出去，请求能发出去，服务端能收到请求并正常返回结果，只是结果被浏览器拦截了。**
+- 跨域原理：即是通过各种方式，`避开浏览器的安全限制`。
 
-### 1. JSONP（JSON with Padding）
+### 解决方案
 
-#### (1)原理：
+#### 1. JSONP（JSON with Padding）
 
+##### (1)原理：
+
+- 三个允许跨域加载资源的标签
+  1. `<img src=XXX>`
+  1. `<link href=XXX>`
+  1. `<script src=XXX>`
 - `JSONP`通过同源策略涉及不到的"漏洞"，利用 **`<script>`标签不受同源策略的限制** 的特性来发送请求，
 - 服务端**不再返回 JSON 格式**的数据，而是 **返回一段调用某个函数的 js 代码**，在 src 中进行了调用，这样实现了跨域。
 - JSONP 请求一定需要对方的服务器做支持才可以。
 
-#### (2)步骤：
+##### (2)步骤：
 
 1.  创建一个 script 标签
 1.  script 的 src 属性设置接口地址
@@ -83,7 +88,8 @@ jsonp({
 })
 ```
 
-- 服务端
+- 服务端  
+  后端根据前后端约定好的方法名，将字符串拼接成**调用方法的 js 字符串**，并将这个字符串返回
 
 ```js{6}
 let express = require('express')
@@ -91,53 +97,55 @@ let app = express()
 app.get('/jsonp', function (req, res) {
   let { wd, callback } = req.query//获取src的参数
   console.log(wd,callback) // Iloveyou,myCallback
-  res.end(`${callback}('返回的信息')`)//返回调用方法的js代码
+  res.end(`${callback}('返回的信息')`)//返回调用方法的js代码字符串
 })
 app.listen(3000)
 ```
 
-#### (3)缺点:
+##### (3)缺点:
 
-- JSON 只支持 get，因为 script 标签只能使用 get 请求；
+- JSON **只支持 get**，因为 script 标签只能使用 get 请求；
 - JSONP 需要后端配合返回指定格式的数据。
 - 不安全可能会遭受 XSS 攻击。
 
-### 2. [CORS](https://juejin.cn/post/6983852288091619342)
+#### 2. [CORS](https://juejin.cn/post/6983852288091619342)
 
-#### 是什么
+##### 是什么
 
 > CORS 是一个 W3C 标准，全称是“跨域资源共享”（Cross-origin resource sharing），**允许浏览器向跨源服务器，发出 XMLHttpRequest 请求**，从而克服了 AJAX 只能同源使用的限制。
 
 - CORS 需要浏览器和后端同时支持。
 - 浏览器会自动进行 CORS 通信，实现 CORS 通信的关键是后端。只要后端实现了 CORS，就实现了跨域。
-- 服务端设置 `Header[Access-Control-Allow-Origin]` HTTP 响应头之后，就可以开启 CORS。 该属性表示哪些域名可以访问资源，如果设置通配符`*`则表示所有网站都可以访问资源。
+- 服务端设置 `Header[Access-Control-Allow-Origin]` HTTP **响应头**之后，就可以开启 CORS。 该属性表示哪些域名可以访问资源，如果设置通配符`*`则表示所有网站都可以访问资源。
 - 虽然设置 CORS 和前端没什么关系，但是通过这种方式解决跨域问题的话，会在发送请求时出现两种情况，分别为简单请求和复杂请求。
 
 浏览器将`CORS`请求分成两类：**简单请求和非简单请求**
 
-#### 简单请求
+##### 简单请求
 
 - 满足以下条件，就是简单请求：
   1. 请求方法是：`HEAD`、`POST`、`GET`
   1. 请求头只有：`Accept`、`AcceptLanguage`、`ContentType`、`ContentLanguage`、`Last-Event-Id`
 - 简单请求，浏览器自动添加一个`Origin`字段
-- 同时**后端**需要设置的请求头：
+- 同时**后端**需要设置的请求头，跨域的 header 配置如下
   | CORS Header 属性 | 解释 |
   | --- | --- |
-  | Access-Control-Allow-Origin （必须）| 表示接受哪些域名的请求(`*`为所有) |
-  | Access-Control-Expose-Headers（可选）| 允许跨域请求包含（XMLHttpRequest 只能拿到六个字段：`Cache-Control`、`Content-Language`、`Content-Type（仅限于 application/x-www-form-urlencoded、multipart/form-data 或 text/plain）`、`Last-Modified`、`Expires`、`Pragma` ,<br>如果想拿到其他的需要使用该字段指定|
-  |Access-Control-Allow-Credentials（可选）| 设置是否允许传 Cookie<br>（要是想传 cookie，前端需要设置`xhr.withCredentials = true`，后端设置`Access-Control-Allow-Credentials: true`） |
+  | `Access-Control-Allow-Origin` | (必须)表示接受哪些域名的请求(`*`为所有) <br>需要注意的是，如果设置为`*`，则不能携带 cookie。|
+  |`Access-Control-Allow-Credentials`|(可选)设置是否允许传 Cookie，要是想传 cookie，<br>前端需设置`xhr.withCredentials= true`，<br>后端设置`Access-Control-Allow-Credentials: true`） |
+  |`Access-Control-Allow-Methods`|指定了服务器支持的方法列表，<br>例如 GET, POST, PUT, DELETE, OPTIONS 等|
+  | `Access-Control-Expose-Headers`|(可选)指定了客户端在跨域请求中可以携带的头部信息,<br>可以设置为具体的头部名称（如 Authorization）<br>或`*`表示允许所有头部。|
+  | Access-Control-Max-Age |设置在 86400 秒不需要再发送预校验请求
+
   - Access-Control-Expose-Headers 的六个字段属性：
     | 属性 | 解释 |
-    | --- | --- |
+    | -------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
     | [Cache-Control](https://www.kancloud.cn/spirit-ling/http-study/851882) | 通过指定首部字段  `Cache-Control`  的指令，来进行缓存操作的工作机制，多个参数之间可以使用“,”分隔 |
-    |[Content-Language](https://www.kancloud.cn/spirit-ling/http-study/1418537) |会告知客户端，实体主体使用的自然语言（指中文或英文等语言） |
-    |[Content-Type](https://www.kancloud.cn/spirit-ling/http-study/1418542) | 说明实体主体内对象的媒体类型|
-    |[Last-Modified](https://www.kancloud.cn/spirit-ling/http-study/1418544) |指明资源最终修改时间 |
-    |[Expires](https://www.kancloud.cn/spirit-ling/http-study/1418543) |：会将资源失效日期告知客户端 |
-    |[Pragma](https://www.kancloud.cn/spirit-ling/http-study/851885) |是 HTTP/1.1 之前版本保留的历史遗留字段，仅作为与 HTTP/1.0 的向后兼容而定义 |
-- Access-Control-Max-Age 设置在 86400 秒不需要再发送预校验请求
-- Access-Control-Allow-Methods 设置允许跨域请求的方法
+    | [Content-Language](https://www.kancloud.cn/spirit-ling/http-study/1418537) | 会告知客户端，实体主体使用的自然语言（指中文或英文等语言） |
+    | [Content-Type](https://www.kancloud.cn/spirit-ling/http-study/1418542) | 说明实体主体内对象的媒体类型（仅限于 application/x-www-form-urlencoded、multipart/form-data 或 text/plain） |
+    | [Last-Modified](https://www.kancloud.cn/spirit-ling/http-study/1418544) | 指明资源最终修改时间 |
+    | [Expires](https://www.kancloud.cn/spirit-ling/http-study/1418543) | ：会将资源失效日期告知客户端 |
+    | [Pragma](https://www.kancloud.cn/spirit-ling/http-study/851885) | 是 HTTP/1.1 之前版本保留的历史遗留字段，仅作为与 HTTP/1.0 的向后兼容而定义 |
+
 - 简单请求示例
 
 ```js{1,4}
@@ -155,7 +163,7 @@ If-None-Match: W/"1-NWoZK3kTsExUV00Ywo1G5jlUKKs"
 - 后端响应
   ![alt text](cors2.png)
 
-#### 非简单请求
+##### 非简单请求
 
 > 非简单请求则是不满足上边的两种情况之一，比如请求的方式为  `PUT`，或者请求头包含其他的字段
 
@@ -166,9 +174,9 @@ If-None-Match: W/"1-NWoZK3kTsExUV00Ywo1G5jlUKKs"
    - `OPTIONS`：请求行 的请求方法为`OPTIONS`（专门用来询问的）
    - `Origin`：通过预检之后的请求,会自动带上 Origin 字段
    - `Access-Control-Request-Method`：请求的方式
-   - `Access-Control-Request-Header`：// 表示浏览器发送的自定义字段
+   - `Access-Control-Request-Header`：表示浏览器发送的自定义字段
    ```js{1,3,4}
-   OPTIONS /cors HTTP/1.1  //`"预检"`使用的请求方法是 `OPTIONS` , 表示这个请求使用来询问的
+   OPTIONS /cors HTTP/1.1  //`"预检"`使用的请求方法是 `OPTIONS` , 表示这个请求是用来询问的
    Origin: localhost:2333
    Access-Control-Request-Method: PUT // 表示使用的什么HTTP请求方法
    Access-Control-Request-Headers: X-Custom-Header // 表示浏览器发送的自定义字段
@@ -192,7 +200,7 @@ If-None-Match: W/"1-NWoZK3kTsExUV00Ywo1G5jlUKKs"
    Connection: Keep-Alive
    Content-Type: text/plain
    ```
-1. 通过预检后，才会进行正式的请求，浏览器接下来的每次请求就类似于简单请求了
+1. **通过预检后，才会进行正式的请求，浏览器接下来的每次请求就类似于简单请求了**
    - 一旦通过了预检请求后,请求的时候就会跟简单请求一样,会有一个`Origin`头信息字段。
    - 通过预检之后的，浏览器发出正式请求：
    ```js{2}
@@ -204,7 +212,7 @@ If-None-Match: W/"1-NWoZK3kTsExUV00Ywo1G5jlUKKs"
    User-Agent: Mozilla/5.0...
    ```
 
-### 3. Node 中间件代理(两次跨域)
+#### 3. Node 中间件代理(两次跨域)
 
 实现原理：同源策略是浏览器需要遵循的标准，而如果是**服务器向服务器请求就无需遵循同源策略**。 代理服务器，需要做以下几个步骤：
 
@@ -214,9 +222,9 @@ If-None-Match: W/"1-NWoZK3kTsExUV00Ywo1G5jlUKKs"
 1. Node 代理服务器将响应转发给客户端
    ![alt text](cors-node.png)
 
-### 4. [nginx 反向代理](https://juejin.cn/post/6844903767226351623#heading-17)
+#### 4. [nginx 反向代理](https://juejin.cn/post/6844903767226351623#heading-17)
 
-#### (1)客户端
+##### (1)客户端
 
 ```js{6}
 // index.html
@@ -228,7 +236,7 @@ xhr.open('get', 'http://www.domain1.com:81/?user=admin', true)
 xhr.send()
 ```
 
-#### (2) nginx 服务器中转
+##### (2) nginx 服务器中转
 
 - 搭建一个中转 nginx 服务器，用于转发请求。
 - 使用 nginx 反向代理实现跨域，是最简单的跨域方式。只需要修改 nginx 的配置即可解决跨域问题，
@@ -254,7 +262,7 @@ server {
 }
 ```
 
-#### (3)服务器
+##### (3)服务器
 
 ```js{9}
 // server.js
@@ -274,7 +282,7 @@ server.listen('8080')
 console.log('Server is running at port 8080...')
 ```
 
-### 5. Websocket
+#### 5. Websocket
 
 Websocket 是 HTML5 的一个持久化的协议，它实现了浏览器与服务器的**全双工通信**，同时也是跨域的一种解决方案。
 
