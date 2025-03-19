@@ -29,6 +29,7 @@ highlight: a11y-dark
   > - 顶级域名:又叫一级域名。一串字符串中间一个点隔开,例如`baidu.com`
   > - 二级域名就是最靠近顶级域名左侧的字段。  
   >   **tieba**.`baidu.com`，**news**.`baidu.com`，tieba 和 news 就是二级域名
+  > - 二级域访问访问顶级域是可以的，而二级域名之间的访问是存在跨域的
 - **跨域并不是请求发不出去，请求能发出去，服务端能收到请求并正常返回结果，只是结果被浏览器拦截了。**
 - 跨域原理：即是通过各种方式，`避开浏览器的安全限制`。
 
@@ -212,17 +213,7 @@ If-None-Match: W/"1-NWoZK3kTsExUV00Ywo1G5jlUKKs"
    User-Agent: Mozilla/5.0...
    ```
 
-#### 3. Node 中间件代理(两次跨域)
-
-实现原理：同源策略是浏览器需要遵循的标准，而如果是**服务器向服务器请求就无需遵循同源策略**。 代理服务器，需要做以下几个步骤：
-
-1. 客户端请求 Node 代理服务器 。
-1. Node 代理服务器再将请求转发给服务器。
-1. 拿到服务器响应数据。
-1. Node 代理服务器将响应转发给客户端
-   ![alt text](cors-node.png)
-
-#### 4. [nginx 反向代理](https://juejin.cn/post/6844903767226351623#heading-17)
+#### 3. [nginx 反向代理](https://juejin.cn/post/6844903767226351623#heading-17)
 
 ##### (1)客户端
 
@@ -244,22 +235,52 @@ xhr.send()
 - 实现思路：通过 nginx 配置一个代理服务器（域名与 domain1 相同，端口不同）做跳板机，反向代理访问 domain2 接口，并且可以顺便修改 cookie 中 domain 信息，方便当前域 cookie 写入，实现跨域登录。
   - 先下载 nginx，然后将 nginx 目录下的 `nginx.conf` 修改如下:
 - 最后通过命令行 `nginx -s reload` 启动 nginx
+- [nginx.conf](https://blog.csdn.net/qq_42402854/article/details/132843413) 配置文件中的内容分为三个部分：
+  - 第一部分：main 全局块（全局设置）， 作用域是全局
+  - 第二部分：events 块（nginx 工作模式）
+  - 第三部分：http 块（http 设置）
+- http 块
+  |属性|描述|
+  |---|--|
+  |server_name|匹配客户端的域名|
+  |location `/` |定位 URL，`/`表示匹配访问根目录。|
+  |proxy_pass|反向代理的域名|
+  |proxy_cookie_domain|修改 cookie 里域名|
+  |index|修改 cookie 里域名|
 
-```js{2,4,6}
+```js{15,16,17,20}
 // proxy服务器
-server {
-    listen       81; // 代理的端口
-    server_name  www.domain1.com; //客户端代理的域名
-    location / {
-        proxy_pass   http://www.domain2.com:8080;  #反向代理
-        proxy_cookie_domain www.domain2.com www.domain1.com; #修改cookie里域名
-        index  index.html index.htm;
-
-        # 当用webpack-dev-server等中间件代理接口访问nignx时，此时无浏览器参与，故没有同源限制，下面的跨域配置可不启用
-        add_header Access-Control-Allow-Origin http://www.domain1.com;  #当前端只跨域不带cookie时，可为*
-        add_header Access-Control-Allow-Credentials true;
-    }
+// 1.【main 全局块】
+worker_processes  1;
+// 2.【events 块（nginx 工作模式）】
+events {
+  worker_connections  1024;
 }
+// 3.【http块（http设置）】
+http {
+  include       mime.types;
+  default_type  application/octet-stream;
+  sendfile        on;
+  keepalive_timeout  65;
+  server {
+    listen       81;//客户端端口号
+    server_name  www.domain1.com//客户端代理的域名//localhost;
+    location / { # `/`表示匹配访问根目录。
+      root   html;
+      index  index.html index.htm;
+      proxy_pass   http://www.domain2.com:8080;  //#反向代理
+      proxy_cookie_domain www.domain2.com www.domain1.com; //#修改cookie里域名
+      //# 当用webpack-dev-server等中间件代理接口访问nignx时，此时无浏览器参与，故没有同源限制，下面的跨域配置可不启用
+      // # add_header Access-Control-Allow-Origin http://www.domain1.com;  #当前端只跨域不带cookie时，可为*
+      //# add_header Access-Control-Allow-Credentials true;
+    }
+    error_page   500 502 503 504  /50x.html;
+    location = /50x.html {
+        root   html;
+    }
+  }
+}
+
 ```
 
 ##### (3)服务器
@@ -281,6 +302,16 @@ server.on('request', function (req, res) {
 server.listen('8080')
 console.log('Server is running at port 8080...')
 ```
+
+#### 4. Node 中间件代理(两次跨域)
+
+实现原理：同源策略是浏览器需要遵循的标准，而如果是**服务器向服务器请求就无需遵循同源策略**。 代理服务器，需要做以下几个步骤：
+
+1. 客户端请求 Node 代理服务器 。
+1. Node 代理服务器再将请求转发给服务器。
+1. 拿到服务器响应数据。
+1. Node 代理服务器将响应转发给客户端
+   ![alt text](cors-node.png)
 
 #### 5. Websocket
 

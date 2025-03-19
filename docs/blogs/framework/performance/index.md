@@ -1,5 +1,13 @@
 # 性能优化
 
+|                               |                                |
+| ----------------------------- | ------------------------------ |
+| FCP（First Contentful Paint） | 白屏时间（第一个文本绘制时间） |
+| Speed Index                   | 首屏时间                       |
+| TTI（Time To Interactive）    | 第一次可交互的时间             |
+
+- https://blog.csdn.net/weixin_46837985/article/details/122227814
+
 ## 【白屏优化】
 
 前端白屏优化的主要方案包括以下几个方面 ‌

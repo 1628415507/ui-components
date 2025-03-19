@@ -408,6 +408,17 @@ module.exports = {
           minChunks: 2,
           priority: -20,
           reuseExistingChunk: true
+        },
+        // 单独提取echarts
+        echarts: {
+          name: 'echarts',
+          chunks: 'all',
+          priority: 20, // 对echarts进行单独优化，优先级较高
+          test: function(module) {
+            const context = module.context;
+            return context && (context.indexOf('echarts') >= 0 || context.indexOf('zrender') >=
+                      0)
+          }
         }
       }
     }
