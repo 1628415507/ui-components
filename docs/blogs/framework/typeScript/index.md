@@ -384,6 +384,19 @@ function request<T extends keyof Api>(url: T, obj: Api[T]) {
 }
 ```
 
+### 3.TS 类型定义,要求 key 是 string,value 是 number
+
+```ts
+// 使用类型别名（Type Alias）
+type StringNumberMap = {
+  [key: string]: number
+}
+// 使用接口（Interface）
+interface StringNumberMap {
+  [key: string]: number
+}
+```
+
 ## （八）知识回顾
 
 - 讲一下 泛型、 infer 关键字、`void`  和  `never`  区别。

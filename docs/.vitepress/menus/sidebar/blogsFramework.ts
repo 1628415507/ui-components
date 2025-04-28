@@ -57,6 +57,7 @@ export default [
           { text: '虚拟滚动', link: '/blogs/framework/performance/virtualScroll/virtualScroll.md' }
         ]
       }
+      // { text: '实际应用', link: '/blogs/framework/performance/application.md' }
     ]
   },
   {

@@ -6,7 +6,7 @@ highlight: a11y-dark
 
 - [Webpack5 入门到原理](https://www.bilibili.com/video/BV14T4y1z7sw)
 
-Webpack 本身功能是有限的:只能处理 `js` 资源，一旦遇到 `css` 等其他资源就会报错。
+Webpack 本身功能是有限的：只能处理 `js` 资源，一旦遇到 `css` 等其他资源就会报错。
 
 - 开发模式：仅能编译 JS 中的 `ES Module` 语法
 - 生产模式：能编译 JS 中的 `ES Module` 语法，还能压缩 JS 代码  
@@ -15,32 +15,34 @@ Webpack 本身功能是有限的:只能处理 `js` 资源，一旦遇到 `css` �
 ---
 
 - node 环境 16+
-- 初始化 package.json 文件： npm init -y
-- `npm i webpack webpack-cli -D`:下载 webpack 依赖
+- 初始化 package.json 文件： `npm init -y`
+- 下载 webpack 依赖：`npm i webpack webpack-cli -D`
 
 ## （一）基础配置
 
 ### 1. 五大核心概念
 
-| 标题      |                  | 作用                                                                                     |
-| --------- | ---------------- | ---------------------------------------------------------------------------------------- |
-| ① entry   | 入口             | 指示 Webpack 从哪个文件开始打包                                                          |
-| ② output  | 输出             | 指示 Webpack 打包完的文件输出到哪里去，如何命名等                                        |
-| ③ module  | 加载器           | **webpack 本身只能处理 js、json 等资源**，其他资源需要借助 module 中配置 loader 才能解析 |
-| ④ plugins | 插件             | 扩展 Webpack 的功能                                                                      |
-| ⑤ mode    | 模式，主要有两种 | 开发模式：development<br>生产模式：production                                            |
+| 标题        |                  | 作用                                                                                          |
+| ----------- | ---------------- | --------------------------------------------------------------------------------------------- |
+| ① `entry`   | 入口             | 指示 Webpack 从哪个文件开始打包                                                               |
+| ② `output`  | 输出             | 指示 Webpack 打包完的文件输出到哪里去，如何命名等                                             |
+| ③ `module`  | 加载器           | **webpack 本身只能处理 js、json 等资源**，<br/>其他资源需要借助 module 中配置 loader 才能解析 |
+| ④ `plugins` | 插件             | 扩展 Webpack 的功能                                                                           |
+| ⑤ `mode`    | 模式，主要有两种 | 开发模式：`development`<br>生产模式：`production`                                             |
 
 ## （二）loader
 
 ### 1. 安装配置
 
-- loader 用于对**模块的"源代码"进行转换**，在 import 或"加载"模块时预处理文件  
-   webpack 做的事情，仅仅是分析出各种模块的依赖关系，然后形成资源列表，最终打包生成到指定的文件中。
+- loader 用于对**模块的"源代码"进行转换**，在 import 或"加载"模块时预处理文件
+  > webpack 做的事情，仅仅是分析出各种模块的**依赖关系**，然后形成资源列表，最终打包生成到指定的文件中。
 - 在 webpack 内部中，任何文件都是模块，不仅仅只是 js 文件。默认情况下，在遇到 import 或者 require 加载模块的时候，**webpack 只支持对 js 和 json 文件打包**，像 css、sass、png 等这些类型的文件的时候，webpack 则无能为力，**这时候就需要配置对应的 loader 进行文件内容的解析**
 - **Loader**在`module.rules`中配置，他作为模块的解析规则而存在。 rules 是一个数组的形式，每一项都是一个`Object`，属性如下：
-  - `test`：对象属性 test 为匹配的规则(匹配文件类型)，一般情况为正则表达式属性
-  - `use`： 针对匹配到文件类型，调用对应的 loader 进行处理
-  - `options`：使用的参数
+  |配置|解析|
+  |---|---|
+  |`test`|对象属性 test 为匹配的规则(匹配文件类型)，一般情况为正则表达式属性|
+  |`use`|针对匹配到文件类型，调用对应的 loader 进行处理|
+  |`options`|使用的参数|
 
 ```js{5,6,10}
 module.exports = {
@@ -73,7 +75,7 @@ module.exports = {
   | `css-loader`      | 加载 CSS，支持模块化、压缩、文件导入等特性<br/>**css-loader 只是负责将 css 文件进行一个解析，而并不会将解析后的 css 插入到页面中**                                                                                    |
   | `style-loader`    | 把`css-loader`生成的内容，用 style 标签挂载到页面 head 中                                                                                                                                                             |
   | `less-loader`     | 解析 `less`、`sass`、`stylus`等预处理器编写 css 样式                                                                                                                                                                  |
-  | image-loader      | 加载并且压缩图片文件                                                                                                                                                                                                  |
+  | `image-loader`    | 加载并且压缩图片文件                                                                                                                                                                                                  |
   | `file-loader`     | 把识别出的资源模块，**移动到指定的输出目目录**，并且返回这个资源在输出目录的地址(字符串) ,在代码中通过相对 URL 去引用输出的文件                                                                                       |
   | `url-loader `     | 和 file-loader 类似，可以处理`file-loader` 所有的事情，但是遇到**图片格式的模块**，可以选择性的把图片转成 base64 格式的字符串，并打包到 js 中,<br/>能在**文件很小的情况下**以 `base64` 的方式把文件内容注入到代码中去 |
   | babel-loader      | 把 ES6 转换成 ES5                                                                                                                                                                                                     |
