@@ -64,11 +64,11 @@ export const nav: DefaultTheme.NavItem[] = [
       {
         text: '专项', //算法。浏览器‘正则表达式
         link: '/blogs/framework' // 对应docs/column/Algorithm下的index.md文件
-      },
-      {
-        text: '业务应用',
-        link: '/blogs/business' // 对应docs/column/Algorithm下的index.md文件
       }
+      // {
+      //   text: '业务应用',
+      //   link: '/blogs/business' // 对应docs/column/Algorithm下的index.md文件
+      // }
       // {
       //   text: '方法',
       //   link: '/examples' // 对应docs/column/Algorithm下的index.md文件
