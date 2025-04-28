@@ -168,50 +168,64 @@ If-None-Match: W/"1-NWoZK3kTsExUV00Ywo1G5jlUKKs"
 
 > 非简单请求则是不满足上边的两种情况之一，比如请求的方式为  `PUT`，或者请求头包含其他的字段
 
-**步骤：预检请求 -> 预检请求通过 -> 正式请求**
+- OPTIONS **通常发生在跨域的时候**
+- 预检请求的作用：
+  - 检测服务器支持的 HTTP 方法:OPTIONS。请求可以获取服务器支持的 HTTP 方法(如 GET、POST、PUT 等)。
+  - 确认跨域请求的安全性:通过预检请求，浏
+- 步骤：**预检请求 -> 预检请求通过 -> 正式请求**
 
-1. 非简单请求的`CORS`请求会在正式通信之前进行一次**预检请求**  
-   预检请求格式
-   - `OPTIONS`：请求行 的请求方法为`OPTIONS`（专门用来询问的）
-   - `Origin`：通过预检之后的请求,会自动带上 Origin 字段
-   - `Access-Control-Request-Method`：请求的方式
-   - `Access-Control-Request-Header`：表示浏览器发送的自定义字段
-   ```js{1,3,4}
-   OPTIONS /cors HTTP/1.1  //`"预检"`使用的请求方法是 `OPTIONS` , 表示这个请求是用来询问的
-   Origin: localhost:2333
-   Access-Control-Request-Method: PUT // 表示使用的什么HTTP请求方法
-   Access-Control-Request-Headers: X-Custom-Header // 表示浏览器发送的自定义字段
-   Host: localhost:2332
-   Accept-Language: zh-CN,zh;q=0.9
-   Connection: keep-alive
-   User-Agent: Mozilla/5.0...
-   ```
-1. 预检请求后，服务器收到预检请求以后，检查了`Origin`、`Access-Control-Request-Method`和`Access-Control-Request-Headers`字段以后，确认允许跨源请求，就可以做出回应。
-   - 预检的响应头:
-   ```js{4}
-   HTTP/1.1 200 OK
-   Date: Mon, 01 Dec 2008 01:15:39 GMT
-   Server: Apache/2.0.61 (Unix)
-   Access-Control-Allow-Origin: http://localhost:2332 // 表示http://localhost:2332可以访问数据
-   Access-Control-Allow-Methods: GET, POST, PUT
-   Access-Control-Allow-Headers: X-Custom-Header
-   Content-Type: text/html; charset=utf-8
-   Content-Encoding: gzip Content-Length: 0
-   Keep-Alive: timeout=2, max=100
-   Connection: Keep-Alive
-   Content-Type: text/plain
-   ```
-1. **通过预检后，才会进行正式的请求，浏览器接下来的每次请求就类似于简单请求了**
-   - 一旦通过了预检请求后,请求的时候就会跟简单请求一样,会有一个`Origin`头信息字段。
-   - 通过预检之后的，浏览器发出正式请求：
-   ```js{2}
-   PUT /cors HTTP/1.1
-   Origin: http://api.bob.com // 通过预检之后的请求,会自动带上Origin字段
-   Host: api.alice.com X-Custom-Header: value
-   Accept-Language: en-US
-   Connection: keep-alive
-   User-Agent: Mozilla/5.0...
-   ```
+(1) 非简单请求的`CORS`请求会在正式通信之前进行一次**预检请求 OPTIONS** ，以确认服务器是否允许该跨域请求。
+
+- 预检请求格式
+  |属性|描述|
+  |----|----|
+  |`OPTIONS`|请求行 的请求方法为`OPTIONS`（专门用来询问的）|
+  |`Origin`|通过预检之后的请求,会自动带上 Origin 字段|
+  |`Access-Control-Request-Method`|请求的方式|
+  |`Access-Control-Request-Header`|表示浏览器发送的自定义字段|
+
+```js{1,3,4}
+OPTIONS /cors HTTP/1.1  //`"预检"`使用的请求方法是 `OPTIONS` , 表示这个请求是用来询问的
+Origin: localhost:2333
+Access-Control-Request-Method: PUT // 表示使用的什么HTTP请求方法
+Access-Control-Request-Headers: X-Custom-Header // 表示浏览器发送的自定义字段
+Host: localhost:2332
+Accept-Language: zh-CN,zh;q=0.9
+Connection: keep-alive
+User-Agent: Mozilla/5.0...
+```
+
+(2) 预检请求后，服务器收到预检请求以后，检查了`Origin`、`Access-Control-Request-Method`和`Access-Control-Request-Headers`字段以后，确认允许跨源请求，就可以做出回应。
+
+- 预检的响应头:
+
+```js{4}
+HTTP/1.1 200 OK
+Date: Mon, 01 Dec 2008 01:15:39 GMT
+Server: Apache/2.0.61 (Unix)
+Access-Control-Allow-Origin: http://localhost:2332 // 表示http://localhost:2332可以访问数据
+Access-Control-Allow-Methods: GET, POST, PUT
+Access-Control-Allow-Headers: X-Custom-Header
+Content-Type: text/html; charset=utf-8
+Content-Encoding: gzip Content-Length: 0
+Keep-Alive: timeout=2, max=100
+Connection: Keep-Alive
+Content-Type: text/plain
+```
+
+(3) **通过预检后，才会进行正式的请求，浏览器接下来的每次请求就类似于简单请求了**
+
+- 一旦通过了预检请求后,请求的时候就会跟简单请求一样,会有一个`Origin`头信息字段。
+- 通过预检之后的，浏览器发出正式请求：
+
+```js{2}
+PUT /cors HTTP/1.1
+Origin: http://api.bob.com // 通过预检之后的请求,会自动带上Origin字段
+Host: api.alice.com X-Custom-Header: value
+Accept-Language: en-US
+Connection: keep-alive
+User-Agent: Mozilla/5.0...
+```
 
 #### 3. [nginx 反向代理](https://juejin.cn/post/6844903767226351623#heading-17)
 
