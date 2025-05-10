@@ -1,7 +1,7 @@
 /*
  * @Description: 
  * @Date: 2024-06-26 11:40:35
- * @LastEditTime: 2024-08-16 13:32:42
+ * @LastEditTime: 2025-05-10 16:58:56
  */
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
@@ -22,7 +22,14 @@ export default defineConfig(() => {
   return {
     plugins: [
       vue(),
-      dts(),
+      dts({
+        // 输出目录
+        outDir: ['types'],
+        // 将动态引入转换为静态（例如：`import('vue').DefineComponent` 转换为 `import { DefineComponent } from 'vue'`）
+        staticImport: true,
+        // 将所有的类型合并到一个文件中
+        rollupTypes: true,
+      }),
       vueSetupExtend(),
       viteCompression({
         verbose: true,
@@ -52,20 +59,36 @@ export default defineConfig(() => {
       // outDir: 'lib',//打包输出的目录
       // 构建库的选项。
       lib: {
-        // entry: path.resolve(__dirname, "src/index.ts"),//组件库打包和引入时的入口文件
         entry: path.resolve(__dirname, "src/index.ts"),//组件库打包和引入时的入口文件
         name: "z-ui-comp",//定义了组件库打包的名称
         fileName: (format) => `z-ui-comp.${format}.js`,//定义了输出文件的命名规则，使用了一个函数来生成不同格式的文件名
       },
       rollupOptions: {
         // 确保外部化处理那些你不想打包进库的依赖
-        external: ["vue"],
-        output: {
-          // 在 UMD 构建模式下为这些外部化的依赖提供一个全局变量
-          globals: {
-            vue: "Vue",//这里将 "vue" 映射到 "Vue"，以确保在使用库时可以访问到 Vue.js。
+        external: ["vue"],// 将vue模块排除在打包文件之外，使用用这个组件库的项目的vue模块
+        // 输出配置
+        output: [
+          {
+            format: 'es', // 打包成 es module
+            entryFileNames: '[name].js',  // 重命名
+            preserveModules: true,// 打包目录和开发目录对应
+            dir: 'es', // 输出目录
+            preserveModulesRoot: 'src', // 指定保留模块结构的根目录
           },
-        },
+          {
+            format: 'cjs',  // 打包成 commonjs
+            entryFileNames: '[name].js', // 重命名
+            preserveModules: true,// 打包目录和开发目录对应
+            dir: 'lib',// 输出目录
+            preserveModulesRoot: 'src', // 指定保留模块结构的根目录
+          },
+        ],
+        // output: {
+        //   // 在 UMD 构建模式下为这些外部化的依赖提供一个全局变量
+        //   globals: {
+        //     vue: "Vue",//这里将 "vue" 映射到 "Vue"，以确保在使用库时可以访问到 Vue.js。
+        //   },
+        // },
       },
     },
     server: {

@@ -1,7 +1,7 @@
 /*
  * @Description:package.json说明文件
  * @Date: 2025-05-10 14:09:30
- * @LastEditTime: 2025-05-10 14:13:19
+ * @LastEditTime: 2025-05-10 14:59:10
  */
 const obj = {
   name: 'z-ui-comp', //npm包的名称
@@ -10,15 +10,16 @@ const obj = {
   type: 'module',
   scripts: {
     dev: 'vite',
-    build: 'vue-tsc && vite build',
+    // build: 'vue-tsc && vite build', //执行的打包命令的文件路径
+    build: 'gulp -f build/gulpfile.js', //执行的打包命令的文件路径
     'build:zip': 'vite build',
     preview: 'vite preview',
-    'docs:dev': 'vitepress dev docs',//本地运行命令
+    'docs:dev': 'vitepress dev docs', //本地运行命令
     'docs:build': 'vitepress build docs',
     'docs:preview': 'vitepress preview docs'
   },
-  files: ['dist'],
-  main: './dist/z-ui-comp.umd.js',
+  files: ['dist'], //打包出来的文件夹名称
+  main: './dist/z-ui-comp.umd.js', //组件库的入口文件
   module: './dist/z-ui-comp.es.js',
   exports: {
     '.': {
@@ -55,7 +56,7 @@ const obj = {
     'unplugin-auto-import': '^0.18.2',
     'unplugin-vue-components': '^0.27.3',
     vite: '^5.2.0',
-    'vite-plugin-dts': '^4.0.2',
+    'vite-plugin-dts': '^4.0.2', //vite-plugin-dts 用来生成类型声明文件：
     vitepress: '^1.2.3',
     'vue-tsc': '^2.0.6',
     vuedraggable: '^4.1.0'

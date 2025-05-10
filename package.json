@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vue-tsc && vite build",
+    "build": "gulp -f build/gulpfile.js",
     "build:zip": "vite build",
     "preview": "vite preview",
     "docs:dev": "vitepress dev docs",
@@ -12,17 +12,14 @@
     "docs:preview": "vitepress preview docs"
   },
   "files": [
-    "dist"
+    "es",
+    "lib",
+    "types",
+    "global.d.ts"
   ],
-  "main": "./dist/z-ui-comp.umd.js",
-  "module": "./dist/z-ui-comp.es.js",
-  "exports": {
-    ".": {
-      "import": "./dist/z-ui-comp.es.js",
-      "require": "./dist/z-ui-comp.umd.js"
-    },
-    "./style.css": "./dist/style.css"
-  },
+  "main": "lib",
+  "module": "es",
+  "types": "types/index.d.ts",
   "dependencies": {
     "axios": "^1.7.2",
     "bignumber.js": "^9.3.0",
@@ -46,7 +43,11 @@
     "@types/node": "^20.12.2",
     "@vitejs/plugin-vue": "^5.0.4",
     "faker": "^6.6.6",
-    "sass": "^1.72.0",
+    "gulp": "^5.0.0",
+    "gulp-autoprefixer": "^9.0.0",
+    "gulp-sass": "^6.0.1",
+    "sass": "^1.87.0",
+    "shelljs": "^0.10.0",
     "typescript": "^5.2.2",
     "unplugin-auto-import": "^0.18.2",
     "unplugin-vue-components": "^0.27.3",
