@@ -1,7 +1,7 @@
 <!--
  * @Description: 
  * @Date: 2024-05-30 14:35:14
- * @LastEditTime: 2024-06-05 11:24:00
+ * @LastEditTime: 2025-05-10 17:52:11
 -->
 <template>
   <el-input
@@ -16,6 +16,9 @@
   ></el-input>
 </template>
 <script setup>
+defineOptions({
+  name: 'ZInputOrder'
+})
 import { ref, watch, defineProps, defineEmits } from 'vue'
 
 const props = defineProps({
