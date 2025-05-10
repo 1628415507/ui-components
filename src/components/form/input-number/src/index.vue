@@ -1,7 +1,7 @@
 <!--
  * @Description: 数字输入框
  * @Date: 2024-05-07 17:03:48
- * @LastEditTime: 2025-04-29 20:54:54
+ * @LastEditTime: 2025-05-10 13:30:24
 -->
 <template>
   <el-input
@@ -9,7 +9,7 @@
     ref="inputRef"
     v-model.trim="inputVal"
     :maxlength="maxlength"
-    :input-style="{ textAlign }"
+    :inputStyle="{ textAlign }"
     @input="inputControl"
     @focus="handleFocus"
     @blur="handleBlur"
@@ -25,78 +25,33 @@
     </template>
   </el-input>
 </template>
-<script setup>
+
+<script setup lang="ts">
+import type { InputNumberEmits, InputNumberProps } from './type.ts' //引入类型定义
 import BigNumber from 'bignumber.js'
 import { onMounted, computed, watch, ref, defineEmits, defineProps } from 'vue'
-const emit = defineEmits(['update:modelValue', 'change'])
-const props = defineProps({
-  modelValue: {
-    type: [String, Number], // 传入的值
-    default: '',
-    require: true
-  },
-  precision: {
-    type: Number,
-    default: 2 // 精度(默认4位小数)
-  },
-  min: {
-    type: Number
-  },
-  // 最大值
-  max: {
-    type: Number
-  },
-  maxlength: {
-    type: Number
-  },
-  width: {
-    type: String, // 传入的值
-    default: '100%'
-  },
-  // 自定义头部内容
-  prefix: {
-    type: String,
-    default: ''
-  },
-  // 自定义尾部内容
-  suffix: {
-    type: String,
-    default: ''
-  },
-  prepend: {
-    type: String, // 前缀
-    default: ''
-  },
-  append: {
-    type: String, // 后缀
-    default: ''
-  },
-  slotAppend: {
-    type: Boolean, //
-    default: false
-  },
-  // 文本对齐
-  textAlign: {
-    type: String,
-    default: 'right'
-  },
-  // 是否默认分隔 如千分位
-  useGrouping: {
-    type: Boolean,
-    default: true
-  },
-  // 是否小数位自动补0
-  zeroFill: {
-    type: Boolean,
-    default: true
-  }
+
+defineOptions({
+  name: 'ZInputNumber'
 })
+
+const emit = defineEmits<InputNumberEmits>()
+
+const props = withDefaults(defineProps<InputNumberProps>(), {
+  modelValue: '',
+  precision: 2, // 精度(默认2位小数)
+  width: '100%',
+  textAlign: 'right',
+  useGrouping: true, // 是否默认分隔 如千分位
+  zeroFill: true //是否小数位自动补0
+})
+
 // 1234567890123456789
-let isFocus = false //判断当前是否聚焦
+let isFocus: boolean = false //判断当前是否聚焦
 const inputVal = ref('') // this.value || '' // 选择的值
 const inputRef = ref()
 const oldVal = ref('')
-const precision = Number(props.precision)
+const precision: number = Number(props.precision || 0)
 watch(
   () => props.modelValue,
   (newVal) => {
@@ -114,7 +69,7 @@ function isValue(val) {
   return val || val == '0'
 }
 //  发送数据
-function emitModelValue(str, type) {
+function emitModelValue(str: string, type: string) {
   let value = formatToNum(str)
   if (!props.zeroFill) {
     value = removeTrailingZeros(value) //formattedNumber
@@ -179,7 +134,6 @@ function formatInputVal(val) {
 }
 function handleChange(value, config = {}) {
   const { isEmit = true } = config
-  console.log('【 handleChange 】-174', value)
   const { min, max, zeroFill } = props
   let num = formatToNum(value)
   if (isValue(num)) {
@@ -290,7 +244,6 @@ function inputControl(val) {
   }
   emit('update:modelValue', formatToNum(inputVal.value))
   emit('input', inputVal.value)
-  console.log('【  inputVal.value 】-249', inputVal.value)
   // console.log('【 inputControl 】-240', inputVal.value)
 }
 onMounted(() => {
