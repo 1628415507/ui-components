@@ -1,7 +1,7 @@
 <!--
  * @Description: 数字输入框
  * @Date: 2024-05-07 17:03:48
- * @LastEditTime: 2025-05-10 13:30:24
+ * @LastEditTime: 2025-05-10 16:20:34
 -->
 <template>
   <el-input
@@ -27,13 +27,34 @@
 </template>
 
 <script setup lang="ts">
-import type { InputNumberEmits, InputNumberProps } from './type.ts' //引入类型定义
-import BigNumber from 'bignumber.js'
-import { onMounted, computed, watch, ref, defineEmits, defineProps } from 'vue'
-
 defineOptions({
   name: 'ZInputNumber'
 })
+// import  { InputNumberEmits,InputNumberProps } from './type.ts' //引入类型定义-外部引入打包会报错
+import BigNumber from 'bignumber.js'
+import { onMounted, computed, watch, ref, defineEmits, defineProps } from 'vue'
+
+type InputNumberEmits = {
+  'update:modelValue': [value: string]
+  // 'change': [value: function];
+}
+interface InputNumberProps {
+  modelValue: string | number
+  precision: number
+  min?: number
+  max?: number
+  maxlength?: number
+  width?: string
+  prefix?: string // 自定义头部内容
+  suffix?: string // 自定义尾部内容
+  prepend?: string // 前缀
+  append?: string // 后缀
+  slotAppend?: boolean
+  textAlign?: string
+  useGrouping?: boolean // 是否默认分隔 如千分位
+  zeroFill?: boolean //是否小数位自动补0
+  disabled?: boolean
+}
 
 const emit = defineEmits<InputNumberEmits>()
 
@@ -133,6 +154,7 @@ function formatInputVal(val) {
   }
 }
 function handleChange(value, config = {}) {
+  console.log('【 handleChange 】-136', value)
   const { isEmit = true } = config
   const { min, max, zeroFill } = props
   let num = formatToNum(value)

@@ -5,4 +5,4 @@ export const ZInputNumber = withInstall(InputNumber)//给组件添加install方�
 export default ZInputNumber
 
 export * from './src/index.vue'
-export * from './src/type';
+export * from './src/type.ts';
