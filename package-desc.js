@@ -1,7 +1,7 @@
 /*
  * @Description:package.json说明文件
  * @Date: 2025-05-10 14:09:30
- * @LastEditTime: 2025-05-12 15:46:00
+ * @LastEditTime: 2025-05-12 16:58:52
  */
 const obj = {
   name: 'z-ui-comp', //npm包的名称
@@ -21,7 +21,7 @@ const obj = {
   files: ['dist'], //打包出来的文件夹名称
   main: './dist/z-ui-comp.umd.js', //组件库的入口文件
   module: './dist/z-ui-comp.es.js',
-  // 用于本地测试直接包名导入：如docs中使用  import ZUiComp from "z-ui-comp";
+  // 用于测试打包后的文件导入：如docs中使用  import ZUiComp from "z-ui-comp";
   exports: {
     '.': {
       import: './dist/z-ui-comp.es.js',

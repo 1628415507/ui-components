@@ -36,7 +36,11 @@ export const buildRootStyle = () => {
 
 // 构建每个组件下单独的css
 export const buildStyle = () => {
-  return src(`${componentPath}/src/components/**/src/style/**.scss`)
+  // 在路径模式中，** 是一个特殊的通配符，表示递归匹配任意深度的目录层级。，如
+  // src/components/button/src/styles             ✓
+  // src/components/any/depth/path/src/styles ✓
+
+  return src(`${componentPath}/src/components/**/style/**.scss`)
     .pipe(sass())
     .pipe(autoprefixer())
     .pipe(dest(`${distPath}/es`))
