@@ -1,7 +1,7 @@
 /*
  * @Description:package.json说明文件
  * @Date: 2025-05-10 14:09:30
- * @LastEditTime: 2025-05-10 14:59:10
+ * @LastEditTime: 2025-05-12 15:46:00
  */
 const obj = {
   name: 'z-ui-comp', //npm包的名称
@@ -21,13 +21,14 @@ const obj = {
   files: ['dist'], //打包出来的文件夹名称
   main: './dist/z-ui-comp.umd.js', //组件库的入口文件
   module: './dist/z-ui-comp.es.js',
-  exports: {
-    '.': {
-      import: './dist/z-ui-comp.es.js',
-      require: './dist/z-ui-comp.umd.js'
-    },
-    './style.css': './dist/style.css'
-  },
+  // 用于本地导入??
+  // exports: {
+  //   '.': {
+  //     import: './dist/z-ui-comp.es.js',
+  //     require: './dist/z-ui-comp.umd.js'
+  //   },
+  //   './style.css': './dist/style.css'
+  // },
   dependencies: {
     axios: '^1.7.2',
     'bignumber.js': '^9.3.0',
