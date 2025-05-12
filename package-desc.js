@@ -1,7 +1,7 @@
 /*
  * @Description:package.json说明文件
  * @Date: 2025-05-10 14:09:30
- * @LastEditTime: 2025-05-12 16:58:52
+ * @LastEditTime: 2025-05-12 17:49:13
  */
 const obj = {
   name: 'z-ui-comp', //npm包的名称
@@ -12,7 +12,7 @@ const obj = {
     dev: 'vite',
     // build: 'vue-tsc && vite build', //执行的打包命令的文件路径
     build: 'gulp -f build/gulpfile.js', //执行的打包命令的文件路径
-    'build:zip': 'vite build',
+    'build:npm': 'vite build',
     preview: 'vite preview',
     'docs:dev': 'vitepress dev docs', //本地运行命令
     'docs:build': 'vitepress build docs',

@@ -4,8 +4,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "gulp -f build/gulpfile.js",
-    "build:zip": "vite build",
+    "build": "vue-tsc && vite build",
+    "build:gulp": "gulp -f build/gulpfile.js",
+    "build:npm": "vite build:gulp",
     "preview": "vite preview",
     "docs:dev": "vitepress dev docs",
     "docs:build": "vitepress build docs",

@@ -1,7 +1,7 @@
 /*
- * @Description:
+ * @Description: 通过gulp打包
  * @Date: 2025-05-10 14:45:58
- * @LastEditTime: 2025-05-10 17:08:31
+ * @LastEditTime: 2025-05-12 17:43:23
  */
 // index.js
 import gulp from 'gulp' //打包工具

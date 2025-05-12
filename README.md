@@ -1,7 +1,7 @@
 <!--
  * @Description:
  * @Date: 2024-06-26 11:40:35
- * @LastEditTime: 2024-08-16 17:11:15
+ * @LastEditTime: 2025-05-12 17:48:51
 -->
 
 ## 参考文档
@@ -30,7 +30,7 @@
 
 详见`docs\guide\installation.md`和`docs\guide\quickstart.md`
 
-- 执行 npm run build:zip
+- 执行 npm run build:npm
 - 打包完成后，将根目录下的 package.json 复制到 dist 目录中
   - 将复制的 package.json 中的`./dist/z-ui-comp.umd.js`改为`z-ui-comp.umd.js`
   - 将复制的 package.json 中的`./dist/z-ui-comp.es.js`改为`z-ui-comp.es.js`
