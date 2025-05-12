@@ -8,11 +8,10 @@
     </a>
   </div> -->
   <div class="contain">
-    <ZuiDemo></ZuiDemo>
+    3444334
   </div>
 </template>
 <script setup lang="ts">
-import ZuiDemo from "./components/ZuiDemo.vue"; // 引入封装好的组件
 // import HelloWorld from './components/HelloWorld.vue'
 </script>
 
