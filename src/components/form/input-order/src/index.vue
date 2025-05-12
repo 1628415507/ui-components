@@ -15,7 +15,7 @@
     @clear="handleClear"
   ></el-input>
 </template>
-<script setup>
+<script setup lang="ts">
 defineOptions({
   name: 'ZInputOrder'
 })

@@ -21,14 +21,14 @@ const obj = {
   files: ['dist'], //打包出来的文件夹名称
   main: './dist/z-ui-comp.umd.js', //组件库的入口文件
   module: './dist/z-ui-comp.es.js',
-  // 用于本地导入??
-  // exports: {
-  //   '.': {
-  //     import: './dist/z-ui-comp.es.js',
-  //     require: './dist/z-ui-comp.umd.js'
-  //   },
-  //   './style.css': './dist/style.css'
-  // },
+  // 用于本地测试直接包名导入：如docs中使用  import ZUiComp from "z-ui-comp";
+  exports: {
+    '.': {
+      import: './dist/z-ui-comp.es.js',
+      require: './dist/z-ui-comp.umd.js'
+    },
+    './style.css': './dist/style.css'
+  },
   dependencies: {
     axios: '^1.7.2',
     'bignumber.js': '^9.3.0',

@@ -1,7 +1,7 @@
 <!--
  * @Description: 数字输入框
  * @Date: 2024-05-07 17:03:48
- * @LastEditTime: 2025-05-10 16:20:34
+ * @LastEditTime: 2025-05-12 16:51:14
 -->
 <template>
   <el-input
@@ -154,7 +154,6 @@ function formatInputVal(val) {
   }
 }
 function handleChange(value, config = {}) {
-  console.log('【 handleChange 】-136', value)
   const { isEmit = true } = config
   const { min, max, zeroFill } = props
   let num = formatToNum(value)

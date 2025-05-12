@@ -1,7 +1,7 @@
 <!--
  * @Description: 35字符分割线输入框
  * @Date: 2024-03-28 15:08:57
- * @LastEditTime: 2024-12-16 17:18:54
+ * @LastEditTime: 2025-05-12 16:30:33
 -->
 <template>
   <el-input
@@ -15,9 +15,13 @@
   ></el-input>
 </template>
 
-<script setup>
+<script setup lang="ts">
+defineOptions({
+  name: 'ZInputDivider'
+})
 import { computed, defineEmits, defineProps, defineExpose } from 'vue'
 import { ElMessage } from 'element-plus'
+
 const emits = defineEmits(['update:modelValue', 'blur'])
 
 const props = defineProps({
