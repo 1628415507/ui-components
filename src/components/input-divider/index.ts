@@ -3,7 +3,7 @@
  * @Date: 2024-08-15 18:00:25
  * @LastEditTime: 2025-05-12 15:53:11
  */
-import { withInstall } from '../../../utils/withInstall.ts'; // Check if the file path is correct
+import { withInstall } from '../../utils/withInstall.ts'; // Check if the file path is correct
 import InputDivider from './src/index.vue'
 
 export const ZInputDivider = withInstall(InputDivider)

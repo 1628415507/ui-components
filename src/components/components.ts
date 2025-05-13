@@ -5,6 +5,6 @@
  */
 
 //导出组件里的vue文件和类型声明
-export * from './form/input-number';
-export * from './form/input-order';
-export * from './form/input-divider'; 
+export * from './input-number';
+export * from './input-order';
+export * from './input-divider'; 

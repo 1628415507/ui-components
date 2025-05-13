@@ -1,7 +1,7 @@
 /*
  * @Description: 
  * @Date: 2024-06-26 11:40:35
- * @LastEditTime: 2024-08-19 09:42:19
+ * @LastEditTime: 2025-05-13 13:10:24
  */
 // ============= 导出
 import { App } from 'vue'
@@ -11,11 +11,11 @@ import { installComponents } from './components/installComponents.ts'
 // console.log('【 components 】-24', components,components.default)
 
 // 按需引入
-import ZInputNumber from "./components/form/input-number"; // 引入封装好的组件
-import ZInputDivider from "./components/form/input-divider" // 分割线文本域
-import ZInputOrder from "./components/form/input-order" // 短杆分割线输入框
-import ZInputExpand from "./components/form/input-expand"
-import ZAssociateSelect from "./components/form/associate-select"
+import ZInputNumber from "./components/input-number"; // 引入封装好的组件
+import ZInputDivider from "./components/input-divider" // 分割线文本域
+import ZInputOrder from "./components/input-order" // 短杆分割线输入框
+import ZInputExpand from "./components/input-expand"
+import ZAssociateSelect from "./components/associate-select"
 import ZExpandMore from "./components/expand-more"
 import ZInfoCard from "./components/info-card"
 import ZPlusminusButton from "./components/plusminus-button"
