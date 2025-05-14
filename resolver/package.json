@@ -1,0 +1,8 @@
+{
+  "name": "z-ui-comp/resolver",
+  "version": "0.0.1",
+  "description": "z-ui-comp组件库自动导入插件",
+  "main": "./index",
+  "author": " ",
+  "license": "ISC"
+}
