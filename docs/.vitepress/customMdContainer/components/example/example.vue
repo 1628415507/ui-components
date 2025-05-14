@@ -1,7 +1,7 @@
 <!--
  * @Description: 根据路径匹配examples文件夹下的组件
  * @Date: 2024-06-27 09:40:26
- * @LastEditTime: 2024-10-30 18:26:47
+ * @LastEditTime: 2025-05-12 17:12:21
 -->
 <template>
   <ClientOnly>
@@ -33,27 +33,32 @@ onBeforeMount(() => {
   const matches = props.path.match(pattern)
   console.log('【 matches 】-34', props.path, matches)
   const pathLevel = matches.length //获取examples目录下层级
-  if (pathLevel == 1) {
-    // modules = import.meta.glob(`../../../../examples/*/*.vue`, {
-    modules = import.meta.glob(`/*/*.vue`, {
-      eager: true
-    })
-  }
-  if (pathLevel == 2) {
-    modules = import.meta.glob(`/*/*/*.vue`, {
-      eager: true
-    })
-  }
-  if (pathLevel == 3) {
-    modules = import.meta.glob(`/*/*/*/*.vue`, {
-      eager: true
-    })
-  }
-  if (pathLevel == 4) {
-    modules = import.meta.glob(`/*/*/*/*/*.vue`, {
-      eager: true
-    })
-  }
+  // if (pathLevel == 1) {
+  //   // modules = import.meta.glob(`../../../../examples/*/*.vue`, {
+  //   modules = import.meta.glob(`/*/*.vue`, {
+  //     eager: true
+  //   })
+  // }
+  // if (pathLevel == 2) {
+  //   modules = import.meta.glob(`/*/*/*.vue`, {
+  //     eager: true
+  //   })
+  // }
+  // if (pathLevel == 3) {
+  //   modules = import.meta.glob(`/*/*/*/*.vue`, {
+  //     eager: true
+  //   })
+  // }
+  // if (pathLevel == 4) {
+  //   modules = import.meta.glob(`/*/*/*/*/*.vue`, {
+  //     eager: true
+  //   })
+  // }
+  // 在路径模式中，** 是一个特殊的通配符，表示递归匹配任意深度的目录层级。，如
+  modules = import.meta.glob(`/**/*.vue`, {
+    eager: true
+  })
+  console.log('【 modules 】-59', modules)
   // console.log('【 modules 】-43', modules)
   // const modules = import.meta.glob(`../../../../examples/*/*/*.vue`, {
   //   eager: true,
