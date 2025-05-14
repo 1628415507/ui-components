@@ -139,10 +139,10 @@ function handleInput() {}
   margin-right: 5px;
   height: 12px;
   width: 12px;
-  background: url('./lib/editPen.svg') no-repeat center top / cover;
+  background: url('./img/editPen.svg') no-repeat center top / cover;
   cursor: pointer;
   &:hover {
-    background: url('./lib/editPenHover.svg') no-repeat center top / cover;
+    background: url('./img/editPenHover.svg') no-repeat center top / cover;
   }
 }
 </style>

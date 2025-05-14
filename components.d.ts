@@ -13,7 +13,7 @@ declare module 'vue' {
     IndexTs: typeof import('./src/components/input-divider/src/index-ts.vue')['default']
     IndexV1: typeof import('./src/components/input-number/src/indexV1.vue')['default']
     IndexV2: typeof import('./src/components/associate-select/src/indexV2.vue')['default']
-    Src: typeof import('./src/components/countdown/src/index.vue')['default']
+    Src: typeof import('./src/components/associate-select/src/index.vue')['default']
     TextareaDialog: typeof import('./src/components/input-expand/src/textareaDialog.vue')['default']
   }
 }

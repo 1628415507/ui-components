@@ -1,7 +1,7 @@
 /*
  * @Description: 全局配置
  * @Date: 2024-06-26 16:30:11
- * @LastEditTime: 2024-08-22 16:41:25
+ * @LastEditTime: 2025-05-13 16:49:03
  */
 import DefaultTheme from 'vitepress/theme'// https://vitepress.dev/guide/custom-theme
 import { h } from 'vue'
@@ -39,11 +39,13 @@ export default {
     for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
       app.component(key, component)
     }
+    // 全局注册示例模板组件
+    app.component('ExampleContainer', ExampleContainer)//自定义示例模板
     // 全局注册组件库
     // app.use(ZUiComp, {})
     app.use(ZUiComp, {
       // 组件需要的配置参数名称
-      env: { 
+      env: {
         // VITE_API_IS_DECRYPT: import.meta.env.VITE_APP_ENCRYPT_ENABLED,
         // VITE_API_PARTNER_CODE: import.meta.env.VITE_APP_ENCRYPT_PARTNER_CODE,
         // VITE_API_DECRYPT_KEY: import.meta.env.VITE_APP_ENCRYPT_AES_KEY,
@@ -79,7 +81,5 @@ export default {
         }
       }
     })
-    // 全局注册示例模板组件
-    app.component('ExampleContainer', ExampleContainer)//自定义示例模板
   }
 } satisfies Theme

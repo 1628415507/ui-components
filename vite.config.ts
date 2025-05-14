@@ -1,7 +1,7 @@
 /*
  * @Description: 
  * @Date: 2024-06-26 11:40:35
- * @LastEditTime: 2025-05-10 16:58:56
+ * @LastEditTime: 2025-05-13 13:22:15
  */
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
@@ -13,6 +13,7 @@ import AutoImport from 'unplugin-auto-import/vite'
 import Components from 'unplugin-vue-components/vite'
 import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
 // import vueJsx from '@vitejs/plugin-vue-jsx'
+// import { ZResolver } from './resolver'//解析以“Z”开头的组件，
 
 const resolve = (dir: string) => path.resolve(__dirname, '.', dir)
 
@@ -40,11 +41,16 @@ export default defineConfig(() => {
         ext: '.gz', // 文件类型
       }),
       AutoImport({
-        resolvers: [ElementPlusResolver()],
+        resolvers: [
+          // ZResolver(),
+          ElementPlusResolver()
+        ],
         // imports: ['vue'],
       }),
       Components({
-        resolvers: [ElementPlusResolver()],
+        resolvers: [
+          // ZResolver(),
+          ElementPlusResolver()],
       }),
     ],
     resolve: {
