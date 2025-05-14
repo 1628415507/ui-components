@@ -11,7 +11,10 @@ node_modules
 dist
 dist-ssr
 *.local
-
+# 忽略根目录的打包文件
+/lib/
+/es/
+/types/
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
