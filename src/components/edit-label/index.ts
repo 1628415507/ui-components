@@ -8,3 +8,5 @@ import EditLabel from './src/index.vue'
 
 export const ZEditLabel = withInstall(EditLabel)
 export default ZEditLabel
+
+export * from './src/index.vue'

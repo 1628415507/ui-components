@@ -108,7 +108,8 @@ import {
   onBeforeMount,
   nextTick
 } from 'vue'
-import request from '../../../../utils/request'
+import request from '../../../utils/request'
+ 
 const { proxy } = getCurrentInstance()
 
 const props = defineProps({

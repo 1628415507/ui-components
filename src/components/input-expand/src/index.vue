@@ -1,7 +1,7 @@
 <!--
  * @Description: 点击展开弹窗输入框
  * @Date: 2024-04-25 11:42:44
- * @LastEditTime: 2024-07-02 14:05:16
+ * @LastEditTime: 2025-05-15 14:50:03
 -->
 <template>
   <div class="z-input-expand" :class="{ expand: showIcon }">
@@ -33,12 +33,10 @@
     ></TextareaDialog>
   </div>
 </template>
-<script>
-export default {
+<script setup lang="ts">
+defineOptions({
   name: 'ZInputExpand'
-}
-</script>
-<script setup>
+})
 import { ref, watch ,computed} from 'vue'
 import TextareaDialog from './textareaDialog.vue'
 const props = defineProps({

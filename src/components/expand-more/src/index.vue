@@ -1,7 +1,7 @@
 <!--
  * @Description: 展开更多
  * @Date: 2024-04-09 13:01:16
- * @LastEditTime: 2024-12-30 09:22:17
+ * @LastEditTime: 2025-05-15 15:02:50
 -->
 <template>
   <div class="z-expand-more">
@@ -29,12 +29,11 @@
     </el-collapse> -->
   </div>
 </template>
-<script>
-export default {
+
+<script setup lang="ts">
+defineOptions({
   name: 'ZExpandMore'
-}
-</script>
-<script setup>
+})
 import { ref, watch, defineProps, defineEmits } from 'vue'
 let showMore = ref(false)
 // import dArrowTop from './dArrowTop.svg'

@@ -25,12 +25,10 @@
     />
   </div>
 </template>
-<script lang="ts">
-export default {
-  name: 'ZEditLabel'
-}
-</script>
 <script setup lang="ts">
+defineOptions({
+  name: 'ZEditLabel'
+})
 import { ref, defineEmits, defineProps, computed, nextTick, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 const props = defineProps({

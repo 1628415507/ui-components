@@ -1,7 +1,7 @@
 <!--
  * @Description: 加减按钮组
  * @Date: 2024-04-28 11:41:46
- * @LastEditTime: 2024-07-30 16:50:01
+ * @LastEditTime: 2025-05-15 15:06:41
 -->
 
 <template>
@@ -29,12 +29,11 @@
     </el-button>
   </div>
 </template>
-<script>
-export default {
+
+<script setup lang="ts">
+defineOptions({
   name: 'ZPlusminusButton'
-}
-</script>
-<script setup>
+})
 import { ref, defineProps, defineEmits } from 'vue'
 
 const props = defineProps({

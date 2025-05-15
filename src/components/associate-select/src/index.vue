@@ -91,14 +91,13 @@
     </el-popover>
   </div>
 </template>
-<script>
-export default {
+
+<script setup lang="ts">
+defineOptions({
   name: 'ZAssociateSelect'
-}
-</script>
-<script setup>
+})
 import { watch, getCurrentInstance, ref, reactive, defineProps, defineEmits, onMounted, nextTick } from 'vue'
-import request from '../../../../utils/request'
+import request from '../../../utils/request'
 const { proxy } = getCurrentInstance()
 
 const props = defineProps({

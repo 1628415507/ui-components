@@ -8,3 +8,5 @@ import PlusminusButton from './src/index.vue'
 
 export const ZPlusminusButton = withInstall(PlusminusButton)
 export default ZPlusminusButton
+
+export * from './src/index.vue'
