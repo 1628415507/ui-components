@@ -15,7 +15,10 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
+defineOptions({
+  name: 'ZCountdown'
+})
 import { watch, ref, defineProps, computed, defineEmits, onMounted, onUnmounted, nextTick } from 'vue'
 const props = defineProps({
   endTime: {

@@ -1,7 +1,7 @@
 <!--
  * @Description:信息框
  * @Date: 2024-03-28 15:08:57
- * @LastEditTime: 2024-07-31 15:35:43
+ * @LastEditTime: 2025-05-15 15:05:13
 -->
 <template>
   <!-- 可缩放 -->
@@ -29,7 +29,10 @@
     <slot></slot>
   </el-card>
 </template>
-<script setup>
+<script setup lang="ts">
+defineOptions({
+  name: 'ZInfoCard'
+})
 import { ref, defineProps, useSlots, computed, defineEmits, onMounted,onUnmounted ,nextTick  } from 'vue'
 const props = defineProps({
   header: {

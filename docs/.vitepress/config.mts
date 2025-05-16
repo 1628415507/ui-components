@@ -14,7 +14,7 @@ export default defineConfig({
   title: 'UI-COMPONENTS',
   description: '组件库文档',
   head: [
-    ['link', { rel: 'icon', href: '/tiger.png' }] // 添加 favicon 链接
+    ['link', { rel: 'icon', href: '/ui-components/tiger.png' }]// 添加 favicon 链接
     // 其他配置...
   ],
   themeConfig: {

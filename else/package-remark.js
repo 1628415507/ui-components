@@ -6,7 +6,7 @@ const packageRemark = {
   scripts: {
     dev: 'vite',
     build: 'vue-tsc && vite build',//加上vue-tsc ，ts语法错时会打包不成功
-    'build:zip': 'vite build', //打成压缩包命令去除vue-tsc
+    'build:npm': 'vite build', //打成压缩包命令去除vue-tsc
     preview: 'vite preview',
     'docs:dev': 'vitepress dev docs', //组件库预览
     'docs:build': 'vitepress build docs',

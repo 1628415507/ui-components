@@ -9,7 +9,8 @@
     "skipLibCheck": true,
 
     /* Bundler mode */
-    "moduleResolution": "bundler",
+    // "moduleResolution": "bundler",
+    "moduleResolution": "node", //将 moduleResolution 改为 node ，使打包出来的类型产物都可以正确的写入到一个文件里
     "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
@@ -29,6 +30,7 @@
       "@/*": ["src/*"]
     }
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.vue", "components.d.ts"],
+  "include": ["src"],
+  // "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.vue", "components.d.ts"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }
