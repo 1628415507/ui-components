@@ -1,0 +1,25 @@
+.el-textarea {
+  position: relative;
+  width: 100%;
+
+  &:not(.is-disabled) {
+    :deep(.el-textarea__inner) {
+      background-color: transparent !important;
+      z-index: 100 !important;
+    }
+  }
+}
+
+.el-textarea.divider {
+  &:before {
+    content: '';
+    position: absolute;
+    left: 50px;//var(--dividerOffset); //290px;
+    display: block;
+    height: 100%;
+    border: 1px solid #e3e3e3;
+    width: 0;
+    // background: red;
+    z-index: 99;
+  }
+}

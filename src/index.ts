@@ -1,59 +1,13 @@
 /*
- * @Description:
- * @Date: 2024-06-26 11:40:35
- * @LastEditTime: 2024-10-31 17:27:32
+ * @Description: 组件库入口文件，
+// 在这个文件里，需要导出components.ts 里代理的vue组件和类型，
+// 并将installs.ts 导出的插件数组交给makeInstaller 处理成一个支持整体导入的插件：
+ * @Date: 2025-05-10 13:58:53
+ * @LastEditTime: 2025-05-10 16:48:55
  */
-// ============= 预览
-// import { createApp } from 'vue'
-// import App from '@/App.vue'
-// import '@/style.css'
 
-// import ElementPlus from 'element-plus'
-// // import * as ElementPlusIconsVue from '@element-plus/icons-vue'
-// import 'element-plus/dist/index.css'
+import { makeInstaller } from './utils/makeInstaller';
+import installs from './components/installs';
+export * from './components/components';//y引入所有组件
 
-// const app = createApp(App)
-// app.use(ElementPlus).mount('#app')
-
-// ============= 导出
-import { App } from 'vue'
-import { installComponents } from './components/installComponents.ts'
-// console.log('【 components 】-22', components)
-// import * as components from './components/components.ts'
-// console.log('【 components 】-24', components,components.default)
-import directive from './directive' // directive
-import 'vxe-table/styles/cssvar.scss'
-
-// 按需引入
-import ZInputNumber from './components/form/input-number' // 引入封装好的组件
-import ZInputDivider from './components/form/input-divider' // 分割线文本域
-import ZInputOrder from './components/form/input-order' // 短杆分割线输入框
-import ZInputExpand from './components/form/input-expand'
-import ZAssociateSelect from './components/form/associate-select'
-import ZExpandMore from './components/expand-more'
-import ZInfoCard from './components/info-card'
-import ZPlusminusButton from './components/plusminus-button'
-// ============= 全局引入 =============
-const install: any = (app: App, params?: any) => {
-  app.config.globalProperties.globalParams = params
-  // window['globalParams'] = params || { value: 'globalParams' }
-  // console.log('【  app.config 】-30', app.config)
-  installComponents(app) //全局注册组件
-  // 渲染错误处理
-  app.config.errorHandler = (error, vm, info) => {
-    console.error('【 全局-组件渲染报错处理 】-116', error, vm, info)
-  }
-  directive(app)
-}
-export default { install }
-// ============= 按需引入 =============
-export {
-  ZInputNumber,
-  ZInputDivider,
-  ZInputOrder,
-  ZInputExpand,
-  ZAssociateSelect,
-  ZExpandMore,
-  ZInfoCard,
-  ZPlusminusButton
-} // 单个的引入
+export default makeInstaller([...installs]);

@@ -8,3 +8,5 @@ import ExpandMore from './src/index.vue'
 
 export const ZExpandMore = withInstall(ExpandMore)
 export default ZExpandMore
+
+export * from './src/index.vue'

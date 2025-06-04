@@ -7,6 +7,7 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    Demo: typeof import('./src/components/demo/demo.vue')['default']
     ElButton: typeof import('element-plus/es')['ElButton']
     ElCard: typeof import('element-plus/es')['ElCard']
     ElDialog: typeof import('element-plus/es')['ElDialog']
@@ -16,9 +17,16 @@ declare module 'vue' {
     ElInput: typeof import('element-plus/es')['ElInput']
     ElPagination: typeof import('element-plus/es')['ElPagination']
     ElPopover: typeof import('element-plus/es')['ElPopover']
+    ElStep: typeof import('element-plus/es')['ElStep']
+    ElSteps: typeof import('element-plus/es')['ElSteps']
     ElTable: typeof import('element-plus/es')['ElTable']
     ElTableColumn: typeof import('element-plus/es')['ElTableColumn']
     HelloWorld: typeof import('./src/components/HelloWorld.vue')['default']
+    IndexTs: typeof import('./src/components/input-divider/src/index-ts.vue')['default']
+    IndexV1: typeof import('./src/components/input-number/src/indexV1.vue')['default']
+    IndexV2: typeof import('./src/components/associate-select/src/indexV2.vue')['default']
+    Src: typeof import('./src/components/associate-select/src/index.vue')['default']
+    TextareaDialog: typeof import('./src/components/input-expand/src/textareaDialog.vue')['default']
   }
   export interface ComponentCustomProperties {
     vLoading: typeof import('element-plus/es')['ElLoadingDirective']
