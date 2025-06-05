@@ -9,7 +9,6 @@ function randomId() {
   return (Math.random() * 100000000).toFixed(0)
 }
 function randomText() {
-  console.log('【  faker.lorem 】-13',  faker.lorem)
   return faker.lorem.word()
 }
 export const todoListMock = [
