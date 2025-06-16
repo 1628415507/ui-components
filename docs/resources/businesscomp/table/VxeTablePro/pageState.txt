@@ -1,0 +1,192 @@
+import { ref, Ref } from "vue";
+import router from "@/router";
+import _ from "lodash-es";
+
+export default class pageState {
+    private static stateMap = new Map();
+
+    static instance(tagView?: TagView): pageState {
+        console.log('【 tagView 】-9', tagView)
+        if (_.isUndefined(tagView)) {
+            tagView = { ...router.currentRoute.value };
+        }
+        const route = tagView
+        if (!route) {
+            return new pageState();
+        }
+        const mapKey = tagView?.path || tagView?.name
+        if (!pageState.stateMap.has(mapKey)) {
+            pageState.stateMap.set(mapKey, new pageState());
+        }
+        console.log('【 stateMap 】-20', pageState.stateMap, pageState.stateMap.get(mapKey))
+        return pageState.stateMap.get(mapKey);
+    }
+
+    private isModify: boolean = false;
+
+    private observeObjs: WeakSet<any> = new WeakSet();
+
+    reset(): pageState {
+        this.modify(false);
+        return this;
+    }
+
+    modify(isModify?: boolean): boolean | pageState {
+        console.log('【 isModify 】-35', isModify)
+        if (_.isUndefined(isModify)) {
+            return this.isModify;
+        }
+        this.isModify = Boolean(isModify);
+        return this;
+    }
+
+    /**
+     * 监视ref(value)
+     *
+     * @param value 要监视的原始值，对象、数组
+     * @param props 要监视的属性
+     */
+    watchRef(value: any, props: Array<string>): Ref<any> {
+        const proxy = new Proxy(ref(), {
+            set: (target, prop, value) => {
+                if (prop === "value") {
+                    this.observe(value, props);
+                }
+                target[prop] = value;
+                return true;
+            }
+        });
+        proxy.value = value;
+        return proxy;
+    }
+
+    /**
+     * 监视ref({})
+     *
+     * @param props 要监视的属性
+     */
+    watchObjectRef(props: Array<string>): Ref<any> {
+        return this.watchRef({}, props);
+    }
+
+    /**
+     * 监视ref([])
+     *
+     * @param props 要监视的属性
+     */
+    watchArrayRef(props: Array<string>): Ref<any> {
+        return this.watchRef([], props);
+    }
+
+    /**
+     * 监视对象，如果source为对象，parent可选，当source重新赋值后监视失效即（即调用source = ...）；
+     * 如果source为字符串，parent必须，当source重新赋值后监视一样有效（即此时监视的是parent.source）
+     *
+     * @param source 要监视的数据，对象、数组
+     * @param props 要监视的属性
+     * @param parent source的上一级，仅当source为字符串时有效
+     */
+    watch(source: any, props: Array<string>, parent?: any): pageState {
+        console.log('【 source 】-88', source)
+        if (_.isString(source)) {
+            if (!_.isUndefined(parent)) {
+                // 如果监听的是对象的属性，即使这个属性重新赋值，也会监听
+                let target = parent[source];
+
+                this.observe(target, props);
+
+                Object.defineProperty(parent, source, {
+                    get: () => {
+                        return target;
+                    },
+                    set: (value: any) => {
+                        this.observe(target = value, props);
+                    }
+                });
+            }
+        } else {
+            // 一次性监听，如果监听的对象重新赋值，则监听失效
+            this.observe(source, props);
+        }
+        return this;
+    }
+
+    observe(source: any, props: Array<string>): pageState {
+        console.log('【 source 】-112', source)
+        if (source) {
+            const sources: Array<any> = _.isArray(source) ? source : [source];
+            _.each(sources, (source: any) => {
+                if (_.includes(this.observeObjs, source)) {
+                    return true;
+                }
+                const target: any = {};
+                const pds: any = _.chain(props).pull("rowStatus").map((prop: string) => {
+                    target[prop] = source[prop];
+                    const pd: PropertyDescriptor = {
+                        enumerable: true,
+                        configurable: true,
+                        get: () => {
+                            return target[prop];
+                        },
+                        set: (newVal: any) => {
+                            const oldVal = target[prop];
+
+                            if (source.rowStatus === 2 || (source.rowStatus === 4 && !this.isModify)) {
+                                if (!this.isEqual(oldVal, newVal)) {
+                                    if (source.rowStatus === 2) {
+                                        source.rowStatus = 16;
+                                    }
+                                    this.modify(true);
+                                }
+                            }
+
+                            target[prop] = newVal;
+                        }
+                    };
+                    return [prop, pd];
+                }).fromPairs().value();
+                this.observeObjs.add(Object.defineProperties(source, pds));
+            })
+        }
+        return this;
+    }
+
+    isEqual(value: any, other: any): boolean {
+        if (!this.isEmpty(value) && !this.isEmpty(other)) {
+            if (_.isEqual(value, other)) {
+                return true;
+            } else if (_.isDate(value) || _.isDate(other)) {
+                if (!_.isDate(value) && !isNaN(Date.parse(value)) && /^(.*)\T(.*)\Z$/.test(value)) {
+                    value = new Date(Date.parse(value));
+                }
+                if (!_.isDate(other) && !isNaN(Date.parse(other)) && /^(.*)\T(.*)\Z$/.test(other)) {
+                    other = new Date(Date.parse(other));
+                }
+
+                const src = new Date(value);
+                src.setMilliseconds(0);
+
+                const desc = new Date(other);
+                desc.setMilliseconds(0);
+
+                return src.getTime() == desc.getTime();
+            } else if (_.isNumber(value) || _.isNumber(other)) {
+                return Number(value) === Number(other);
+            } else if (String(value) === String(other)) {
+                return true;
+            } else {
+                return false;
+            }
+        } else if (!this.isEmpty(value)) {
+            return false;
+        } else if (!this.isEmpty(other)) {
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    isEmpty(value: any): boolean {
+        return _.isNull(value) || _.isUndefined(value) || value === "";
+    }
+}

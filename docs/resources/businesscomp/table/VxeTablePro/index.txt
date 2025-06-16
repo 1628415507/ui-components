@@ -1,0 +1,210 @@
+<!--
+ * @Description: vxe-table表格封装
+ * @Date: 2024-03-08 09:59:15
+ * @LastEditTime: 2025-06-16 09:18:13
+-->
+
+<template>
+  <div class="vxe-table-pro" :style="{ height: height || '100%' }">
+    <!-- 自定义列工具栏 -->
+    <div v-if="showToolbar" class="vxe-toolbar-wrap">
+      <!-- <vxe-toolbar ref="toolbarRef" :custom="{ icon: '' }" /> -->
+    </div>
+    <!-- 表格 -->
+    <vxe-table
+      ref="xTableProRef"
+      :menu-config="menuConfig"
+      :customConfig="(() => customConfig(xTableProRef))()"
+      @custom="toolbarCustomEvent"
+      @resizable-change="resizableChange"
+      @menu-click="menuConfig.menuClickEvent"
+      align="center"
+      height="auto"
+      :min-height="minHeight"
+      :keepSource="true"
+      :autoResize="true"
+      :showOverflow="true"
+      :columnConfig="{ resizable: true, useKey: true }"
+      :rowConfig="{ isHover: true }"
+      v-bind="$attrs"
+      headerCellClassName="header-color"
+      @edit-closed="editClosedEvent"
+    >
+      <slot />
+    </vxe-table>
+  </div>
+</template>
+<script lang="ts">
+export default {
+  name: 'VxeTablePro'
+}
+</script>
+<script setup lang="ts">
+import { useRoute } from 'vue-router'
+import { ref, onMounted, defineExpose } from 'vue'
+import useSaveTableParams from './useSaveTableParams' //表格公共方法
+import useSetElTable from './useSetElTable' //表格公共方法
+import pageState from '@/plugins/pageState'
+import { getCurrentInstance } from 'vue'
+import type { VxeToolbarInstance, VxeTableInstance } from 'vxe-table'
+// 继承表格的原有实例并扩展
+interface IExtendsVxeTableInstance extends VxeTableInstance {
+  hasEditData: Function //判断数据是否修改
+  reset: Function //重置表格
+}
+const vxeFunc = (data: any[]) => Promise<any>
+const route = useRoute()
+
+const props = defineProps({
+  showToolbar: {
+    type: Boolean,
+    default: true
+  },
+  useExtend: {
+    type: Boolean, //是否开启扩展方法
+    default: true
+  },
+  onEditClosed: {
+    type: Function,
+    default: () => {}
+  },
+  minHeight: {
+    type: Number,
+    default: 96
+  },
+  height: {
+    type: [Number, String],
+    default: '100%'
+  }
+})
+const { setColumnFilterOptions } = useSetElTable()
+
+const {
+  initTableConfig,
+  resizableChange,
+  menuConfig,
+  toolbarCustomEvent,
+  customConfig
+} = useSaveTableParams()
+const instance = getCurrentInstance()
+const toolbarRef = ref<VxeToolbarInstance>()
+const xTableProRef = ref<IExtendsVxeTableInstance>()
+let $table: IExtendsVxeTableInstance = {}
+// 暴露表格所有的属性方法
+function exposedVxeTable() {
+  const entries = Object.entries(xTableProRef.value)
+  for (const [key, value] of entries) {
+    instance.exposed[key] = value
+  }
+  // 暴露原型方法
+  const proto = Object.getPrototypeOf(xTableProRef.value)
+  // const protoEntries = Object.entries(proto)
+  for (const [key, value] of entries) {
+    if (typeof value === 'function' && !instance.exposed[key]) {
+      instance.exposed[key] = (...args) => value.apply(xTableProRef.value, args)
+    }
+  }
+}
+// 是否有变化的数据
+function hasEditData() {
+  const { insertRecords, updateRecords, removeRecords } = $table.getRecordset() //.length
+  return (
+    (insertRecords.length || updateRecords.length || removeRecords.length) > 0
+  )
+}
+
+function editClosedEvent(e) {
+  // 自动去除所有字符串字段前后空格
+  if (e && e.row && typeof e.row === 'object') {
+    Object.keys(e.row).forEach(key => {
+      if (typeof e.row[key] === 'string') {
+        e.row[key] = e.row[key].trim()
+      }
+    })
+  }
+  props.onEditClosed && props.onEditClosed(e)
+  if (hasEditData()) {
+    pageState.instance(route).modify(true)
+  }
+}
+let vxeInsert = () => {}
+// 扩展原来的insert方法
+function insert(params: any): vxeFunc {
+  if (Array.isArray(params)) {
+    params.forEach(row => {
+      row.rowStatus = 4
+    })
+  } else {
+    params.rowStatus = 4
+  }
+  pageState.instance(route).modify(true)
+  return vxeInsert(params)
+}
+
+// 扩展方法
+function extendsMethods() {
+  if (!xTableProRef.value) {
+    return
+  }
+  xTableProRef.value.hasEditData = hasEditData
+  xTableProRef.value.insert = insert
+}
+onMounted(() => {
+  $table = xTableProRef.value
+  initTableConfig(xTableProRef.value, toolbarRef.value)
+  exposedVxeTable() //暴露表格所有的属性方法
+  setColumnFilterOptions($table, $table.data) //设置表格列过滤值
+  if (props.useExtend) {
+    vxeInsert = $table.insert as Function
+    extendsMethods()
+  }
+})
+// 暴露整个表格实例
+defineExpose({
+  getTable: () => xTableProRef.value
+})
+</script>
+<style scoped lang="scss">
+.vxe-table-pro {
+  height: 100%;
+  position: relative;
+  width: 100%;
+  // font-size: 14px;
+
+  .vxe-toolbar-wrap {
+    position: absolute;
+    left: 9px;
+    top: 7px;
+    z-index: 100;
+    margin-left: 0;
+  }
+}
+
+:deep(.vxe-table--body-wrapper) {
+  overflow-y: auto;
+  min-height: v-bind(minHeight + 'px');
+}
+</style>
+<style lang="scss">
+.vxe-table-custom-wrapper.placement--top-right {
+  top: 43px !important;
+  left: 0px !important;
+  right: unset !important;
+}
+
+// 工具栏样式
+.vxe-toolbar {
+  background-color: transparent !important;
+  padding: 0 !important;
+}
+.header-color {
+  background-color: #f5f8fd;
+  // font-size: 14px;
+}
+.vxe-table {
+  font-family: 'Source Han Sans Regular', sans-serif !important;
+}
+.vxe-header--column {
+  font-weight: 500 !important;
+}
+</style>

@@ -1,0 +1,192 @@
+/*
+ * @Description: vxe-table全局样式调整
+ * @Date: 2024-03-22 17:42:11
+ * @LastEditTime: 2024-07-19 15:21:05
+ */
+:root {
+  --vxe-primary-darken-color: var(--el-color-primary) !important;
+  --vxe-primary-color: var(--el-color-primary) !important;
+  --vxe-primary-lighten-color: var(--el-color-primary) !important;
+}
+
+// 工具栏样式
+.vxe-toolbar {
+  background-color: transparent !important;
+  padding: 0 !important;
+  // 操作图标样式调整
+  .vxe-button.type--button.is--circle {
+    display: flex !important;
+    justify-content: center;
+    align-items: center;
+    $w: 19px;
+    width: $w !important;
+    min-width: $w !important;
+    height: $w !important;
+    // line-height: 23px !important;
+    // text-align: center;
+    padding: 0px;
+    .vxe-button--icon {
+      font-size: 0.8rem !important;
+      margin-top: 2px;
+    }
+  }
+  // // 禁用序号列、勾选列的固定列操作
+  .vxe-custom--checkbox-option.is--disabled + .vxe-custom--fixed-option {
+    // display: none !important;
+    pointer-events: none;
+    color: #ccc !important;
+
+    .vxe-icon-fixed-left-fill {
+      color: #ccc !important;
+    }
+  }
+
+  // 隐藏序号列、勾选列的固定列操作
+  //   .vxe-custom--body .vxe-custom--option {
+  //     &:nth-child(1),
+  //     &:nth-child(2) {
+  //       // display: none !important;//序号列和
+  //     }
+  //   }
+}
+
+// 隐藏导出的参数设置行
+.vxe-export--panel tbody tr:last-of-type {
+  display: none;
+}
+
+// .vxe-table {
+//   // 表格内容背景色(virtual-scrolling标识虚拟滚动不设置背景色)
+//   // &:not(.virtual-scrolling) {
+//   //   .vxe-table--body-wrapper {
+//   //     background: #fff;
+//   //   }
+//   // }
+// }
+// 表格编辑状态下样式调整
+.vxe-table .col--active {
+  .vxe-cell {
+    padding-left: 0px;
+    padding-right: 0px;
+  }
+  // 改变文本框的样式
+  .el-select__wrapper,
+  .el-input__wrapper {
+    margin-top: -1px;
+    min-height: 35px;
+    background-color: transparent;
+
+    box-shadow: none;
+
+    &:hover {
+      box-shadow: none;
+    }
+  }
+
+  // 聚焦时的样式
+  &:not(.col--valid-error) {
+    .el-select__wrapper,
+    .el-input__wrapper {
+      &.is-focused,
+      &.is-focus {
+        box-shadow: 0 0 0 1px var(--el-color-primary) inset;
+      }
+    }
+  }
+
+  // 错误校验时的样式
+  &.col--valid-error {
+    .el-select__wrapper,
+    .el-input__wrapper {
+      box-shadow: 0 0 0 1px var(--el-color-danger) inset;
+    }
+  }
+}
+
+.vxe-body--expanded-row {
+  position: relative;
+  z-index: 99;
+}
+
+.vxe-table--render-default:not(.is--empty).is--footer.is--scroll-x .vxe-table--body-wrapper {
+  overflow-x: auto;
+}
+
+// .vxe-table--render-default
+// 筛选弹窗-自定义序列弹框层级
+.vxe-table--filter-wrapper,
+.vxe-custom--option-wrapper {
+  z-index: 9999 !important;
+}
+
+// 表头样式
+.vxe-header--row {
+  background: #0081cc; //#dedddd
+  color: #fff;
+  height: 30px !important;
+  min-height: 30px !important;
+  box-sizing: border-box !important;
+  --vxe-table-column-padding-mini: 3px 0px;
+  .vxe-header--column {
+    padding: 0px !important;
+  }
+  .vxe-sort--asc-btn,
+  .vxe-sort--desc-btn {
+    font-size: 12px;
+  }
+  .vxe-cell--filter {
+    font-size: 13px;
+  }
+  .vxe-cell--sort {
+    // width: 1.5em;
+    height: 1.1em !important;
+    // vertical-align: middle;
+    // text-align: center;
+    // display: inline-block;
+    // position: relative;
+    margin-top: -2px !important;
+    .vxe-sort--asc-btn,
+    .vxe-sort--desc-btn {
+      color: #d9e0f3 !important;
+      &.sort--active {
+        color: #0081cc !important;
+      }
+    }
+  }
+  .vxe-cell--checkbox {
+    color: #fff !important;
+  }
+}
+// .vxe-table .vxe-header--column.header-style {
+//   background-color: #7a8cb6;
+//   color: #fff;
+// }
+.vxe-cell--checkbox.is--checked,
+.vxe-cell--checkbox.is--indeterminate {
+  .vxe-checkbox--icon {
+    color: #4c80f6 !important;
+  }
+}
+
+// .vxe-table--fixed-left-wrapper tr.vxe-body--expanded-row {
+//   // visibility: hidden;
+// }
+// ::-webkit-scrollbar {
+//   height: 12px !important;
+//   width: 10px !important;
+// }
+
+::-webkit-scrollbar-thumb {
+  border-radius: 10px !important;
+}
+
+.vxe-table--header-wrapper,
+.vxe-table--footer-wrapper,
+.vxe-table--render-default {
+  color: #333 !important;
+}
+
+.vxe-table .el-date-editor.el-input,
+.el-date-editor.el-input__wrapper {
+  height: 100% !important;
+}

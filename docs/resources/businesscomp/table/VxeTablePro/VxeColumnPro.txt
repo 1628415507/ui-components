@@ -1,0 +1,59 @@
+<!--
+ * @Description: vxe-column表格封装
+ * @Date: 2024-03-08 09:59:15
+ * @LastEditTime: 2024-07-25 09:09:27
+-->
+
+<template>
+  <vxe-column
+    ref="xColumnProRef"
+    v-bind="$attrs"
+    :sortable="!isSpecialColumn"
+    :filters="!isSpecialColumn ? filters : []"
+    :filter-method="!isSpecialColumn ? filterHandlerToVxe : null"
+  >
+    <template v-for="(_, name) in $slots" v-slot:[name]>
+      <slot :name="name"></slot>
+    </template>
+  </vxe-column>
+</template>
+<script lang="ts">
+export default {
+  name: 'VxeColumnPro'
+}
+</script>
+<script setup lang="ts">
+import { useSetElTable } from '@/hooks' //表格公共方法
+import { reactive, ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
+import { getCurrentInstance } from 'vue'
+
+const { filterHandlerToVxe, filters, setColumnFilterOptions } = useSetElTable()
+
+const instance = getCurrentInstance()
+console.log('【 instance 】-33', instance, instance.slots)
+const $table = instance.parent?.proxy //获取父级表格实例
+const proxy = instance.proxy
+const $slots = ref([])
+// console.log('【 instance 】-38', instance)
+// console.log('【 instance 】-48', instance, instance.exposed, proxy, proxy.$attrs)
+const columnType = ref(proxy.$attrs.type)
+const isSpecialColumn = computed(() => {
+  const specialColumn = ['seq', 'checkbox', 'expand']
+  return specialColumn.includes(columnType.value)
+})
+const xColumnProRef = ref<VxeTableInstance>()
+
+// 暴露表格所有的属性方法
+function exposedVxeColumn() {
+  const entries = Object.entries(xColumnProRef.value)
+  for (const [key, value] of entries) {
+    instance.exposed[key] = value
+  }
+  // console.log('【  instance.exposed 】-79', instance.exposed)
+}
+onMounted(async () => {
+  console.log('【 xColumnProRef.value 】-49', xColumnProRef.value)
+  exposedVxeColumn() //暴露表格所有的属性方法
+})
+</script>
+<style scoped lang="scss"></style>
