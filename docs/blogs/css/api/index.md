@@ -1,7 +1,7 @@
 <!--
  * @Description:
  * @Date: 2024-10-10 15:17:32
- * @LastEditTime: 2024-10-11 16:22:38
+ * @LastEditTime: 2025-06-16 16:13:15
 -->
 
 ## 【CSS 优先级问题】 ⚄
@@ -25,23 +25,25 @@
 
 ## [【CSS3 有哪些新特性】](https://blog.csdn.net/weixin_45086164/article/details/136957847)
 
-1.  RGBA 和透明度
+### RGBA 和透明度
 
 |           | 描述                                                    | 示例                       |
 | --------- | ------------------------------------------------------- | -------------------------- |
 | `rgba`    | 用于设置颜色，它的透明度，仅仅是调整**颜色的透明度**    | ` rgba(225, 225, 245,0.5)` |
 | `opacity` | （0~1），设置**整个元素**（包括元素里的内容）的不透明度 | `opacity: 0.2`             |
 
-2.  background
-    - 使用`background-position`时，需要把 `background-attachment` 属性设置为 "fixed"，才能保证该属性在 Firefox 和 Opera 中正常工作。
-    - background-origin(content-box/padding-box/border-box)
-      |属性 | 描述 |默认值| 示例 |
-      | --------- | ----------- | ------------------------------------------------ | -------------------------- |
-      | `background-image ` | 图片地址| |`background-image: url()` |
-      | [`background-position`](https://www.w3school.com.cn/cssref/pr_background-position.asp) |用来设置背景图像起始位置,<br/>背景图像如果要重复，将从这一点开始<br/>第一个值是水平位置，第二个值是垂直位置。<br/>左上角是 `0% 0%`。右下角是 `100% 100%`。 |`0% 0%`(左上角)| `center`/`14% 40%`|
-      | `background-repeat` | 是否循环填充| | `no-repeat` |
-      | `background-size` |放大倍数| |`215%`/`118% 252%` |
-      | `background-origin` |放大倍数| | `215%` |
+### background
+
+- 使用`background-position`时，需要把 `background-attachment` 属性设置为 "fixed"，才能保证该属性在 Firefox 和 Opera 中正常工作。
+- background-origin(content-box/padding-box/border-box)
+
+| 属性                                                                                   | 描述                                                                                                                                                       | 默认值          | 示例                      |
+| -------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------- | ------------------------- |
+| `background-image `                                                                    | 图片地址                                                                                                                                                   |                 | `background-image: url()` |
+| [`background-position`](https://www.w3school.com.cn/cssref/pr_background-position.asp) | 用来设置背景图像起始位置,<br/>背景图像如果要重复，将从这一点开始<br/>第一个值是水平位置，第二个值是垂直位置。<br/>左上角是 `0% 0%`。右下角是 `100% 100%`。 | `0% 0%`(左上角) | `center`/`14% 40%`        |
+| `background-repeat`                                                                    | 是否循环填充                                                                                                                                               |                 | `no-repeat`               |
+| `background-size`                                                                      | 放大倍数                                                                                                                                                   |                 | `215%`/`118% 252%`        |
+| `background-origin`                                                                    | 放大倍数                                                                                                                                                   |                 | `215%`                    |
 
 ::: example
 blogs/css/api/background
@@ -71,3 +73,53 @@ blogs/css/api/background
 | `::first-letter` | 只能用于块级元素。用于设置附属元素的**第一个字母**的样式。   |
 | `::selection`    | 匹配鼠标**长按拖动选中**的内容。                             |
 | `::placeholder`  | 用于设置 input 元素的 placeholder 内容的样式。               |
+
+## 【CSS 动画】
+
+### transition API
+
+```scss
+transition: opacity 1s cubic-bezier(0.4, 0, 0.2, 1), transform 1s cubic-bezier(0.4, 0, 0.2, 1);
+```
+
+- `transition: [property] [duration] [timing-function] [delay];`
+  | transition |说明 |
+  | ---------------------------------------------- | ------------ |
+  | `property` | 要过渡的 CSS 属性（如 opacity、transform）|
+  | `duration` |动画持续时间（如 1s 表示 1 秒） |
+  | `timing-function` | 动画的速度曲线（如 linear、ease、cubic-bezier(...)） |
+  | `timing-function`:linear| |
+  | `timing-function`:ease| |
+  | `timing-function`:cubic-bezier|贝塞尔曲线（加速-减速）|
+  | `delay` |动画延迟时间（可选） |
+
+### 示例
+
+::: example
+blogs/css/api/transition
+:::
+
+### 代码解析
+
+```scss
+/* 渐入动画 */
+.fade-in {
+  opacity: 0; //初始状态，元素完全透明
+  transform: translateY(40px); //向下偏移 40px
+  // 当类名从 .fade-in 变为 .fade-in.show 时，opacity 和 transform 属性会在 1 秒内平滑过渡，形成向上淡入的动画。
+  transition: opacity 1s cubic-bezier(0.4, 0, 0.2, 1), transform 1s cubic-bezier(0.4, 0, 0.2, 1);
+
+  &.show {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+```
+
+- `opacity 1s cubic-bezier(0.4,0,0.2,1)`
+  表示 opacity 属性在 1 秒内，按照自定义的贝塞尔曲线（加速-减速）变化。
+- `transform 1s cubic-bezier(0.4,0,0.2,1)`
+  表示 transform 属性（如平移、缩放等）也在 1 秒内，按照同样的速度曲线变化。
+- `cubic-bezier(0.4,0,0.2,1)` 是什么？  
+   这是一个自定义的缓动函数，常用于 Material Design 和苹果风格动画。
+  它的效果是：**开始和结束都比较平滑，中间加速，比 ease 更自然**。
