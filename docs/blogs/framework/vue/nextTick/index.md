@@ -146,7 +146,7 @@ data(){
 }
 ```
 
-- 想执行 nextTick，再修改数据：拿不到正确 dom
+- 先执行 nextTick，再修改数据：拿不到正确 dom
 
 ```js{3,6}
 mounted() {
@@ -162,7 +162,7 @@ mounted() {
 }
 ```
 
-- 想修改数据，再执行 nextTick：拿到正确 dom
+- 先修改数据，再执行 nextTick：拿到正确 dom
 
 ```js{2,3,8}
 mounted() {

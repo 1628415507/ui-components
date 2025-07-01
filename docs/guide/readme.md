@@ -1,20 +1,9 @@
 <!--
  * @Description: docs说明文档
  * @Date: 2024-06-27 09:40:26
- * @LastEditTime: 2024-10-11 17:15:10
+ * @LastEditTime: 2025-04-25 11:03:57
 -->
 <!-- 题库https://github.com/pro-collection/interview-question/issues -->
-
-## 网址资源
-
-- https://github.com/pro-collection/interview-question/issues
-- 组件库搭建：https://www.cnblogs.com/wp-leonard/p/17894496.html
-- 博客搭建：https://blog.csdn.net/WNX10086/article/details/137160521
-- 图标大全：https://www.emojiall.com/zh-hans/categories/G#google_vignette
-
-## 他人参考博客
-
-- https://blog-ssg.touchczy.top/zh-cn/Vue/Vue%E4%B8%AD%E7%9A%84%E4%B8%89%E7%A7%8DWatcher.html#%E5%8F%82%E8%80%83
 
 ## 各分支说明
 
@@ -50,3 +39,26 @@
 │  └─ guide                     # 指南说明文档
 └─ ...
 ```
+
+## 网址资源
+
+### 第三方库
+
+- 拖拽
+  - es-drager：https://vangleer.github.io/es-drager/#/basic
+- 表格
+-
+
+### 教程
+
+- 组件库搭建：https://www.cnblogs.com/wp-leonard/p/17894496.html
+- 博客搭建：https://blog.csdn.net/WNX10086/article/details/137160521
+- 图标大全：https://www.emojiall.com/zh-hans/categories/G#google_vignette
+
+### 他人参考博客
+
+- https://blog-ssg.touchczy.top/zh-cn/Vue/Vue%E4%B8%AD%E7%9A%84%E4%B8%89%E7%A7%8DWatcher.html#%E5%8F%82%E8%80%83
+
+### 题库
+
+- https://github.com/pro-collection/interview-question/issues

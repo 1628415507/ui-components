@@ -15,7 +15,9 @@ function loop(curTotal, curIndex) {
     return false
   }
   let pageCount = Math.min(curTotal, once) //每页多少条
+  // 【时间分片】
   window.requestAnimationFrame(function () {
+    // 虚拟dom操作
     let fragment = document.createDocumentFragment()
     for (let i = 0; i < pageCount; i++) {
       let li = document.createElement('li')

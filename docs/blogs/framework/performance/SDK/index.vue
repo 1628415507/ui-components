@@ -19,12 +19,15 @@ import ErrorCapturedDemo from './ErrorCapturedDemo.vue'
 
 // 1.⽤⼾⾏为与⽇志上报
 function handleClick() {
+  if (!window.insSDK) {
+    return
+  }
   window.insSDK.event('click', { remark: '点击了按钮' })
 }
 
 // 2.运行时错误上报
 function handleError() {
-  console.log('【 引用声明的变量： 】-24', aa) //模拟代码错误
+  console.log('【 引用未声明的变量： 】-24', aa) //模拟代码错误
 }
 // function handlePromiseError() {
 //   // Promise错误上报
@@ -39,15 +42,16 @@ function handleError() {
 //   // })
 // }
 function setSDK() {
-  window.insSDK = new StatisticSDK('sdk-12345') //初始化
+  window.insSDK = new StatisticSDK('项目id') //初始化
 }
 onMounted(() => {
+  // setSDK()
   // window.insSDK = new StatisticSDK('sdk-12345') //初始化
 })
 // 3.子组件渲染错误处理
 onErrorCaptured((error, vm, info) => {
-  console.error('【 子组件-渲染错误 】-47', error, vm, info)
-  window.insSDK.error('error', { ...error, remark: '子组件-渲染错误' })
+  // console.error('【 子组件-渲染错误 】-47', error, vm, info)
+  window?.insSDK?.error('error', { ...error, remark: 'onErrorCaptured子组件-渲染错误' })
   return false //，返回 false 以阻止错误继续向上传播。
 })
 </script>

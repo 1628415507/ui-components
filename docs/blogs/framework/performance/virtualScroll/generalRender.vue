@@ -18,22 +18,22 @@ const jsTime = ref(undefined) // JS 运行所需要的时间
 
 function handleClick() {
   renderTime.value = 0
-  // 记录任务开始时间
+  // 【记录任务开始时间】
   let now = Date.now()
-  // 插入一万条数据
-  const total = 10000
-  // 获取容器
-  let ul = document.getElementById('ulId')
+  const total = 10000 // 插入一万条数据
+  let ul = document.getElementById('ulId') // 获取容器
   ul.innerHTML = ''
-  // 将数据插入容器中
+  // 【将数据插入容器中】
   for (let i = 0; i < total; i++) {
     let li = document.createElement('li')
     li.innerText = `${i}:${~~(Math.random() * total)}`
     ul.appendChild(li)
   }
   console.log('JS运行时间：', Date.now() - now)
+  // 【JS运行时间】
   jsTime.value = Date.now() - now
   setTimeout(() => {
+    // 【渲染时间】
     renderTime.value = Date.now() - now
     console.log('总运行时间(包括渲染时间)：', Date.now() - now)
   }, 0)

@@ -4,14 +4,16 @@
 
 ### 1. 概括
 
-| 区别                    | Vue2                         | Vue3                                                                        |
-| ----------------------- | ---------------------------- | --------------------------------------------------------------------------- |
-| 响应式对比              | 使用 `Object.defineProperty` | 使用 `Proxy`                                                                |
-| API 差异                | 使用 `Options API`           | 使用 `Composition API`                                                      |
-| v-model 用法            | 默认是绑定 value 属性        | 支持多个绑定属性和事件自定义                                                |
-| Fragments（多个根元素） | 只能有一个根元素             | 支持多个根元素(`Fragments`)                                                 |
-| v-if 和 v-for 的优先级  | v-for 的优先级高于 v-if      | v-if 的优先级高于 v-for                                                     |
-| diff 算法不同           | 比较每一个节点               | 在初始化的时候会给每一个虚拟节点添加一个 `patchFlagsd`<br/>是一种优化的标识 |
+| 区别                    | Vue2                         | Vue3                                                                                            |
+| ----------------------- | ---------------------------- | ----------------------------------------------------------------------------------------------- |
+| 响应式对比              | 使用 `Object.defineProperty` | 使用 `Proxy`                                                                                    |
+| API 差异                | 使用 `Options API`           | 使用 `Composition API`                                                                          |
+| v-model 用法            | 默认是绑定 value 属性        | 支持多个绑定属性和事件自定义                                                                    |
+| v-if 和 v-for 的优先级  | v-for 的优先级高于 v-if      | v-if 的优先级高于 v-for                                                                         |
+| Fragments（多个根元素） | 只能有一个根元素             | 支持多个根元素(`Fragments`)                                                                     |
+| diff 算法不同           | 比较每一个节点               | 在初始化的时候会给每一个虚拟节点添加一个 `patchFlagsd`<br/>是一种优化的标识                     |
+| Teleport                | Vue2 没有这个功能            | Vue3 提供了 Teleport 组件，可以将部分 DOM 移动到 Vue 应用之外的位置，常用于 Dialog 弹窗等场景。 |
+|                         |
 
 ### 2. Vue3.0 里为什么要用 Proxy API 替代 defineProperty API ?
 
@@ -35,10 +37,10 @@
   blogs/framework/vue/myreactive
   :::
 
-- [Reflect.get()](https://blog.csdn.net/dingshuo168/article/details/137891732)  
-   Reflect.get() 是 JavaScript 的一个内置方法，它用于获取对象上某个属性的值。与直接使用点（.）或方括号（[]）访问属性的方式类似
+- [Reflect.get()](https://blog.csdn.net/dingshuo168/article/details/137891732)
+  > Reflect.get() 是 JavaScript 的一个内置方法，它用于获取对象上某个属性的值。与直接使用点`.`或方括号`[]`访问属性的方式类似
 
-```js{6,12,14,19,25}
+```js{6,8,12,14,19,25}
 function myReactive(obj) {
   if (typeof obj !== 'object' && obj != null) {
     return obj
@@ -83,7 +85,7 @@ Vue2
 
 - **遍历每一个虚拟节点**，进行虚拟节点对比，并返回一个 patch 对象，用来存储两个节点不同的地方。用 patch 记录的消息去更新 dom
 - 缺点：比较每一个节点，而对于一些不参与更新的元素，进行比较是有点消耗性能的。  
-   特点：特别要提一下 Vue 的 patch 是即时的，并不是打包所有修改最后一起操作 DOM，也就是在 vue 中边记录边更新。（React 则是将更新放入队列后集中处理）。
+   特点：特别要提一下 Vue 的 patch 是即时的，并不是打包所有修改最后一起操作 DOM，也就是在 vue 中**边记录边更新**。（React 则是将更新放入队列后集中处理）。
 
 Vue3
 
