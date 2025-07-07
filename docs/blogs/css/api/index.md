@@ -1,7 +1,7 @@
 <!--
  * @Description: CSS API
  * @Date: 2024-10-10 15:17:32
- * @LastEditTime: 2025-07-01 15:58:03
+ * @LastEditTime: 2025-07-07 14:49:00
 -->
 
 ## 【CSS 优先级问题】 ⚄
@@ -14,6 +14,24 @@
 |`id`选择器 | 100|
 |类选择器（`.class`）、伪类选择器（如`:hover`）、属性选择器（如[type="text"]`）| 10|
 |标签选择器（如 div）、伪元素选择器（如`::before`）| 1|
+
+### css 包含选择器
+
+- 代码
+
+```css
+/* 选择包含特定class的元素 */
+.parent:has(.target-class) {
+  /* 样式 */
+}
+/* 选择直接包含特定class的元素 */
+.parent:has(> .target-class) {
+  /* 样式 */
+}
+```
+
+- 示例
+  ![alt text](./img/css-has.png)
 
 ## 【CSS 盒模型】
 
