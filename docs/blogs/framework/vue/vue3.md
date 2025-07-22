@@ -18,7 +18,7 @@
 ### 2. Vue3.0 里为什么要用 Proxy API 替代 defineProperty API ?
 
 - `Object.defineProperty` 只能遍历**对象**属性进行劫持
-- Proxy 直接**可以劫持整个对象**，并**返回一个新对象**，我们可以只操作新的对象达到响应式目的
+- Proxy 直接**可以劫持整个对象**，并**返回一个新对象**，我们可以只**操作新的对象**达到响应式目的
 - Proxy 可以直接监听数组的变化(`push`、`shift` 、`splice` )
 - Proxy 有多达 13 种拦截方法,不限于 apply、ownKeys、deleteProperty、has 等等，这是 Object.defineProperty 不具备的,正因为 defineProperty 自身的缺陷，导致 Vue2 在实现响应式过程需要实现其他的方法辅助(如重写数组方法、增加额外 set、delete 方法)
 - Proxy 不兼容 IE，也没有 polyfill；defineProperty 能支持到 IE9
@@ -69,11 +69,13 @@ function myReactive(obj) {
 }
 ```
 
-### 3. Vue3`Composition API`与 Vue2`Options API` 有什么不同?
+### 3. Vue3`Composition API`与 Vue2`Options API` 有什么不同，?
 
 - `Options API`：当组件的逻辑比较复杂时，会更加的**碎片化**，在处理单个逻辑关注点时，我们必须不断地“**跳转**”相关代码的选项块，这种碎片化使得理解和维护复杂组件变得困难
 - 在 `Vue3 Composition API` 中，组件**根据逻辑功能来组织**的，一个功能所定义的所有 API 会放在一起(更加的**高内聚，低耦合**)
-
+- [vue3为什么要用引入Composition api](https://zhuanlan.zhihu.com/p/1889756520574608026)
+  - 更好的组织和复用代码
+  - 更好的类型推导和支持TS
 ### 4. v-if 和 v-for 的优先级的区别
 
 - **在 Vue2 中 v-for 的优先级高于 v-if**，可以放在一起使用，但是不建议这么做，会带来性能上的浪费
