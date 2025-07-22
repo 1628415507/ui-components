@@ -1,7 +1,7 @@
 /*
  * @Description:
  * @Date: 2024-10-14 17:14:53
- * @LastEditTime: 2025-01-07 17:42:55
+ * @LastEditTime: 2025-07-01 21:01:07
  */
 export default [
   { text: '汇总', link: '/blogs/framework/index.md' },
@@ -56,7 +56,8 @@ export default [
           { text: '埋点监控', link: '/blogs/framework/performance/monitor.md' },
           { text: '虚拟滚动', link: '/blogs/framework/performance/virtualScroll/virtualScroll.md' }
         ]
-      }
+      },
+      { text: '工具', link: '/blogs/framework/performance/tools/index.md' },
       // { text: '实际应用', link: '/blogs/framework/performance/application.md' }
     ]
   },
