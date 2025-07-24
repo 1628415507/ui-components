@@ -19,7 +19,7 @@
 
 - `Object.defineProperty` 只能遍历**对象**属性进行劫持
 - Proxy 直接**可以劫持整个对象**，并**返回一个新对象**，我们可以只**操作新的对象**达到响应式目的
-- Proxy 可以直接监听数组的变化(`push`、`shift` 、`splice` )
+- Proxy 可以直接监听数组的变化(`push`、`shift` 、`splice`、`length` ),使得 Vue 3 能够更高效地追踪依赖和更新视图，特别是在处理大型对象和数组时。
 - Proxy 有多达 13 种拦截方法,不限于 apply、ownKeys、deleteProperty、has 等等，这是 Object.defineProperty 不具备的,正因为 defineProperty 自身的缺陷，导致 Vue2 在实现响应式过程需要实现其他的方法辅助(如重写数组方法、增加额外 set、delete 方法)
 - Proxy 不兼容 IE，也没有 polyfill；defineProperty 能支持到 IE9
 
