@@ -1,5 +1,5 @@
 // import i18n from '@/lang/index'
-import { nextTick, Ref } from 'vue'
+import { Ref, isRef, Reactive, nextTick, isReactive } from 'vue'
 import type { FormInstance, FormItemContext, FormRules } from 'element-plus'
 interface IExtendsObject extends Object {
   [propName: string]: any // 给接口添加索引标签
@@ -11,7 +11,8 @@ interface IExtendsFormInstance extends FormInstance {
 }
 
 // 设置数组的校验
-export function setFormRules($form: FormInstance, customRules: Ref<FormRules>, formData: Object) {
+export function setFormRules($form: FormInstance, customRules: Ref<FormRules> | Reactive<FormRules>, formData: Object) {
+  console.log('【 $form 】-15', $form)
   // 获取必填的表单项， 重新格式化校验提示语
   if (!$form) {
     console.error('【 setFormRules 】 表单实例不能为空')
@@ -19,6 +20,11 @@ export function setFormRules($form: FormInstance, customRules: Ref<FormRules>, f
   }
   if (!$form.fields) {
     console.error('element-plus版本需大于2.7.3')
+    return
+  }
+  $form.$el.classList.add(`custom-form-error`);
+  if (!isRef(customRules) && !isReactive(customRules)) {
+    console.error('【 setFormRules-校验规则绑定的对象需为Ref类型或Reactive类型】-23')
     return
   }
   // 是否移入时显示提示语
@@ -33,16 +39,16 @@ export function setFormRules($form: FormInstance, customRules: Ref<FormRules>, f
     }
     const prop = el.prop as string
     // 添加到自定义校验规则中( 如果传入的customRules中已经有自定义校验，则以传入的自定义校验为主)
-    if (!customRules.value[prop]) {
+    if (isRef(customRules) && !customRules.value[prop]) {
       customRules.value[prop] = createNewRule(el, $form)
+    } else if (isReactive(customRules) && !customRules[prop]) {
+      customRules[prop] = createNewRule(el, $form)
     }
     // 将动态新增的数组表单项添加到校验规则中
     isArrayProp(prop) && addArrayItemRule($form, el, customRules, formData)
   })
   // console.log('【 customRules.value 】-25', customRules.value)
 }
-
-export type RuleFunc = (options: any) => boolean;
 
 // 判断是否是数组格式的prop (mfCtnRequestDetails[0].ctnSizeType)
 function isArrayProp(prop: string): boolean {
@@ -119,7 +125,7 @@ function createNewRule(el: FormItemContext, $form: IExtendsFormInstance) {
 }
 
 // 将新增的表单项添加到校验规则中
-function addArrayItemRule($form: FormInstance, el: FormItemContext, customRules: Ref<FormRules>, formData: IExtendsObject) {
+function addArrayItemRule($form: FormInstance, el: FormItemContext, customRules: Ref<FormRules> | Reactive<FormRules>, formData: IExtendsObject) {
   const prop = el.prop as string
   // console.log('【 addArrayItemRule 】-62', prop)
   const arrayName = prop.split('[')[0]
@@ -128,8 +134,10 @@ function addArrayItemRule($form: FormInstance, el: FormItemContext, customRules:
     let newProp: string = prop.replace(/\[\d+\]/g, `[${len - 1}]`)//添加新的prop
     // console.log('【 newProp 】-67', newProp)
     // 添加校验规则
-    if (!customRules.value[newProp]) {
+    if (isRef(customRules) && !customRules.value[newProp]) {
       customRules.value[newProp] = createNewRule(el, $form)
+    } else if (isReactive(customRules) && !customRules[newProp]) {
+      customRules[newProp] = createNewRule(el, $form)
     }
   }
 }
@@ -137,54 +145,70 @@ function addArrayItemRule($form: FormInstance, el: FormItemContext, customRules:
 function setErrorPosition(formItem: FormItemContext) {
   const el = formItem.$el as HTMLElement
   const content = el.querySelector('.el-form-item__content') as HTMLElement;
+  const inputElement = content.querySelector('input, textarea')
+  let errorEl: HTMLElement
+  // 聚焦时不显示错误提示
+  const onFocusListener = () => {
+    errorEl && (errorEl.style.display = 'none')
+  }
   // 鼠标移入时计算位置
   const handleMouseEnter = (isInit: boolean) => {
-    // 等待DOM更新完成
-    nextTick(() => {
-      const errorEl = el.querySelector('.el-form-item__error');
-      // 移入&如果存在错误提示元素且表单项处于错误状态
-      if (!isInit && !(errorEl && el.classList.contains('is-error'))) {
-        return
-      }
-      // 获取表单控件位置信息
-      const rect = el.getBoundingClientRect();
-      // 默认错误提示宽度(可根据实际情况调整)
-      const errorWidth = 150;
-      // const errorHeight = 30; // 估计的错误提示高度
-      const spacing = 10; // 间距
-      const viewportWidth = window.innerWidth;
-      // const viewportHeight = window.innerHeight;
+    errorEl = el.querySelector('.el-form-item__error') as HTMLElement;
+    if (inputElement) {
+      inputElement.addEventListener('focusin', onFocusListener)
+    }
+    const isFocus = document.activeElement === inputElement
+    // 移入&如果存在错误提示元素且表单项处于错误状态
+    if (isFocus || !isInit || !(errorEl && el.classList.contains('is-error'))) {
+      return
+    }
+    // 获取表单控件位置信息
+    const rect = el.getBoundingClientRect();
+    const errorWidth = 150; // 默认错误提示宽度(可根据实际情况调整)
+    // const errorHeight = 30; // 估计的错误提示高度
+    const spacing = 10; // 间距
+    const viewportWidth = window.innerWidth;
+    // const viewportHeight = window.innerHeight;
 
-      // 找出四个方向的可用空间
-      // const leftSpace = rect.left;
-      const rightSpace = viewportWidth - rect.right;
-      // const topSpace = rect.top;
-      // const bottomSpace = viewportHeight - rect.bottom;
-      let errorPosition
-      // 确定最佳位置
-      if (rightSpace >= errorWidth + spacing) {
-        errorPosition = 'right';
-      } else {
-        errorPosition = 'bottom';
-      }
-      content.classList.add(`error-${errorPosition}`);
-
-      // if (rightSpace >= errorWidth + spacing) {
-      //   errorPosition = 'right';
-      // }else if (leftSpace >= errorWidth + spacing && leftSpace >= rightSpace) {
-      //   errorPosition = 'left';
-      // } else  if (bottomSpace >= errorHeight + spacing) {
-      //   errorPosition = 'bottom';
-      // } else {
-      //   errorPosition = 'top';
-      // }
-      // // 强制重新计算样式
-      // errorEl.style.display = 'none';
-      // requestAnimationFrame(() => {
-      //   errorEl.style.display = '';
-      // });
-    });
+    // 找出四个方向的可用空间
+    const leftSpace = rect.left;
+    const rightSpace = viewportWidth - rect.right;
+    // const topSpace = rect.top;
+    // const bottomSpace = viewportHeight - rect.bottom;
+    let errorPosition
+    // 确定最佳位置
+    if (rightSpace >= errorWidth + spacing) {
+      errorPosition = 'right';//提示语在右边
+    } else if (leftSpace >= errorWidth + spacing && leftSpace >= rightSpace) {
+      errorPosition = 'left';//提示语在左下边
+    } else {
+      errorPosition = 'bottom';//提示语在下面
+    }
+    // } else  if (bottomSpace >= errorHeight + spacing) {
+    //   errorPosition = 'bottom';
+    // } else {
+    //   errorPosition = 'top';
+    // }
+    const newClassName = `error-${errorPosition}`
+    // 样式有变化
+    if (!content.classList.contains(newClassName)) {
+      // 重置样式
+      content.classList.remove(`error-right`);
+      content.classList.remove(`error-left`);
+      content.classList.remove(`error-bottom`);
+      content.classList?.add(newClassName);
+    } else {
+      content.classList.add(newClassName);
+    }
+    // 强制重新计算样式
+    errorEl.style.display = 'inline-block';
   };
-  handleMouseEnter(true)
-  // content?.addEventListener('mouseenter', handleMouseEnter);
-}
+
+  // handleMouseEnter(true)
+  const handleMouseLeave = () => {
+    errorEl && (errorEl.style.display = 'none');
+    inputElement && inputElement.removeEventListener('focusin', onFocusListener)
+  }
+  content?.addEventListener('mouseenter', handleMouseEnter);
+  content?.addEventListener('mouseleave', handleMouseLeave);//移开时隐藏提示
+};

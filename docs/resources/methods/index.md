@@ -1,3 +1,8 @@
+<!--
+ * @Description: 
+ * @Date: 2025-07-24 11:11:13
+ * @LastEditTime: 2025-07-24 11:52:42
+-->
 ## 表单基础校验设置
 
 - element-plus 版本需大于`2.7.3`
@@ -22,5 +27,5 @@ setFormRules(ruleFormRef.value, formRules, ruleForm)
 ### 使用示例
 
 ::: example
-resources/methods/formRule
+resources/methods/rules/formRule
 :::
