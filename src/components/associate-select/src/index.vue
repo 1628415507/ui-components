@@ -662,7 +662,7 @@ function handleCreateValEmit() {
   if (chooseLabel !== input.value) {
     chooseData.value = [] //清空选项
   }
-  const isCreateVal = chooseLabel !== input.value
+  const isCreateVal = input.value && chooseLabel !== input.value
   // 单选状态
   if (isCreateVal) {
     if (!props.allowCreate) {
