@@ -1,0 +1,31 @@
+[
+  {
+    "resourceUrl": "/home",
+    "component": "home/index",
+    "resourceTitle": "首页"
+  },
+  {
+    "resourceUrl": "/demo",
+    "redirect": "/router",
+    "component": "",
+    "resourceTitle": "测试 demo",
+    "childrenResourceList": [
+      {
+        "resourceUrl": "/router",
+        "resourceTitle": "路由-demo",
+        "component": "/demo/router-demo"
+      },
+      {
+        "resourceUrl": "/store",
+        "resourceTitle": "Store-demo",
+        "component": "demo/store-demo"
+      },
+      {
+        "resourceUrl": "/request",
+        "name": "Request",
+        "resourceTitle": "请求-demo",
+        "component": "demo/http-demo"
+      }
+    ]
+  }
+]

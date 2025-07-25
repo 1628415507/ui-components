@@ -47,6 +47,7 @@
     "gulp": "^5.0.0",
     "gulp-autoprefixer": "^9.0.0",
     "gulp-sass": "^6.0.1",
+    "mockjs": "^1.1.0",
     "sass": "^1.87.0",
     "shelljs": "^0.10.0",
     "typescript": "^5.2.2",
@@ -54,6 +55,7 @@
     "unplugin-vue-components": "^0.27.3",
     "vite": "^5.2.0",
     "vite-plugin-dts": "^4.0.2",
+    "vite-plugin-mock": "^3.0.2",
     "vitepress": "^1.2.3",
     "vue-tsc": "^2.0.6",
     "vuedraggable": "^4.1.0"

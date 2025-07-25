@@ -9,7 +9,8 @@ let globalParamsEnv = {} //环境变量
 // const appIsEncrypt = globalParamsEnv?.VITE_API_IS_DECRYPT || 'off' // 'off'
 const repeat = false //是否重复请求
 const request = axios.create({
-  baseURL: globalParamsEnv?.BASE_API || 'http://192.168.11.79/',
+  // baseURL: globalParamsEnv?.BASE_API || 'http://192.168.11.79/',
+  baseURL: globalParamsEnv?.BASE_API || '',
   headers: {
     'Access-Control-Allow-Origin': '*',
     'Content-Type': 'application/json;charset=utf-8',
@@ -21,7 +22,7 @@ const request = axios.create({
 // 拦截器
 request.interceptors.request.use(
   (config) => {
-    const globalParams = config?.globalParams || {}//请求的接口的传参
+    const globalParams = config?.globalParams || {} //请求的接口的传参
     globalParamsEnv = config?.globalParams?.env || {}
     config.headers['Authorization'] = 'Bearer ' + localStorage.getItem('Authorization')
     let appIsEncrypt = globalParamsEnv?.VITE_API_IS_DECRYPT || 'off'
@@ -29,7 +30,7 @@ request.interceptors.request.use(
     if (isEncrypt || appIsEncrypt === 'off') {
       config.headers['Service-Code'] = 'szh-test'
     }
-    config.baseURL = globalParamsEnv?.BASE_API || 'http://192.168.11.79/'
+    config.baseURL = globalParamsEnv?.BASE_API // || 'http://192.168.11.79/'
     if (config.method === 'get' && config.params) {
       let url = config.url + '?' + tansParams(config.params)
       url = url.slice(0, -1)
@@ -70,8 +71,8 @@ request.interceptors.request.use(
           cache.session.setJSON('sessionObj', requestObj)
         }
       }
-      return config
     }
+    return config
   },
   (error) => {
     console.log(error)
@@ -120,7 +121,7 @@ function getBaseParams(config, globalParams) {
   let baseParams = new Object()
   // const locUserData = localStorage.getItem('user')
   const { USER_ID_KEY, USER_CODE_KEY, COMPANY_CODE_KEY, VITE_API_PARTNER_CODE, VITE_APP_CODE, TOKEN_NAME_KEY } =
-    globalParams.env
+    globalParams.env || {}
   const secUserData = globalParams?.store?.user || {}
   baseParams['currentUserId'] = secUserData[`${USER_ID_KEY}`]
   baseParams['currentUserCode'] = secUserData[`${USER_CODE_KEY}`]

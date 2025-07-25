@@ -1,7 +1,7 @@
 <!--
  * @Description: 
  * @Date: 2024-07-16 13:49:04
- * @LastEditTime: 2024-12-27 15:46:31
+ * @LastEditTime: 2025-07-25 11:18:04
 -->
 <template>
   <el-divider>默认单选</el-divider>
@@ -40,7 +40,8 @@ const multipleSelectVal = ref('')
 const multipleSelectLabel = ref('')
 
 const associateConfig = ref({
-  url: '/jhj-base-management/sysUser/queryAssociate', // 后台请求接口
+  // url: '/jhj-base-management/sysUser/queryAssociate', // 后台请求接口
+  url: '/mock/associate/user', // 后台请求接口
   // 显示列配置
   tableColumns: [
     {

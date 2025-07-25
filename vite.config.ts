@@ -1,7 +1,7 @@
 /*
  * @Description: 
  * @Date: 2024-06-26 11:40:35
- * @LastEditTime: 2025-05-13 13:22:15
+ * @LastEditTime: 2025-07-25 13:09:23
  */
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
@@ -12,6 +12,7 @@ import dts from 'vite-plugin-dts'//自动生成类型声明文件(*.d.ts)
 import AutoImport from 'unplugin-auto-import/vite'
 import Components from 'unplugin-vue-components/vite'
 import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
+import { viteMockServe } from 'vite-plugin-mock'; // 引入Mock插件
 // import vueJsx from '@vitejs/plugin-vue-jsx'
 // import { ZResolver } from './resolver'//解析以“Z”开头的组件，
 
@@ -19,10 +20,24 @@ const resolve = (dir: string) => path.resolve(__dirname, '.', dir)
 
 // https://blog.csdn.net/qq_63358859/article/details/133808112
 // https://vitejs.dev/config/
-export default defineConfig(() => {
+export default defineConfig((command) => {
   return {
+    // base:'/ui-components',
     plugins: [
       vue(),
+      viteMockServe({
+        mockPath: 'mock', // 设置mockPath为根目录下的mock目录
+        localEnabled: command === 'serve', // 设置是否监视mockPath对应的文件夹内文件中的更改
+        logger: true, // 是否在控制台显示请求日志
+        supportTs: true// --是否读取ts文件模块，设置为true时不能读取js文件
+        // watchFiles: true, // 监听文件变化
+        // prodEnabled: false, // 生产环境禁用
+        //   injectCode: `
+        //   import { setupProdMockServer } from './mock/mockProdServer';
+        //   setupProdMockServer();
+        // `,
+        // ignore: /^\_/,
+      }),
       dts({
         // 输出目录
         outDir: ['types'],
@@ -57,7 +72,8 @@ export default defineConfig(() => {
       alias: {
         // 设置路径
         '~': path.resolve(__dirname, './'),
-        '@': path.resolve(__dirname, './src')
+        '@': path.resolve(__dirname, 'src'),
+        '@mock': path.resolve(__dirname, 'mock')
       }
     },
     // 打包命令配置 这是一个包含构建选项的对象。
