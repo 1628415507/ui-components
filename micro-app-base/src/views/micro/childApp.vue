@@ -2,7 +2,7 @@
  * @Author: Hongzf
  * @Date: 2022-11-21 09:54:25
  * @LastEditors: Please set LastEditors
- * @LastEditTime: 2025-02-22 17:08:53
+ * @LastEditTime: 2025-02-25 20:17:29
  * @Description:
  https://blog.csdn.net/outsider76557/article/details/129687164
 -->
@@ -25,7 +25,7 @@
     :name="'micro-app'"
     class="w-full h-full"
     url="http://localhost:3001/"
-    :data="params"
+    :data="microData"
     inline 
     default-page="/home"
     keep-alive
@@ -35,15 +35,15 @@
     :name="appCode"
     class="w-full h-full"
     url="http://localhost:3001/"
-    :data="params"
+    :data="microData"
     baseroute="/microChildApp/"
     default-page="/home"
   ></micro-app-base> -->
   <!-- <micro-app-air
     class="w-full h-full"
     :name="appCode"
-    :url="params.linkUrl"
-    :baseroute="`${baseRouteContextPath}microChildApp/${params.appCode}`"
+    :url="microData.linkUrl"
+    :baseroute="`${baseRouteContextPath}microChildApp/${microData.appCode}`"
     :data="microData"
     default-page="/index"
   ></micro-app-air> -->
@@ -51,7 +51,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 const appCode = 'BASE'
-const params = ref({ type: '发送给子应用的数据' })
+const microData = ref({ type: '发送给子应用的数据' })
 
 onMounted(() => {})
 </script>

@@ -4,17 +4,19 @@
  * @Author: Hongzf
  * @Date: 2022-11-28 16:02:18
  * @LastEditors: Please set LastEditors
- * @LastEditTime: 2025-02-07 16:05:11
+ * @LastEditTime: 2025-02-25 20:34:13
  */
 import { NavigationGuardNext, RouteLocationNormalized, RouteRecordRaw } from 'vue-router'
 import router from '@/router'
 import { useStore } from '@/store'
 import { getToken } from '@/utils/cookies' // get token from cookie
-
+const microData = window.microApp?.getData()//主应用传过来的数据
+const globalData = window.microApp?.getGlobalData()
 router.beforeEach(
   (to: RouteLocationNormalized, from: RouteLocationNormalized, next: NavigationGuardNext) => {
     // console.log('【 to.path 】-40', to.path, from.path)
     if (window.__MICRO_APP_ENVIRONMENT__) {
+      console.log('【 微前端-microData 】-14',globalData, microData,window.microApp)
       console.log('【 处于微前端环境中 】-20', window.__MICRO_APP_ENVIRONMENT__)
     //   // console.log('microData?.childAppName---- air----')
     //   // console.log(microData)
