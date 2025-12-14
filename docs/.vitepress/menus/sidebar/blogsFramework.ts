@@ -66,6 +66,10 @@ export default [
   },
   {
     text: '微前端',
-    items: [{ text: 'micro-app', link: '/blogs/framework/micro/micro-app/index.md' }]
+    items: [
+      // { text: '概述', link: '/blogs/framework/micro/index.md' },
+      // { text: 'micro-app', link: '/blogs/framework/micro/micro-app/index.md' },
+      // { text: 'qiankun', link: '/blogs/framework/microqiankun/index.md' }
+    ]
   }
 ]
