@@ -144,11 +144,36 @@ function renderSlot(name, fallback, props, bindObject) {
 ### 5. 总结
 
 - 父组件使用插槽时，会对组件中的 children 节点做**归类和过滤处理**，过滤出所有插槽类型的渲染函数，并存到对象 `$scopedSlots` 中
-- 当编译插槽组件时，插槽组件本身会被转化成包含`_t`的渲染函数,
+- 当编译插槽组件时，插槽组件本身会被**转化成包含`_t`的渲染函数**,
 - `_t` 根据插槽名称去`$scopedSlots`中匹配对应的渲染函数，用匹配的内容替换当前的 slot 占位
 - 最终得到完整的 vNode 进行渲染
 
 ![alt text](image-7.png)
+
+```js{7,10,12}
+let  $scopedSlots
+// 父组件
+function parentFn() {
+  // 模拟-将组件编译成VNode节点(普通插槽是在父组件完成当前组件的 vNode 渲染后，然后替换子组件对应的 slot 占位符)
+  let fullChildrenVNode = {
+    Normal_VNode：'普通VNode',
+    SlotTest_VNode：'转换成带插槽标识的临时VNode',// 每个组件都有对应的渲染函数_t
+  }
+  // 归类和过滤处理SlotTest_VNode节点中所有插槽类型的渲染函数
+  $scopedSlots = resolveSlots(fullChildrenVNode[SlotTest_VNode])
+  // 获取完 $scopedSlots ，开始编译插槽组件，拿到最终的VNode
+  fullChildrenVNode['SlotTest_VNode'] = renderSlot('SlotTest_VNode')
+  // 最终得到完整的 vNode 进行渲染
+}
+
+// _t函数，去当前作用域的所有$scopedSlots中获取对应的渲染插槽内容的函数，用匹配的内容替换当前的 slot 占位
+function renderSlot(slotName,$scopedSlots) {
+  // renderSlot在`$scopedSlots`中匹配对应的渲染函数
+  // ...
+  const vNode = $scopedSlots[slotName] //若存在插槽渲染函数，则执行插槽渲染函数，生成 nodes 节点返回，否则使用插槽的默认值
+  return vNode
+}
+```
 
 ## 【作用域插槽】
 
@@ -183,10 +208,11 @@ function with(this) {
 
 - 当父组件使用 SlotTest 时
 
-```vue{4}
+```vue{4,5}
 <!-- Test -->
 <template>
   <SlotTest>
+    <!--  当发现需要参数时，当前组件的子元素VNode会被转换成函数中返回 -->
     <template v-slot="{ article }">
       <hl>{{ article.title }}</hl>
       <div>{{ article.content }}</div>
@@ -195,16 +221,16 @@ function with(this) {
 </template>
 ```
 
-- 编译时会转换成如下的渲染函数
+- 编译时会转换成如下的渲染函数，**等待插槽组件渲染时调用并传参**，在子组件内部完成渲染
 
-```js{6,7}
+```js{6,7,8,9,10}
 function with(this) {
   return _c('SlotTest', {
     scopedSlots: _u([{
       key: "default",
       // 作用域插槽的渲染函数，等待插槽组件渲染时调用并传参，在子组件内部完成渲染
       fn: function ({ article }) {
-        // 返回vNode
+        // 以函数的形式返回vNode
         return [
           _c('h1', [_v(_s(article.title))]),
           _c('div', [_v(_s(article.content))])
@@ -215,9 +241,40 @@ function with(this) {
 }
 ```
 
+### 3. 总结
+
+```js{2,4,5,13,23}
+// 先将父组件的渲染内容编译成返回 vNode 的函数
+function fn(params){
+  return [
+    _c('h1', [_v(_s(params.title))]),
+    _c('div', [_v(_s(params.content))])
+  ]
+}
+// 父组件
+function parentFn() {
+  // 模拟-将组件编译成VNode节点
+  let fullChildrenVNode = {
+    Normal_VNode：'普通VNode',
+    SlotTest_VNode：fn// 作用域插槽，先将父组件的渲染内容编译成返回 vNode 的函数
+  }
+  // 渲染子组件，拿到最终的VNode
+  fullChildrenVNode['SlotTest_VNode'] = renderSlot('SlotTest_VNode')
+  // ...
+  // 最终得到完整的 vNode 进行渲染
+}
+// 调用父组件的渲染函数并传值**，得到最终的 vnode 来替换掉 slot 占位符
+function renderSlot(slotName) {
+  const params = '插槽组件内部的参数'
+  const vNode =  fn(params)//得到父组件的渲染函数并传参,获取节点
+  return vNode
+}
+```
+
 ## 【普通插槽和作用域插槽的区别】
 
-普通插槽，渲染在父级，作用域插槽在组件内部渲染
+普通插槽，渲染在父级；作用域插槽在组件内部渲染
 
-- 普通插槽是在父组件完成当前组件的 vNode 渲染后，然后替换子组件对应的 slot 占位符
-- 作用域插槽是将父组件的渲染内容**编译成返回 vNode 的函数**，这个函数会接收子组件的传参，等到子组件渲染的时候，会调用父组件的渲染函数并传值，得到最终的 vnode 来替换掉 slot 占位符
+- 普通插槽是在父组件完成当前组件的 vNode 编译后，然后替换子组件对应的 slot 占位符
+- 作用域插槽是将父组件的渲染内容**编译成返回 vNode 的函数**，这个函数会**接收子组件的传参**，  
+  等到子组件渲染的时候，会**调用父组件的渲染函数并传值**，得到最终的 vNode 来替换掉 slot 占位符
