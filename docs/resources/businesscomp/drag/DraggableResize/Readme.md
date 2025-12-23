@@ -1,10 +1,10 @@
 # DraggableResize 拖拽表单组件
 
-## 概述
+## 📖 概述
 
 `DraggableResize` 是一个功能强大的 Vue 3 拖拽表单组件，支持动态配置表单布局、元素拖拽排序、嵌套拖拽、模板保存等功能。组件采用配置驱动的方式，通过 JSON 配置即可快速构建复杂的动态表单。
 
-## 核心特性
+## ✨ 核心特性
 
 - ✅ **拖拽排序**：支持模块和元素的拖拽排序
 - ✅ **嵌套拖拽**：支持最多两级嵌套拖拽
@@ -15,45 +15,78 @@
 - ✅ **模板管理**：支持模板保存、切换、删除等功能
 - ✅ **表单验证**：集成 Element Plus 表单验证
 - ✅ **响应式布局**：基于 Element Plus 栅格系统
+- ✅ **宽度调整**：支持拖拽调整元素宽度
+- ✅ **元素增加**：支持动态添加表单元素
 
-## 组件结构
+## 📁 组件结构
 
 ```
 DraggableResize/
-├── index.vue              # 主控制组件
-├── DragModule.vue         # 模块拖拽组件
-├── DragElement.vue        # 元素拖拽组件
-├── Element.vue            # 元素渲染组件
-├── FormItem.vue           # 表单项组件
-├── ElementSetting.vue     # 元素设置组件
-├── AddDrawer.vue          # 元素添加抽屉
-├── AddDrawerDrag.vue      # 元素添加拖拽组件
-└── type/                  # 类型定义
-    ├── index.ts
-    ├── element.ts
-    ├── elementEnum.ts
-    ├── customLabel.ts
-    └── SystemEnum.ts
+├── index.vue                    # 主控制组件 (DraggableResizeControl)
+├── DragModule.vue               # 模块拖拽组件
+├── DragElement.vue              # 元素拖拽组件
+├── Element.vue                  # 元素渲染组件
+├── FormItem.vue                 # 表单项包装组件
+├── ElementSetting.vue          # 元素设置组件（必填配置）
+├── AddDrawer.vue                # 元素增加抽屉
+├── AddDrawerDrag.vue            # 元素添加拖拽组件
+├── SaveTemplateDialog.vue       # 保存模板对话框
+├── SaveTemplateAsDialog.vue      # 另存为模板对话框
+├── SwitchTemplateDialog.vue     # 切换模板对话框
+├── TemplateAuthorizationDialog.vue # 模板授权对话框
+├── utils/
+│   └── useTemplate.ts           # 模板工具类
+├── type/                         # 类型定义
+│   ├── index.ts                 # 类型统一导出
+│   ├── element.ts               # 元素配置类型
+│   ├── elementEnum.ts           # 元素枚举
+│   ├── customLabel.ts           # 自定义标签类型
+│   └── SystemEnum.ts            # 系统枚举
+└── demo/                         # 使用示例
+    ├── index.vue                # 示例主文件
+    ├── mainConfig.ts            # 主配置示例
+    └── secondConfig.ts          # 次配置示例
 ```
 
-## 快速开始
+## 🚀 快速开始
 
-### 基础使用
+### 1. 基础使用
 
 ```vue
 <template>
   <DraggableResizeControl :config="dragConfig">
-    <el-form ref="formRef" :model="formData" :rules="formRules">
-      <DragModule groupName="mainOrderTab" :config="dragConfig">
-        <template #moduleId="{ element: moduleEl }">
-          <DragElement
-            groupName="mainOrderTab"
-            moduleId="moduleId"
-            :config="dragConfig"
-            :formRef="formRef"
-            :formValue="formData"
-            :formRules="formRules"
-          />
+    <el-form
+      ref="dragFormRef"
+      :model="formData"
+      :rules="formDataRules"
+      :disabled="dragConfig.isEditing"
+      label-position="top"
+    >
+      <!-- 基本信息模块 -->
+      <z-info-card :header="'基本信息'" class="mt-10">
+        <DragElement
+          :groupName="GROUPNAME.MAIN"
+          moduleId="basicInfoCard"
+          :config="dragConfig"
+          :formRef="dragFormRef"
+          :formValue="formData"
+          :formRules="formDataRules"
+        />
+      </z-info-card>
+      
+      <!-- 模块拖拽区域 -->
+      <DragModule :groupName="GROUPNAME.MAIN" :config="dragConfig">
+        <template #cargoInfoId="{ element: moduleEl }">
+          <z-info-card :header="moduleEl.title" class="mt-10">
+            <DragElement
+              :groupName="GROUPNAME.MAIN"
+              moduleId="cargoInfoId"
+              :config="dragConfig"
+              :formRef="dragFormRef"
+              :formValue="formData"
+              :formRules="formDataRules"
+            />
+          </z-info-card>
         </template>
       </DragModule>
     </el-form>
@@ -61,204 +94,264 @@ DraggableResize/
 </template>
 
 <script setup lang="ts">
-import { reactive, ref } from 'vue'
-import DraggableResizeControl from '@/components/DraggableResize/index.vue'
-import DragModule from '@/components/DraggableResize/DragModule.vue'
-import DragElement from '@/components/DraggableResize/DragElement.vue'
+import { reactive, ref, computed, onMounted, nextTick } from 'vue'
+import DraggableResizeControl from '../index.vue'
+import DragModule from '../DragModule.vue'
+import DragElement from '../DragElement.vue'
+import { getModuleList } from './mainConfig.ts'
+
+const GROUPNAME = {
+  MAIN: 'mainGroupName',
+  SECOND: 'secondGroupName'
+}
 
 // 表单数据
-const formData = reactive({
-  name: '',
-  age: 0
-})
+const formData = reactive({})
 
 // 表单验证规则
-const formRules = ref({})
-const formRef = ref(null)
+const formDataRules = ref({})
+const dragFormRef = ref(null)
+
+// 组件参数
+const componentParams = reactive({
+  GROUPNAME,
+  formData,
+  readOnlyPage: false
+})
 
 // 拖拽配置
 const dragConfig = reactive({
-  activeGroupName: 'mainOrderTab',
-  groupInfo: {
-    mainOrderTab: {
-      groupName: 'mainOrderTab',
-      moduleList: [
-        {
-          groupName: 'mainOrderTab',
-          moduleId: 'moduleId',
-          title: '基本信息',
-          span: 24,
-          visible: true,
-          elementLists: [
-            {
-              elementId: 'name',
-              span: 12,
-              prop: 'name',
-              label: '姓名',
-              uiType: 'input'
-            }
-          ]
-        }
-      ]
-    }
-  },
+  activeGroupName: GROUPNAME.MAIN,
+  groupInfo: {},
+  isEditing: false,
   currentGroupInfo: {}
+})
+
+// 配置分组信息
+const mainGroupNameConfig = reactive({
+  groupName: GROUPNAME.MAIN,
+  moduleList: computed(() => getModuleList(componentParams))
+})
+dragConfig.groupInfo[GROUPNAME.MAIN] = mainGroupNameConfig
+
+onMounted(async () => {
+  await nextTick(() => {
+    mainGroupNameConfig.moduleList = computed(() => getModuleList(componentParams))
+  })
 })
 </script>
 ```
 
-## 核心组件
+### 2. 配置模块列表
 
-### DraggableResizeControl (index.vue)
+创建 `mainConfig.ts` 文件：
 
-主控制组件，提供编辑模式切换、模板管理等功能。
+```typescript
+import { EL_ENUM } from '../type/elementEnum'
+import type { ModuleIF } from '../type/index'
+
+export function getModuleList(params: any): ModuleIF[] {
+  const { GROUPNAME, readOnlyPage } = params
+  
+  // 基本信息模块
+  const basicInfo: ModuleIF = {
+    groupName: GROUPNAME.MAIN,
+    moduleId: 'basicInfoCard',
+    visible: false, // 不在 DragModule 中显示
+    title: '基本信息',
+    span: 24,
+    elementLists: [
+      {
+        elementId: 'name',
+        span: 6,
+        prop: 'name',
+        label: '姓名',
+        uiType: EL_ENUM.INPUT,
+        disabled: readOnlyPage
+      },
+      {
+        elementId: 'age',
+        span: 6,
+        prop: 'age',
+        label: '年龄',
+        uiType: EL_ENUM.NUMBER_INPUT,
+        min: 0,
+        max: 150,
+        disabled: readOnlyPage
+      }
+    ]
+  }
+  
+  return [basicInfo]
+}
+```
+
+## 📚 API 文档
+
+### DraggableResizeControl (主组件)
 
 #### Props
 
-| 参数 | 说明 | 类型 | 默认值 |
-|------|------|------|--------|
-| config | 拖拽配置对象 | `DragConfigPrivate` | 必填 |
+| 参数 | 说明 | 类型 | 默认值 | 必填 |
+|------|------|------|--------|------|
+| config | 拖拽配置对象 | `DragConfigPrivate` | - | ✅ |
 
-#### 配置对象 (DragConfigPrivate)
+#### DragConfigPrivate 接口
 
 ```typescript
 interface DragConfigPrivate {
-  activeGroupName: string              // 当前活动分组名称
-  groupInfo: Record<string, GroupIF>   // 分组信息
-  currentGroupInfo: Record<string, GroupIF> // 当前分组信息
-  isEditing?: ComputedRef<boolean>      // 是否处于编辑模式
+  activeGroupName: string        // 当前活动分组名称
+  groupInfo: Record<string, GroupIF>  // 所有分组信息
+  isEditing: boolean             // 是否处于编辑模式
+  currentGroupInfo: Record<string, GroupIF>  // 当前分组信息（组件内部使用）
 }
 ```
 
-#### 功能
+#### 功能说明
 
-- **编辑模式切换**：点击锁图标切换编辑模式
-- **模块拖拽**：开启后可以拖拽模块顺序
-- **元素增加**：打开元素添加抽屉
-- **模板管理**：保存、切换、删除模板
+- **编辑模式**：点击锁定/解锁图标进入/退出编辑模式
+- **模块拖拽**：编辑模式下点击"版块拖动"按钮，可拖拽模块顺序
+- **元素增加**：编辑模式下点击"元素增加"按钮，打开抽屉添加元素
+- **模板管理**：支持保存、切换、删除模板（需要配置模板相关接口）
 
-### DragModule
-
-模块拖拽组件，用于渲染和管理可拖拽的模块列表。
+### DragModule (模块拖拽组件)
 
 #### Props
 
-| 参数 | 说明 | 类型 | 默认值 |
-|------|------|------|--------|
-| groupName | 分组名称 | `string` | 必填 |
-| config | 拖拽配置对象 | `DragConfigPrivate` | 必填 |
-| gap | 模块间距 | `number` | 10 |
+| 参数 | 说明 | 类型 | 默认值 | 必填 |
+|------|------|------|--------|------|
+| groupName | 拖拽分组名称 | `string` | - | ✅ |
+| config | 拖拽配置对象 | `DragConfigPrivate` | - | ✅ |
+| gap | 模块间距（px） | `number` | 10 | ❌ |
 
-#### 插槽
+#### Slots
 
-- `#[moduleId]`：模块内容插槽，`moduleId` 对应配置中的 `moduleId`
+| 插槽名 | 说明 | 参数 |
+|--------|------|------|
+| default | 模块内容插槽 | `{ element: moduleEl }` - moduleEl 为模块配置对象 |
 
-```vue
-<DragModule groupName="mainOrderTab" :config="dragConfig">
-  <template #moduleId="{ element: moduleEl }">
-    <div>{{ moduleEl.title }}</div>
-  </template>
-</DragModule>
-```
+#### 功能说明
 
-### DragElement
+- 支持模块拖拽排序
+- 自动计算模块间距
+- 支持响应式布局（基于 Element Plus 栅格系统）
 
-元素拖拽组件，用于渲染和管理表单元素。
+### DragElement (元素拖拽组件)
 
 #### Props
 
-| 参数 | 说明 | 类型 | 默认值 |
-|------|------|------|--------|
-| groupName | 分组名称 | `string` | 必填 |
-| moduleId | 模块ID | `string` | 必填 |
-| config | 拖拽配置对象 | `DragConfigPrivate` | 必填 |
-| formRef | 表单引用 | `FormInstance` | - |
-| formValue | 表单数据 | `Record<string, any>` | 必填 |
-| formRules | 表单验证规则 | `Ref<FormRules>` | - |
-| componentParams | 组件参数 | `Record<string, any>` | - |
-| components | 自定义组件映射 | `Record<string, Component>` | - |
-| level | 嵌套层级 | `number` | 0 |
-| collapsible | 是否可折叠 | `boolean` | false |
-| collapseHeight | 折叠高度 | `string` | '200px' |
+| 参数 | 说明 | 类型 | 默认值 | 必填 |
+|------|------|------|--------|------|
+| groupName | 拖拽分组名称 | `string` | - | ✅ |
+| moduleId | 模块唯一标识 | `string` | - | ✅ |
+| config | 拖拽配置对象 | `DragConfigPrivate` | - | ✅ |
+| formRef | 表单实例 | `FormInstance` | - | ✅ |
+| formValue | 表单数据对象 | `Record<string, any>` | `{}` | ✅ |
+| formRules | 表单验证规则 | `FormRules` | - | ✅ |
+| components | 自定义组件映射 | `Object` | - | ❌ |
+| componentParams | 组件参数 | `Record<string, any>` | - | ❌ |
+| level | 嵌套层级 | `number` | `1` | ❌ |
+| parentCol | 父元素配置 | `ElementConfig` | - | ❌ |
+| collapseHeight | 收缩高度 | `string` | `'110px'` | ❌ |
+| collapsible | 是否可收缩 | `boolean` | `false` | ❌ |
 
-#### 插槽
+#### Slots
 
-- `#[elementId]`：元素内容插槽，用于自定义元素渲染
+| 插槽名 | 说明 | 参数 |
+|--------|------|------|
+| [elementId] | 元素插槽，插槽名为 elementId | `{ element: colEl }` - colEl 为元素配置对象 |
 
-```vue
-<DragElement
-  groupName="mainOrderTab"
-  moduleId="basicInfo"
-  :config="dragConfig"
-  :formRef="formRef"
-  :formValue="formData"
->
-  <template #customElement="{ element }">
-    <div>自定义内容</div>
-  </template>
-</DragElement>
-```
+#### 功能说明
 
-## 配置说明
+- 支持元素拖拽排序
+- 支持最多两级嵌套拖拽
+- 支持拖拽调整元素宽度
+- 支持元素删除（非必填且 deletable 不为 false）
+- 支持展开/收缩（collapsible 为 true 时）
 
-### ModuleIF 模块配置
+### Element (元素渲染组件)
+
+#### Props
+
+| 参数 | 说明 | 类型 | 默认值 | 必填 |
+|------|------|------|--------|------|
+| formValue | 表单数据对象 | `Record<string, any>` | - | ✅ |
+| config | 元素配置对象 | `ElementConfig` | - | ✅ |
+| element | 元素配置对象 | `ElementConfig` | - | ✅ |
+
+#### 支持的控件类型
+
+| uiType | 说明 | 特殊属性 |
+|--------|------|----------|
+| `EL_ENUM.INPUT` | 输入框 | `fieldLength`, `uppercase`, `append` |
+| `EL_ENUM.TEXTAREA` | 文本域 | `rows`, `fieldLength`, `uppercase` |
+| `EL_ENUM.NUMBER_INPUT` | 数字输入框 | `precision`, `min`, `max`, `append`, `suffix`, `appendSelect` |
+| `EL_ENUM.SELECT` | 普通下拉 | `options` |
+| `EL_ENUM.DICT_SELECT` | 字典下拉 | `dictName`, `dictOption`, `multiple` |
+| `EL_ENUM.DATE` | 日期选择器 | `format`, `valueFormat`, `rangeType` |
+| `EL_ENUM.DATETIME` | 日期时间选择器 | `format`, `valueFormat` |
+| `EL_ENUM.DATETIMERANGE` | 日期时间范围 | `valueFormat` |
+| `EL_ENUM.CHECKBOX` | 复选框 | `checkboxLabel`, `trueValue`, `falseValue` |
+| `EL_ENUM.CHECKBOX_GROUP` | 复选框组 | `checkboxOptions` |
+| `EL_ENUM.DIVIDER_INPUT` | 35字符分隔输入框 | `rows`, `refName` |
+| `EL_ENUM.SLOT` | 自定义插槽 | - |
+| `EL_ENUM.COMPONENT` | 自定义组件 | `componentName`, `component` |
+| `EL_ENUM.ASSOCIATE` | 联想控件 | `componentName`, `nameProp` |
+
+### FormItem (表单项包装组件)
+
+#### Props
+
+| 参数 | 说明 | 类型 | 默认值 | 必填 |
+|------|------|------|--------|------|
+| groupName | 拖拽分组名称 | `string` | - | ✅ |
+| formValue | 表单数据对象 | `Record<string, any>` | - | ✅ |
+| config | 拖拽配置对象 | `DragConfigPrivate` | - | ✅ |
+| colEl | 元素配置对象 | `ElementConfig` | - | ✅ |
+
+#### 功能说明
+
+- 支持自定义标签（customLabel）
+- 支持表单验证
+- 支持嵌套对象字段（如 `user.name`）
+
+## 🎨 配置详解
+
+### ModuleIF (模块配置)
 
 ```typescript
 interface ModuleIF {
-  groupName: string        // 拖拽分组名称，相同 groupName 可以互相拖拽
-  moduleId: string         // 模块唯一标识，对应 DragElement 的 moduleId
-  title: string           // 模块标题
-  span: number            // 栅格占位（1-24）
-  elementLists: ElementConfig[] // 元素列表
-  visible?: boolean       // 是否可见，false 时不在 DragModule 中显示
-  class?: string          // 自定义样式类名
+  groupName: string              // 拖拽分组名称，相同 groupName 可互相拖拽
+  moduleId: string               // 模块唯一标识
+  title: string                  // 模块标题
+  span: number                   // 栅格占位（1-24）
+  elementLists: ElementConfig[]  // 元素列表
+  visible?: boolean              // 是否在 DragModule 中显示为可拖拽卡片，false 时不在模块列表中显示
+  class?: string                 // 自定义样式类名
 }
 ```
 
-### ElementConfig 元素配置
+### ElementConfig (元素配置)
 
-元素配置是一个联合类型，根据 `uiType` 的不同，支持的属性也不同。
-
-#### 基础属性 (BaseElementConfig)
-
-所有元素共有的属性：
+#### 基础属性
 
 ```typescript
-{
-  elementId: string           // 元素唯一标识
-  span: number                // 栅格占位（1-24）
-  label: string               // 标签文本
-  isVisible?: boolean         // 是否可见
-  showLabel?: boolean         // 是否显示标签
-  deletable?: boolean         // 是否允许删除
-  customLabel?: CustomLabel   // 自定义标签
-  class?: string             // 自定义样式类
-  style?: string             // 自定义样式
-  formItemClass?: string     // 自定义 formItem 样式类
-}
-```
-
-#### 控件类型 (EL_ENUM)
-
-```typescript
-enum EL_ENUM {
-  INPUT = 'input',                    // 输入框
-  TEXTAREA = 'textarea',              // 文本域
-  NUMBER_INPUT = 'number',             // 数字输入框
-  DIVIDER_INPUT = 'dividerInput',     // 35字符分割线输入框
-  SELECT = 'select',                  // 普通下拉
-  DICT_SELECT = 'dictionary',         // 字典下拉
-  DATE = 'date',                      // 日期
-  DATETIME = 'datetime',              // 日期时间
-  DATETIMERANGE = 'datetimerange',   // 日期时间范围
-  MONTH = 'month',                    // 月份
-  CHECKBOX = 'checkbox',              // 复选框
-  CHECKBOX_GROUP = 'checkbox_group',  // 复选框组
-  ASSOCIATE = 'associate',            // 联想控件
-  AUTOCOMPLETE = 'autocomplete',      // 自动完成
-  SLOT = 'slot',                      // 自定义插槽
-  COMPONENT = 'component',            // 自定义组件
-  CUSTOM = 'custom'                   // 自定义插槽（同 SLOT）
+interface BaseElementConfig {
+  elementId: string              // 元素唯一标识
+  span: number                   // 栅格占位（1-24）
+  label: string                  // 标签文本
+  prop?: string                  // 表单字段名（支持嵌套，如 'user.name'）
+  isVisible?: boolean            // 是否可见
+  showLabel?: boolean            // 是否显示标签文本
+  deletable?: boolean            // 是否允许删除（默认 true）
+  required?: boolean             // 是否必填
+  requiredable?: boolean         // 是否允许配置必填
+  disabled?: boolean             // 是否禁用
+  customLabel?: CustomLabel     // 自定义标签
+  class?: string                // 自定义样式类
+  style?: string                // 自定义样式
+  formItemClass?: string        // formItem 样式类
+  formItemStyle?: string        // formItem 样式
 }
 ```
 
@@ -387,248 +480,196 @@ enum EL_ENUM {
 }
 ```
 
-#### 自定义组件 (COMPONENT)
-
-```typescript
-{
-  uiType: EL_ENUM.COMPONENT,
-  componentName?: string,   // 组件名称（从 components 映射中获取）
-  component?: Component,    // 直接引用组件
-  getRef?: Function         // 获取组件引用的回调
-}
-```
-
-#### 插槽 (SLOT)
-
-```typescript
-{
-  uiType: EL_ENUM.SLOT,
-  elementId: string        // 插槽名称，对应模板中的 #elementId
-}
-```
-
-#### 嵌套元素 (ElementLists)
-
-支持嵌套拖拽的元素：
-
-```typescript
-{
-  elementId: string,
-  span: number,
-  label: string,
-  groupName: string,        // 分组名称
-  elementLists: ElementConfig[], // 子元素列表
-  requiredable?: boolean,   // 是否允许配置必填
-  deletable?: boolean       // 是否允许删除
-}
-```
-
-### CustomLabel 自定义标签
-
-支持在表单项标签位置自定义内容：
+#### 自定义标签 (CustomLabel)
 
 ```typescript
 interface CustomLabel {
-  items: CustomLabelItem[]
+  items: CustomLabelItem[]       // 标签项列表
 }
 
+// 标签项类型
 type CustomLabelItem = 
   | { type: 'text', text: string }                    // 文本
-  | { type: 'link', text: string, click?: () => void } // 链接
+  | { type: 'link', text: string, linkType?: string } // 链接
   | { type: 'button', text: string, buttonType?: string } // 按钮
-  | { type: 'checkbox', prop: string, change?: (val: any) => void } // 复选框
-  | { type: 'svgIcon', iconName: string }             // SVG图标
+  | { type: 'checkbox', prop: string, label?: string }   // 复选框
+  | { type: 'svgIcon', iconName: string }            // SVG图标
 ```
 
-示例：
+#### 示例：自定义标签
 
 ```typescript
 {
   elementId: 'mawbNo',
-  prop: 'mawbNo',
-  label: '单号',
+  span: 4,
+  prop: 'order.mawbNo',
+  label: '主单号',
   uiType: EL_ENUM.INPUT,
   customLabel: {
     items: [
-      { type: 'text', text: '单号' },
-      { 
-        type: 'checkbox', 
-        prop: 'isUseMawbList',
-        style: 'margin-left:auto;'
+      { type: 'text', text: '主单号' },
+      {
+        type: 'checkbox',
+        prop: 'order.isUseMawbList',
+        style: 'margin-left:auto;',
+        change: (val) => {
+          console.log('复选框变化', val)
+        }
       },
       {
         type: 'link',
-        text: '文字链接',
-        click: () => openDialog()
-      }
-    ]
-  }
-}
-```
-
-## 完整示例
-
-### 配置示例
-
-```typescript
-// moduleListConfig.ts
-import { EL_ENUM } from '../type/elementEnum'
-import type { ModuleIF } from '../type/index'
-
-export function getModuleList(params: any): ModuleIF[] {
-  const { orderData, readOnlyPage, dicts, openMawbDialog, selectCarrier } = params
-  
-  // 基本信息模块
-  const basicInfo: ModuleIF = {
-    groupName: 'mainOrderTab',
-    moduleId: 'basicInfoCard',
-    visible: true,
-    title: '基本信息',
-    span: 24,
-    elementLists: [
-      // 输入框示例
-      {
-        elementId: 'name',
-        span: 6,
-        prop: 'orderData.name',
-        label: '姓名',
-        uiType: EL_ENUM.INPUT,
-        required: true,
-        fieldLength: 50
-      },
-      // 日期选择器示例
-      {
-        elementId: 'date',
-        span: 6,
-        prop: 'orderData.date',
-        label: '日期',
-        uiType: EL_ENUM.DATE,
-        format: 'YYYY-MM-DD',
-        valueFormat: 'YYYY-MM-DD'
-      },
-      // 字典下拉示例
-      {
-        elementId: 'status',
-        span: 6,
-        prop: 'orderData.status',
-        label: '状态',
-        uiType: EL_ENUM.DICT_SELECT,
-        dictName: 'ORDER_STATUS',
-        dictOption: dicts?.ORDER_STATUS || []
-      },
-      // 自定义标签示例
-      {
-        elementId: 'mawbNo',
-        span: 6,
-        prop: 'orderData.mawbNo',
-        label: '单号',
-        uiType: EL_ENUM.INPUT,
-        customLabel: {
-          items: [
-            { type: 'text', text: '单号' },
-            {
-              type: 'link',
-              text: '选择',
-              click: openMawbDialog
-            }
-          ]
+        text: '挑选主单号',
+        disabled: readOnlyPage,
+        click: () => {
+          openMawbDialog()
         }
       }
     ]
   }
-  
-  // 货物信息模块（支持嵌套）
-  const cargoInfo: ModuleIF = {
-    groupName: 'mainOrderTab',
-    moduleId: 'cargoInfoId',
-    title: '货物信息',
-    span: 24,
-    elementLists: [
-      // 嵌套拖拽区域
-      {
-        elementId: 'cargoInfo_left',
-        span: 16,
-        label: '货物信息-左侧',
-        groupName: 'mainOrderTab',
-        requiredable: false,
-        deletable: false,
-        elementLists: [
-          {
-            elementId: 'goodsName',
-            span: 12,
-            prop: 'orderData.goodsName',
-            label: '货物名称',
-            uiType: EL_ENUM.INPUT
-          },
-          {
-            elementId: 'weight',
-            span: 6,
-            prop: 'orderData.weight',
-            label: '重量',
-            uiType: EL_ENUM.NUMBER_INPUT,
-            precision: 2
-          }
-        ]
-      },
-      // 插槽区域
-      {
-        elementId: 'cargoInfo_right',
-        span: 8,
-        prop: '',
-        label: '货物信息-右侧',
-        uiType: EL_ENUM.SLOT,
-        requiredable: false,
-        deletable: false
-      }
-    ]
-  }
-  
-  return [basicInfo, cargoInfo]
 }
 ```
 
-### 使用示例
+### 嵌套拖拽配置
+
+支持最多两级嵌套，通过 `elementLists` 属性实现：
+
+```typescript
+{
+  elementId: 'cargoInfo_left',
+  span: 16,
+  label: '货物信息-左侧',
+  requiredable: false,
+  deletable: false,
+  elementLists: [  // 第二层嵌套
+    {
+      elementId: 'custBizNo',
+      span: 6,
+      prop: 'order.custBizNo',
+      label: '客户订单号',
+      uiType: EL_ENUM.INPUT
+    },
+    {
+      elementId: 'goodsName',
+      span: 12,
+      prop: 'order.goodsName',
+      label: '品名',
+      uiType: EL_ENUM.TEXTAREA,
+      rows: 3
+    }
+  ]
+}
+```
+
+### 插槽使用
+
+#### 1. 模块插槽（DragModule）
+
+```vue
+<DragModule :groupName="GROUPNAME.MAIN" :config="dragConfig">
+  <template #cargoInfoId="{ element: moduleEl }">
+    <z-info-card :header="moduleEl.title">
+      <DragElement
+        :groupName="GROUPNAME.MAIN"
+        moduleId="cargoInfoId"
+        :config="dragConfig"
+        :formRef="formRef"
+        :formValue="formData"
+        :formRules="formRules"
+      />
+    </z-info-card>
+  </template>
+</DragModule>
+```
+
+#### 2. 元素插槽（DragElement）
+
+```typescript
+// 配置中设置 uiType 为 EL_ENUM.SLOT
+{
+  elementId: 'cargoInfo_right',
+  span: 8,
+  prop: '',
+  label: '货物信息-右侧',
+  requiredable: false,
+  deletable: false,
+  uiType: EL_ENUM.SLOT  // 插槽类型不支持跨模块拖拽
+}
+```
+
+```vue
+<DragElement
+  :groupName="GROUPNAME.MAIN"
+  moduleId="cargoInfoId"
+  :config="dragConfig"
+  :formRef="formRef"
+  :formValue="formData"
+  :formRules="formRules"
+>
+  <template #cargoInfo_right="{ element }">
+    <!-- 自定义右侧信息内容 -->
+    自定义内容
+  </template>
+</DragElement>
+```
+
+### 自定义组件
+
+#### 方式一：直接引用组件
+
+```typescript
+import CustomComponent from './CustomComponent.vue'
+
+{
+  elementId: 'customComponent',
+  span: 12,
+  prop: '',
+  label: '自定义组件',
+  uiType: EL_ENUM.COMPONENT,
+  component: CustomComponent  // 直接引用
+}
+```
+
+#### 方式二：通过 componentName
+
+```typescript
+{
+  elementId: 'customComponent',
+  span: 12,
+  prop: '',
+  label: '自定义组件',
+  uiType: EL_ENUM.COMPONENT,
+  componentName: 'CustomComponent'  // 组件名称
+}
+```
+
+```vue
+<DragElement
+  :components="{
+    CustomComponent: () => import('./CustomComponent.vue')
+  }"
+  :componentParams="componentParams"
+/>
+```
+
+## 📝 完整示例
+
+### 示例 1：基础表单
 
 ```vue
 <template>
   <DraggableResizeControl :config="dragConfig">
-    <el-form
-      ref="mainOrderTabRef"
-      :model="orderData"
-      :rules="orderDataRules"
-      :disabled="dragConfig.isEditing"
-    >
-      <!-- 基本信息模块 -->
-      <z-info-card header="基本信息" class="mt-10">
-        <DragElement
-          groupName="mainOrderTab"
-          moduleId="basicInfoCard"
-          :config="dragConfig"
-          :formRef="mainOrderTabRef"
-          :formValue="orderData"
-          :formRules="orderDataRules"
-          :componentParams="componentParams"
-        />
-      </z-info-card>
-      
-      <!-- 模块拖拽区域 -->
-      <DragModule groupName="mainOrderTab" :config="dragConfig">
-        <!-- 货物信息模块 -->
-        <template #cargoInfoId="{ element: moduleEl }">
-          <z-info-card :header="moduleEl.title" class="mt-10">
+    <el-form ref="formRef" :model="formData" :rules="formRules">
+      <DragModule :groupName="GROUPNAME.MAIN" :config="dragConfig">
+        <template #basicInfo="{ element: moduleEl }">
+          <z-info-card :header="moduleEl.title">
             <DragElement
-              groupName="mainOrderTab"
-              moduleId="cargoInfoId"
+              :groupName="GROUPNAME.MAIN"
+              moduleId="basicInfo"
               :config="dragConfig"
-              :formRef="mainOrderTabRef"
-              :formValue="orderData"
-              :formRules="orderDataRules"
-            >
-              <!-- 自定义插槽内容 -->
-              <template #cargoInfo_right="{ element }">
-                <div>自定义右侧内容</div>
-              </template>
-            </DragElement>
+              :formRef="formRef"
+              :formValue="formData"
+              :formRules="formRules"
+            />
           </z-info-card>
         </template>
       </DragModule>
@@ -637,74 +678,200 @@ export function getModuleList(params: any): ModuleIF[] {
 </template>
 
 <script setup lang="ts">
-import { reactive, ref, computed, onMounted, nextTick } from 'vue'
-import DraggableResizeControl from '@/components/DraggableResize/index.vue'
-import DragModule from '@/components/DraggableResize/DragModule.vue'
-import DragElement from '@/components/DraggableResize/DragElement.vue'
-import { getModuleList } from './moduleListConfig.ts'
-import { setFormRules } from '@/methods/rules/setFormRules'
+import { reactive, ref, computed } from 'vue'
+import DraggableResizeControl from '../index.vue'
+import DragModule from '../DragModule.vue'
+import DragElement from '../DragElement.vue'
+import { EL_ENUM } from '../type/elementEnum'
+import type { ModuleIF } from '../type/index'
 
-// 表单数据
-const orderData = reactive({
+const GROUPNAME = { MAIN: 'mainGroup' }
+
+const formData = reactive({
   name: '',
-  date: '',
-  status: '',
-  mawbNo: '',
-  goodsName: '',
-  weight: 0
+  age: 0,
+  email: ''
 })
 
-// 表单验证规则
-const orderDataRules = ref({})
-const mainOrderTabRef = ref(null)
+const formRules = ref({})
+const formRef = ref(null)
 
-// 组件参数
-const componentParams = reactive({
-  orderData,
-  readOnlyPage: false,
-  dicts: {
-    ORDER_STATUS: [
-      { dictCode: '1', dictTableName: '待处理' },
-      { dictCode: '2', dictTableName: '处理中' }
-    ]
-  },
-  openMawbDialog: () => {
-    console.log('打开主单号选择弹窗')
-  },
-  selectCarrier: (val) => {
-    console.log('航司选择回调', val)
-  }
-})
-
-// 拖拽配置
 const dragConfig = reactive({
-  activeGroupName: 'mainOrderTab',
+  activeGroupName: GROUPNAME.MAIN,
   groupInfo: {},
+  isEditing: false,
   currentGroupInfo: {}
 })
 
-// 主单Tab配置
-const mainOrderTabConfig = reactive({
-  groupName: 'mainOrderTab',
-  moduleList: computed(() => getModuleList(componentParams))
-})
+// 模块配置
+const moduleConfig: ModuleIF = {
+  groupName: GROUPNAME.MAIN,
+  moduleId: 'basicInfo',
+  title: '基本信息',
+  span: 24,
+  elementLists: [
+    {
+      elementId: 'name',
+      span: 8,
+      prop: 'name',
+      label: '姓名',
+      uiType: EL_ENUM.INPUT,
+      required: true,
+      fieldLength: 50
+    },
+    {
+      elementId: 'age',
+      span: 8,
+      prop: 'age',
+      label: '年龄',
+      uiType: EL_ENUM.NUMBER_INPUT,
+      min: 0,
+      max: 150
+    },
+    {
+      elementId: 'email',
+      span: 8,
+      prop: 'email',
+      label: '邮箱',
+      uiType: EL_ENUM.INPUT
+    }
+  ]
+}
 
-dragConfig.groupInfo.mainOrderTab = mainOrderTabConfig
-
-onMounted(async () => {
-  // 初始化表单验证规则
-  await nextTick(() => {
-    setFormRules(mainOrderTabRef.value, orderDataRules, orderData)
-  })
-})
+dragConfig.groupInfo[GROUPNAME.MAIN] = {
+  groupName: GROUPNAME.MAIN,
+  moduleList: [moduleConfig]
+}
 </script>
 ```
 
-## 表单验证
+### 示例 2：多分组切换
 
-组件集成了 `setFormRules` 方法，可以自动根据元素配置生成表单验证规则。
+```vue
+<template>
+  <DraggableResizeControl :config="dragConfig">
+    <el-form ref="formRef" :model="formData" :rules="formRules">
+      <el-tabs v-model="activeTab" @tab-click="handleTabChange">
+        <el-tab-pane label="主单" :name="GROUPNAME.MAIN" />
+        <el-tab-pane label="分单" :name="GROUPNAME.SECOND" />
+      </el-tabs>
+      
+      <!-- 主单分组 -->
+      <div v-show="activeTab === GROUPNAME.MAIN">
+        <DragModule :groupName="GROUPNAME.MAIN" :config="dragConfig">
+          <template #mainModule="{ element: moduleEl }">
+            <DragElement
+              :groupName="GROUPNAME.MAIN"
+              moduleId="mainModule"
+              :config="dragConfig"
+              :formRef="formRef"
+              :formValue="formData"
+              :formRules="formRules"
+            />
+          </template>
+        </DragModule>
+      </div>
+      
+      <!-- 分单分组 -->
+      <DragModule v-show="activeTab === GROUPNAME.SECOND" :groupName="GROUPNAME.SECOND" :config="dragConfig">
+        <template #secondModule="{ element: moduleEl }">
+          <DragElement
+            :groupName="GROUPNAME.SECOND"
+            moduleId="secondModule"
+            :config="dragConfig"
+            :formRef="formRef"
+            :formValue="formData"
+            :formRules="formRules"
+          />
+        </template>
+      </DragModule>
+    </el-form>
+  </DraggableResizeControl>
+</template>
 
-### 使用 setFormRules
+<script setup lang="ts">
+import { reactive, ref, watch } from 'vue'
+
+const GROUPNAME = {
+  MAIN: 'mainGroup',
+  SECOND: 'secondGroup'
+}
+
+const activeTab = ref(GROUPNAME.MAIN)
+
+const dragConfig = reactive({
+  activeGroupName: GROUPNAME.MAIN,
+  groupInfo: {},
+  isEditing: false,
+  currentGroupInfo: {}
+})
+
+// 监听 Tab 切换，同步更新 activeGroupName
+watch(activeTab, (val) => {
+  dragConfig.activeGroupName = val
+})
+
+function handleTabChange(tab: any) {
+  dragConfig.activeGroupName = tab.name
+}
+</script>
+```
+
+### 示例 3：嵌套拖拽
+
+```typescript
+const nestedModule: ModuleIF = {
+  groupName: GROUPNAME.MAIN,
+  moduleId: 'nestedModule',
+  title: '嵌套模块',
+  span: 24,
+  elementLists: [
+    {
+      elementId: 'simpleField',
+      span: 6,
+      prop: 'simpleField',
+      label: '简单字段',
+      uiType: EL_ENUM.INPUT
+    },
+    {
+      elementId: 'nestedContainer',
+      span: 18,
+      label: '嵌套容器',
+      requiredable: false,
+      deletable: false,
+      elementLists: [  // 第二层嵌套
+        {
+          elementId: 'nestedField1',
+          span: 8,
+          prop: 'nested.field1',
+          label: '嵌套字段1',
+          uiType: EL_ENUM.INPUT
+        },
+        {
+          elementId: 'nestedField2',
+          span: 8,
+          prop: 'nested.field2',
+          label: '嵌套字段2',
+          uiType: EL_ENUM.INPUT
+        },
+        {
+          elementId: 'nestedField3',
+          span: 8,
+          prop: 'nested.field3',
+          label: '嵌套字段3',
+          uiType: EL_ENUM.INPUT
+        }
+      ]
+    }
+  ]
+}
+```
+
+## 🔧 高级功能
+
+### 1. 表单验证
+
+组件集成了 Element Plus 的表单验证功能。可以通过 `setFormRules` 方法动态设置验证规则：
 
 ```typescript
 import { setFormRules } from '@/methods/rules/setFormRules'
@@ -716,138 +883,95 @@ onMounted(async () => {
 })
 ```
 
-### 验证规则配置
+### 2. 模板管理
 
-验证规则会根据元素的以下属性自动生成：
-
-- `required`：必填验证
-- `max`：最大长度验证（通过 DOM 属性 `max` 设置）
-- `min`：最小长度验证（通过 DOM 属性 `min` 设置）
-
-### 自定义验证规则
-
-可以通过 `formRules` 手动添加自定义验证规则：
+组件支持模板的保存、切换、删除等功能。需要配置 `useTemplate` 工具类：
 
 ```typescript
-const formRules = ref({
-  'orderData.name': [
-    { required: true, message: '请输入姓名', trigger: 'blur' },
-    { min: 2, max: 10, message: '长度在 2 到 10 个字符', trigger: 'blur' }
-  ]
-})
+import useTemplate from './utils/useTemplate'
+
+const templateUtils = new useTemplate(config, url)
 ```
 
-## 编辑模式
+### 3. 元素增加
 
-组件支持编辑模式，在编辑模式下可以：
+编辑模式下，点击"元素增加"按钮，打开抽屉，可以选择隐藏的元素添加到表单中。
 
-1. **拖拽模块**：点击"版块拖动"按钮，可以拖拽模块顺序
-2. **拖拽元素**：在编辑模式下，可以拖拽元素顺序
-3. **添加元素**：点击"元素增加"按钮，打开元素添加抽屉
-4. **删除元素**：在编辑模式下，可以删除非必填元素
-5. **调整宽度**：拖拽元素右侧的调整手柄可以调整元素宽度
+### 4. 宽度调整
 
-### 切换编辑模式
+编辑模式下，可以拖拽元素右侧的调整手柄来调整元素宽度。
 
-点击右下角的锁图标可以切换编辑模式。
+### 5. 必填配置
 
-## 模板管理
+编辑模式下，鼠标悬停在元素上，会出现设置图标，可以配置元素是否必填。
 
-组件支持模板的保存、切换、删除等功能。
+## ⚠️ 注意事项
 
-### 保存模板
+1. **分组名称**：相同 `groupName` 的元素可以互相拖拽，不同 `groupName` 的元素不能互相拖拽。
 
-在编辑模式下，点击"保存模板"可以保存当前配置。
+2. **插槽限制**：`uiType` 为 `EL_ENUM.SLOT` 的元素不支持跨模块拖拽，只能在当前模块内移动。
 
-### 切换模板
+3. **嵌套层级**：最多支持两级嵌套，超过两级将不会渲染。
 
-点击"模板选择"可以切换不同的模板。
+4. **模块可见性**：`visible: false` 的模块不会在 `DragModule` 中显示为可拖拽卡片，但仍可以通过 `DragElement` 直接使用。
 
-### 删除模板
+5. **表单数据**：支持嵌套对象结构，如 `user.name`，组件会自动处理嵌套对象的访问。
 
-在模板选择对话框中可以删除不需要的模板。
+6. **编辑模式**：编辑模式下，表单会被禁用（`dragConfig.isEditing` 控制）。
 
-## 注意事项
+7. **模板保存**：模板保存功能需要后端接口支持，详见 `useTemplate.ts`。
 
-1. **嵌套层级限制**：组件最多支持两级嵌套拖拽
-2. **插槽限制**：插槽类型（`SLOT`）不支持跨模块拖拽
-3. **groupName 相同**：只有 `groupName` 相同的元素才能互相拖拽
-4. **表单引用**：使用表单验证时，需要正确传递 `formRef`
-5. **响应式数据**：`formValue` 必须是响应式对象（使用 `reactive` 创建）
-6. **配置更新**：修改 `groupInfo` 后，组件会自动更新
+## 🐛 常见问题
 
-## API 参考
+### Q: 如何实现多分组切换？
 
-### 类型定义
+A: 使用 `el-tabs` 组件配合 `v-show` 指令，监听 Tab 切换事件，同步更新 `dragConfig.activeGroupName`。
+
+### Q: 如何自定义元素样式？
+
+A: 在元素配置中添加 `class`、`style`、`formItemClass`、`formItemStyle` 属性。
+
+### Q: 如何实现动态添加元素？
+
+A: 编辑模式下点击"元素增加"按钮，在抽屉中选择要添加的元素，点击保存即可。
+
+### Q: 如何配置元素必填？
+
+A: 编辑模式下，鼠标悬停在元素上，点击设置图标，可以切换必填状态。
+
+### Q: 如何实现自定义组件？
+
+A: 有两种方式：
+1. 直接引用组件：`component: CustomComponent`
+2. 通过 componentName：在 `DragElement` 的 `components` prop 中传入组件映射
+
+## 📄 类型定义
 
 详细的类型定义请参考 `type/` 目录下的文件：
 
-- `type/index.ts`：主要类型定义
-- `type/element.ts`：元素配置类型
-- `type/elementEnum.ts`：枚举定义
-- `type/customLabel.ts`：自定义标签类型
-- `type/SystemEnum.ts`：系统枚举
+- `type/index.ts` - 主要类型定义
+- `type/element.ts` - 元素配置类型
+- `type/elementEnum.ts` - 元素枚举
+- `type/customLabel.ts` - 自定义标签类型
+- `type/SystemEnum.ts` - 系统枚举
 
-### 工具函数
+## 📚 相关文档
 
-#### isEqual
+- [Element Plus 表单文档](https://element-plus.org/zh-CN/component/form.html)
+- [Vue Draggable 文档](https://github.com/SortableJS/vue.draggable.next)
 
-比较两个对象是否相等（忽略某些属性）：
+## 📝 更新日志
 
-```typescript
-import { isEqual } from '@/methods/tools'
+### v1.0.0
+- ✅ 初始版本
+- ✅ 支持模块和元素拖拽
+- ✅ 支持嵌套拖拽（最多两级）
+- ✅ 支持多种表单控件
+- ✅ 支持自定义标签
+- ✅ 支持模板管理
+- ✅ 支持表单验证
 
-const isChanged = !isEqual(newVal, oldVal, {
-  ingoreProps: ['id', 'createTime'],
-  includesProps: ['name', 'age'],
-  propsDefaultValue: { status: 'active' }
-})
-```
+---
 
-#### removeCommonProperties
-
-移除对象中的通用属性：
-
-```typescript
-import { removeCommonProperties } from '@/methods/tools'
-
-const cleaned = removeCommonProperties(obj, {
-  ingoreProps: ['id', 'createTime'],
-  includesProps: ['name', 'age']
-})
-```
-
-## 常见问题
-
-### Q: 如何自定义元素渲染？
-
-A: 使用插槽（`SLOT`）类型，在 `DragElement` 中通过 `#[elementId]` 插槽自定义内容。
-
-### Q: 如何添加自定义组件？
-
-A: 使用 `COMPONENT` 类型，通过 `component` 属性直接引用组件，或通过 `componentName` 从 `components` 映射中获取。
-
-### Q: 如何实现联动？
-
-A: 在元素的 `change` 回调中处理联动逻辑，修改 `formValue` 中的其他字段。
-
-### Q: 如何控制元素的显示隐藏？
-
-A: 设置元素的 `isVisible` 属性为 `false`，或设置模块的 `visible` 为 `false`。
-
-### Q: 如何实现表单验证？
-
-A: 使用 `setFormRules` 方法自动生成验证规则，或手动配置 `formRules`。
-
-## 更新日志
-
-- **v1.0.0**：初始版本
-  - 支持基础拖拽功能
-  - 支持多种表单控件
-  - 支持嵌套拖拽
-  - 支持模板管理
-
-## 许可证
-
-MIT License
-
+**作者**: hongzf  
+**最后更新**: 2025-01-XX
