@@ -2732,7 +2732,7 @@ export const mockData = [
   //           dictTableName: '',
   //           elementCode: 'CUST_NAME',
   //           fieldLength: 100,
-  //           fieldText: '委托单位',
+  //           fieldText: '单位名称',
   //           formatExpress: '',
   //           initValueType: '',
   //           isFullTextSearch: 'X',

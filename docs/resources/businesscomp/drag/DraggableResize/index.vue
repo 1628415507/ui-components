@@ -4,16 +4,16 @@
     <div v-if="[ROLE_TYPE.SYSTEM, ROLE_TYPE.TENANT].includes(roleType)" class="icon-box" title="拖拽配置组件">
       <!-- {{ roleType }} -->
       <div v-if="!state.isEditing" class="flex-c icon-wrap" @click="openEdit">
-        <svg-icon icon-class="lock" size="1em" />
+        <el-icon><Lock /></el-icon>
       </div>
       <div v-if="state.isEditing" class="flex-c icon-wrap" @click="closeEdit">
-        <svg-icon icon-class="unlock" size="1em" />
+        <el-icon><Unlock /></el-icon>
       </div>
       <!-- 删除分公司模板 -->
       <!-- <el-button class="flex-c menu-btn" @click="deleteTemplate(layoutTemplates?.tenantLevelTemplates)">删除</el-button> -->
     </div>
     <div v-if="state.isEditing" class="menu-btn-list">
-      <div v-if="roleType === ROLE_TYPE.SYSTEM" class="menu-btn" @click="saveSYSTemplate">
+      <!-- <div v-if="roleType === ROLE_TYPE.SYSTEM" class="menu-btn" @click="saveSYSTemplate">
         <svg-icon icon-class="save" size="1.1em" />
         <span>{{ '保存为系统模版' }}</span>
       </div>
@@ -24,16 +24,16 @@
       <div v-if="roleType === ROLE_TYPE.TENANT" class="menu-btn" @click="openSaveTemplateDialog">
         <svg-icon icon-class="save" size="1.1em" />
         <span>{{ '保存为分公司模板' }}</span>
-      </div>
+      </div> -->
       <div v-if="state.isModuleDraggable" class="menu-btn" @click="closeModuleDraggable()">
-        <svg-icon icon-class="saveAs" size="1.1em" />
+        <el-icon><Setting /></el-icon>
         <span>退出编辑</span>
       </div>
       <template v-if="!state.isModuleDraggable">
-        <div class="menu-btn" @click="templateAuthDialogVisible = true">
+        <!-- <div class="menu-btn" @click="templateAuthDialogVisible = true">
           <svg-icon icon-class="template_authorization" size="1.1em" />
           <span>模板授权</span>
-        </div>
+        </div> -->
         <div class="menu-btn" @click="openModuleDraggable(true)">
           <el-icon size="16">
             <Rank />
@@ -46,10 +46,10 @@
           </el-icon>
           <span>元素增加</span>
         </div>
-        <div class="menu-btn" @click="templateSwitchDialogVisible = true">
+        <!-- <div class="menu-btn" @click="templateSwitchDialogVisible = true">
           <svg-icon icon-class="switch_template" size="1.1em" />
           <span>模板选择</span>
-        </div>
+        </div> -->
       </template>
     </div>
     <!-- 主体内容 -->
@@ -94,7 +94,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onBeforeMount, reactive, getCurrentInstance, provide } from 'vue'
 import { ElMessage } from 'element-plus'
-import { useRoute } from 'vue-router'
+// import { useRoute } from 'vue-router'
 import AddDrawer from './AddDrawer.vue'
 import SaveTemplateDialog from './SaveTemplateDialog.vue'
 import TemplateAuthorizationDialog from './TemplateAuthorizationDialog.vue'
@@ -112,14 +112,14 @@ import { ROLE_TYPE, TEMP_TYPE } from './type/SystemEnum.ts'
 import type { ElementConfig } from '@/components/DraggableResize/type/element'
 import useTemplate from './utils/useTemplate'
 
-const IS_MOCK = true //是否开启请求//本地调试使用
+const IS_MOCK = true //是否开启本地调试使用,跳过接口请求逻辑
 
 const props = defineProps<{
   config: DragConfigPrivate
 }>()
 
 const { proxy } = getCurrentInstance()
-const route = useRoute()
+// const route = useRoute()
 const templateUtils = new useTemplate(props.config, 'route.meta?.originUrl')
 
 // 响应式状态
@@ -127,7 +127,7 @@ const templateAuthDialogVisible = ref(false)
 const addDrawerVisible = ref(false)
 const saveDialogVisible = ref(false)
 const templateSwitchDialogVisible = ref(false)
-const originGroupInfo = ref<Record<string, GroupIF>>()
+// const originGroupInfo = ref<Record<string, GroupIF>>()
 const state: ConfigState = reactive({
   hasRequest: false,
   isEditing: false,
@@ -149,7 +149,8 @@ function isModuleChange() {
       break
     }
   }
-  return changed
+  // return changed
+  return false
 }
 
 // 获取所有元素项信息

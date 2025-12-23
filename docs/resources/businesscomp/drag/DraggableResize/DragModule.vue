@@ -1,12 +1,25 @@
 <template>
-  <draggable v-model="moduleList" :animation="200" item-key="moduleId" ghost-class="module-ghost"
-    :disabled="!provideInfo.state?.isModuleDraggable" class="draggable-module" @end="endModuleDrag">
+  <draggable
+    v-model="moduleList"
+    :animation="200"
+    item-key="moduleId"
+    ghost-class="module-ghost"
+    :disabled="!provideInfo.state?.isModuleDraggable"
+    class="draggable-module"
+    @end="endModuleDrag"
+  >
     <template #item="{ element: moduleEl }">
-      <el-col v-if="moduleEl.visible !== false" class="module-item" :span="moduleEl.span" :class="[
-        {
-          'drag-active': provideInfo.state?.isModuleDraggable
-        }
-      ]" :style="getColStyle(moduleEl)">
+      <el-col
+        v-if="moduleEl.visible !== false"
+        class="module-item"
+        :span="moduleEl.span"
+        :class="[
+          {
+            'drag-active': provideInfo.state?.isModuleDraggable
+          }
+        ]"
+        :style="getColStyle(moduleEl)"
+      >
         <div class="drag-module-content" :class="moduleEl.calssName">
           <slot :name="moduleEl.moduleId" :element="moduleEl">
             <!-- {{ moduleEl.moduleId }} -->
@@ -39,7 +52,7 @@ const moduleList = ref<ModuleIFPrivate[]>([])
 function getColStyle(moduleEl: ModuleIFPrivate) {
   const showList = moduleList.value.filter((it: ModuleIFPrivate) => it.visible !== false)
   const findIndex = showList.findIndex((it: ModuleIFPrivate) => it.moduleId === moduleEl.moduleId)
-  let preSpanCount
+  let preSpanCount = 0
   if (findIndex < 0) return ''
   if (findIndex > 0) {
     preSpanCount = showList.slice(0, findIndex).reduce((acc: number, mod: ModuleIFPrivate) => acc + mod.span, 0)
@@ -79,14 +92,12 @@ const oldInfo = ref([])
 
 function formatElementLists(list: any[], level = 1, isSub = false) {
   list.forEach((it) => {
-    if ((level === 1 || isSub) && it.elementLists && (it.showElementLists == undefined || it.showElementLists == null)) {
-      it.showElementLists = JSON.parse(JSON.stringify(it.elementLists))
-      //formatElementLists(it.elementLists, cur++, false)
+    if ((level === 1 || isSub) && it.elementLists && (it.showElementLists === undefined || it.showElementLists === null)) {
+      it.showElementLists = JSON.parse(JSON.stringify(it.elementLists)) //formatElementLists(it.elementLists, cur++, false)
       const flag = it.elementLists?.some((i) => i.elementLists?.length > 0) //有递归
       if (flag) {
         it.showElementLists?.forEach((subIt) => {
-          subIt.showElementLists = subIt.elementLists
-          //formatElementLists (subIt.elementLists, cur++, true)
+          subIt.showElementLists = subIt.elementLists //formatElementLists (subIt.elementLists, cur++, true)
         })
       }
     }
@@ -121,8 +132,7 @@ function isModuleChange() {
         'required'
       ],
       propsDefaultValue: {
-        required: false
-        //给字段设置默认值
+        required: false //给字段设置默认值
       }
     }
   )
@@ -133,7 +143,7 @@ function isModuleChange() {
 function initStoreModuleList() {
   if (props.config.currentGroupInfo?.[props.groupName]?.moduleList) {
     moduleList.value = props.config.currentGroupInfo[props.groupName].moduleList || []
-    // console.log(' moduleList.value】-141', moduleList.value)
+    // console.log('initStoreModuleList】 -86', props.groupName, moduleList.value)
     setOldInfo()
     // 延迟设置初始化状态,避免和updateDragInfo的监听同时触发
     setTimeout(() => {
@@ -148,14 +158,13 @@ watch(
   (val: ModuleIFPrivate[] | undefined) => {
     if (isInitStore.value && val) {
       updateModuleList()
-      // hongzf,上个月• task#20251025 表单拖拽-cursor优化
     }
   },
   { deep: true }
 )
 
 const curModuleListSort = computed(() => {
-  return moduleList.value.map((it) => it.moduleId).join('')
+  return moduleList.value.map((it) => it.moduleId).join(',')
 })
 
 // 监听当前分组信息的顺序变化
@@ -163,7 +172,7 @@ watch(
   () => props.config?.currentGroupInfo?.[props.groupName]?.moduleList,
   (val: ModuleIFPrivate[] | undefined) => {
     const newSort = val?.map((it) => it.moduleId).join(',')
-    // console.log(' newSort】', newSort, curModuleListSort.value)
+    // console.log('【newSort】 -117', groupName, moduleList.value, newSort, curModuleListSort.value)
     if (newSort !== curModuleListSort.value) {
       initStoreModuleList()
     }
@@ -175,11 +184,10 @@ function setOldInfo() {
   const storeGroupInfo = provideInfo.storeGroupInfo?.[props.groupName] //本地配置
   const localGroupInfo = provideInfo.localGroupInfo[props.groupName] //本地配置
   const oldModuleList = storeGroupInfo?.moduleList || localGroupInfo?.moduleList || []
-  // console.log(' oldModuleList】', oldModuleList)
+  // console.log('oldModuleList】 -174', oldModuleList, provideInfo)
   oldInfo.value = JSON.parse(JSON.stringify(oldModuleList))
   if (provideInfo.changeModules) {
     provideInfo.changeModules[props.groupName] = isModuleChange
-
   }
 }
 
