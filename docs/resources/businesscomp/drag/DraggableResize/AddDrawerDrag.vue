@@ -18,23 +18,14 @@
     >
       <template #item="{ element: el, index }">
         <div class="element-item">
-          <el-checkbox
-            :model-value="el.elementId"
-            @change="(val) => clickCheckbox(val, el, index)"
-            @click.stop
-          >
+          <el-checkbox :model-value="el.elementId" @change="(val) => clickCheckbox(val, el, index)" @click.stop>
             {{ getFieldText(el) }}
           </el-checkbox>
         </div>
       </template>
     </draggable>
     <div v-for="showIt in hiddenElementListsInShows" :key="showIt.elementId">
-      <AddDrawerDrag
-        :level="level + 1"
-        :config="config"
-        :moduleItem="showIt"
-        :moduleId="moduleId"
-      />
+      <AddDrawerDrag :level="level + 1" :config="config" :moduleItem="showIt" :moduleId="moduleId" />
     </div>
   </div>
 </template>
@@ -195,4 +186,3 @@ defineExpose({})
 // // pointer-events: none !important;
 // }
 </style>
-

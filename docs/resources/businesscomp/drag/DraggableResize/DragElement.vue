@@ -74,7 +74,10 @@
                   <!-- 插槽(只支持组内拖拽) -->
                   <slot v-if="colEl.uiType === EL_ENUM.SLOT" :name="colEl.elementId" :element="colEl"></slot>
                   <component
-                    v-else-if="colEl.uiType === EL_ENUM.COMPONENT && (colEl.component || (components && components[colEl.componentName]))"
+                    v-else-if="
+                      colEl.uiType === EL_ENUM.COMPONENT &&
+                      (colEl.component || (components && components[colEl.componentName]))
+                    "
                     :is="getComponent(colEl)"
                     :formValue="formValue"
                     :colEl="colEl"
@@ -101,7 +104,10 @@
                   <div class="element-item_content" :class="childEl.class" :style="childEl.style">
                     <slot v-if="childEl.uiType === EL_ENUM.SLOT" :name="childEl.elementId" :element="childEl"></slot>
                     <component
-                      v-else-if="childEl.uiType === EL_ENUM.COMPONENT && (childEl.component || (components && components[childEl.componentName]))"
+                      v-else-if="
+                        childEl.uiType === EL_ENUM.COMPONENT &&
+                        (childEl.component || (components && components[childEl.componentName]))
+                      "
                       :is="getComponent(childEl)"
                       :formValue="formValue"
                       :colEl="childEl"
@@ -308,7 +314,10 @@ const groupConfig = ref({
       const fromLevel = Number(fromEl.getAttribute('data-level'))
       // 拖到上级时进行限制
       if (toLevel < fromLevel) {
-        if ((toLevel === 1 && toDraggableId === props.moduleId) || (toLevel > 1 && toDraggableId === props.parentCol.elementId)) {
+        if (
+          (toLevel === 1 && toDraggableId === props.moduleId) ||
+          (toLevel > 1 && toDraggableId === props.parentCol.elementId)
+        ) {
           return false
         }
       }
@@ -592,4 +601,3 @@ $zIndex: 99;
   }
 }
 </style>
-

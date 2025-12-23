@@ -84,12 +84,7 @@
 <script setup lang="ts">
 import { defineProps, computed, inject } from 'vue'
 import { EL_ENUM } from './type/elementEnum'
-import type {
-  ProvideDragConfig,
-  DragConfigPrivate,
-  ElementConfig,
-  CustomLabelItem
-} from './type/index'
+import type { ProvideDragConfig, DragConfigPrivate, ElementConfig, CustomLabelItem } from './type/index'
 import FormItem from './FormItem.vue'
 
 const provideInfo = inject<ProvideDragConfig>('provideInfo', {} as ProvideDragConfig)
@@ -224,4 +219,3 @@ const curEl = computed<ElementConfig>(() => {
   }
 }
 </style>
-

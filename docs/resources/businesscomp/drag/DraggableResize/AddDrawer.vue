@@ -10,8 +10,12 @@
     </div>
     <div class="drawer-main">
       <el-collapse v-model="activeNames">
-        <el-collapse-item v-for="moduleItem in filterModuleList" :key="moduleItem.moduleId" :name="moduleItem.moduleId"
-          :title="moduleItem.title">
+        <el-collapse-item
+          v-for="moduleItem in filterModuleList"
+          :key="moduleItem.moduleId"
+          :name="moduleItem.moduleId"
+          :title="moduleItem.title"
+        >
           <template #title="{ isActive }">
             <div class="drawer-main_title">
               {{ moduleItem.title || moduleItem.moduleId }}

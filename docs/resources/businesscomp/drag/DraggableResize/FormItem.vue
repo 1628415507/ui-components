@@ -6,7 +6,7 @@
 <template>
   <div :style="config.style || 'width: 100%'">
     <!-- 文本框: input type: text | textarea | password-->
-      <!-- -->
+    <!-- -->
     <el-input
       v-if="[EL_ENUM.INPUT, EL_ENUM.TEXTAREA].includes(elementType)"
       v-model="formValue[fieldProp]"
@@ -145,12 +145,7 @@
       @change="config.change"
       :disabled="curDisabled"
     >
-      <el-checkbox
-        v-for="item in config.checkboxOptions"
-        :key="item.value"
-        :label="item.label"
-        :value="item.value"
-      />
+      <el-checkbox v-for="item in config.checkboxOptions" :key="item.value" :label="item.label" :value="item.value" />
     </el-checkbox-group>
     <!-- 联想控件:动态组件 -->
     <component
@@ -478,4 +473,3 @@ const handleAutoCompleteSelect = (selectedItem, { modelValue, defValue }) => {
 </script>
 
 <style lang="scss" scoped></style>
-
