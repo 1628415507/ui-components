@@ -1,5 +1,5 @@
 <template>
-  <DraggableResizeControl :config="dragConfig">
+  <DraggableResizeControl :config="dragConfig" class="drag-demo">
     <el-form
       ref="dragFormRef"
       :model="formData"
@@ -175,4 +175,13 @@ onMounted(async () => {
 })
 </script>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.drag-demo {
+  position: relative;
+  :deep(.icon-box) {
+    position: absolute;
+    top: 0px !important; 
+    right: 5px !important;
+  }
+}
+</style>

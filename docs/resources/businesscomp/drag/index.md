@@ -17,6 +17,8 @@ resources/businesscomp/drag/tablesDragHook
 
 ## 拖拽配置
 
+[使用文档参考](DraggableResize/Readme.md)
+
 ::: example
 resources/businesscomp/drag/DraggableResize/demo/index
 :::
