@@ -4,52 +4,36 @@
     <div v-if="[ROLE_TYPE.SYSTEM, ROLE_TYPE.TENANT].includes(roleType)" class="icon-box" title="拖拽配置组件">
       <!-- {{ roleType }} -->
       <div v-if="!state.isEditing" class="flex-c icon-wrap" @click="openEdit">
-        <el-icon>
-          <Lock />
-        </el-icon>
-        <!-- <svg-icon icon-class="lock" size="1em" /> -->
+        <svg-icon icon-class="lock" size="1em" />
       </div>
       <div v-if="state.isEditing" class="flex-c icon-wrap" @click="closeEdit">
-        <el-icon>
-          <Unlock />
-        </el-icon>
-        <!-- <svg-icon icon-class="unlock" size="1em" /> -->
+        <svg-icon icon-class="unlock" size="1em" />
       </div>
       <!-- 删除分公司模板 -->
       <!-- <el-button class="flex-c menu-btn" @click="deleteTemplate(layoutTemplates?.tenantLevelTemplates)">删除</el-button> -->
     </div>
     <div v-if="state.isEditing" class="menu-btn-list">
-      <!-- <div v-if="roleType === ROLE_TYPE.SYSTEM" class="menu-btn" @click="saveSYSTemplate">
-        <el-icon>
-          <Setting />
-        </el-icon>
+      <div v-if="roleType === ROLE_TYPE.SYSTEM" class="menu-btn" @click="saveSYSTemplate">
+        <svg-icon icon-class="save" size="1.1em" />
         <span>{{ '保存为系统模版' }}</span>
       </div>
       <div v-if="roleType === ROLE_TYPE.SYSTEM" class="menu-btn" @click="openSaveTemplateDialog">
-        <el-icon>
-          <Setting />
-        </el-icon>
+        <svg-icon icon-class="save" size="1.1em" />
         <span>{{ '保存为租户模版' }}</span>
-      </div> 
+      </div>
       <div v-if="roleType === ROLE_TYPE.TENANT" class="menu-btn" @click="openSaveTemplateDialog">
-        <el-icon>
-          <Setting />
-        </el-icon>
+        <svg-icon icon-class="save" size="1.1em" />
         <span>{{ '保存为分公司模板' }}</span>
-      </div>-->
+      </div>
       <div v-if="state.isModuleDraggable" class="menu-btn" @click="closeModuleDraggable()">
-        <el-icon>
-          <Setting />
-        </el-icon>
+        <svg-icon icon-class="saveAs" size="1.1em" />
         <span>退出编辑</span>
       </div>
       <template v-if="!state.isModuleDraggable">
-        <!-- <div class="menu-btn" @click="templateAuthDialogVisible = true">
-          <el-icon>
-            <Setting />
-          </el-icon>
+        <div class="menu-btn" @click="templateAuthDialogVisible = true">
+          <svg-icon icon-class="template_authorization" size="1.1em" />
           <span>模板授权</span>
-        </div> -->
+        </div>
         <div class="menu-btn" @click="openModuleDraggable(true)">
           <el-icon size="16">
             <Rank />
@@ -62,12 +46,10 @@
           </el-icon>
           <span>元素增加</span>
         </div>
-        <!-- <div class="menu-btn" @click="templateSwitchDialogVisible = true">
-          <el-icon size="16">
-            <Setting />
-          </el-icon>
+        <div class="menu-btn" @click="templateSwitchDialogVisible = true">
+          <svg-icon icon-class="switch_template" size="1.1em" />
           <span>模板选择</span>
-        </div> -->
+        </div>
       </template>
     </div>
     <!-- 主体内容 -->
@@ -76,24 +58,43 @@
     <!-- 元素增加 -->
     <AddDrawer v-if="addDrawerVisible" v-model="addDrawerVisible" :config="config" @save="openSaveTemplateDialog" />
     <!-- 保存模板弹窗 -->
-    <SaveTemplateDialog v-if="saveDialogVisible" v-model="saveDialogVisible" :roleType="roleType"
-      :layoutTemplates="layoutTemplates" :activeTemplate="activeTemplate" @save="saveTemplate"
-      @save-as="saveAsTemplate" />
+    <SaveTemplateDialog
+      v-if="saveDialogVisible"
+      v-model="saveDialogVisible"
+      :roleType="roleType"
+      :layoutTemplates="layoutTemplates"
+      :activeTemplate="activeTemplate"
+      @save="saveTemplate"
+      @save-as="saveAsTemplate"
+    />
     <!-- 模板授权 -->
-    <TemplateAuthorizationDialog v-if="templateAuthDialogVisible" v-model="templateAuthDialogVisible"
-      :roleType="roleType" :layoutTemplatesList="layoutTemplatesList" :activeTemplate="activeTemplate"
-      @edit="updateTempName" @delete="deleteTemplate" />
+    <TemplateAuthorizationDialog
+      v-if="templateAuthDialogVisible"
+      v-model="templateAuthDialogVisible"
+      :roleType="roleType"
+      :layoutTemplatesList="layoutTemplatesList"
+      :activeTemplate="activeTemplate"
+      @edit="updateTempName"
+      @delete="deleteTemplate"
+    />
     <!-- 模板切换 -->
-    <SwitchTemplateDialog v-if="templateSwitchDialogVisible" v-model="templateSwitchDialogVisible" :roleType="roleType"
-      :layoutTemplatesList="layoutTemplatesList" :activeTemplate="activeTemplate" @confirm="switchTemplate"
-      @edit="updateTempName" @delete="deleteTemplate" />
+    <SwitchTemplateDialog
+      v-if="templateSwitchDialogVisible"
+      v-model="templateSwitchDialogVisible"
+      :roleType="roleType"
+      :layoutTemplatesList="layoutTemplatesList"
+      :activeTemplate="activeTemplate"
+      @confirm="switchTemplate"
+      @edit="updateTempName"
+      @delete="deleteTemplate"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onBeforeMount, reactive, getCurrentInstance, provide } from 'vue'
 import { ElMessage } from 'element-plus'
-// import { useRoute } from 'vue-router'
+import { useRoute } from 'vue-router'
 import AddDrawer from './AddDrawer.vue'
 import SaveTemplateDialog from './SaveTemplateDialog.vue'
 import TemplateAuthorizationDialog from './TemplateAuthorizationDialog.vue'
@@ -111,20 +112,22 @@ import { ROLE_TYPE, TEMP_TYPE } from './type/SystemEnum.ts'
 import type { ElementConfig } from '@/components/DraggableResize/type/element'
 import useTemplate from './utils/useTemplate'
 
+const IS_MOCK = true //是否开启请求//本地调试使用
+
 const props = defineProps<{
   config: DragConfigPrivate
 }>()
 
 const { proxy } = getCurrentInstance()
-// const route = useRoute()
-const originUrl = 'demoUrl'// route.meta?.originUrl
-const templateUtils = new useTemplate(props.config, originUrl)
+const route = useRoute()
+const templateUtils = new useTemplate(props.config, 'route.meta?.originUrl')
 
 // 响应式状态
 const templateAuthDialogVisible = ref(false)
 const addDrawerVisible = ref(false)
 const saveDialogVisible = ref(false)
 const templateSwitchDialogVisible = ref(false)
+const originGroupInfo = ref<Record<string, GroupIF>>()
 const state: ConfigState = reactive({
   hasRequest: false,
   isEditing: false,
@@ -146,8 +149,7 @@ function isModuleChange() {
       break
     }
   }
-  // return changed
-  return false 
+  return changed
 }
 
 // 获取所有元素项信息
@@ -180,7 +182,7 @@ function getAllElementsByGroupInfo(groupInfo: Record<string, GroupIF>) {
   return groupObj
 }
 
-// 存在更新的GroupInfo
+//存在更新的GroupInfo
 function updateActiveGroupInfo() {
   const groupName = props.config.activeGroupName
   const curGroupInfo = props.config?.currentGroupInfo?.[groupName] //当前配置
@@ -197,7 +199,7 @@ watch(
     updateActiveGroupInfo()
   }
   // {
-  //     immediate: true
+  //   immediate: true
   // }
 )
 
@@ -261,8 +263,7 @@ function openAddDrawer() {
 const layoutTemplates = ref<LayoutTemplates>({})
 
 const roleType = computed<string>(() => {
-  return ROLE_TYPE.SYSTEM
-  // return layoutTemplates.value.userType
+  return IS_MOCK ? ROLE_TYPE.SYSTEM : layoutTemplates.value.userType
 })
 
 const tempLevel = computed<string>(() => {
@@ -301,7 +302,7 @@ function setActiveTemplate(temp?: Template) {
 
 // 分级获取
 const layoutTemplatesList = computed<Template[]>(() => {
-  const { sysLevelTemplate, tenantLevelTemplates, userLevelTemplates } = layoutTemplates.value
+  const { sysLevelTemplate, tenantLevelTemplates = [], userLevelTemplates = [] } = layoutTemplates.value
   if (roleType.value === ROLE_TYPE.SYSTEM) {
     // if (sysLevelTemplate) {
     //   return [...userLevelTemplates, ...tenantLevelTemplates, sysLevelTemplate]
@@ -316,7 +317,7 @@ async function deleteTemplate(temp: Template) {
   if (!temp?.mdInterfaceTemplateId) return
   try {
     await proxy.$modal.confirm('确认删除该模板吗？')
-    await templateUtils.deleteMdInterfaceTemplate(temp.mdInterfaceTemplateId)
+    await templateUtils.deleteLayout(String(temp.mdInterfaceTemplateId))
     await initStoreModuleList()
     setActiveTemplate()
     ElMessage.success('删除成功')
@@ -387,11 +388,11 @@ async function saveTemplate() {
     })
   })
   await initStoreModuleList()
-  const activeTemp = layoutTemplatesList.value.find((it: Template) => it.mdInterfaceTemplateId === res?.records)
+  const activeTemp = layoutTemplatesList.value.find((it: Template) => it.mdInterfaceTemplateId == res.records)
   setActiveTemplate(activeTemp)
 }
 
-// 处理模板另存为
+//处理模板另存为
 async function saveAsTemplate(name: string) {
   const res = await saveConfig(tempLevel.value, {
     ...activeTemplate.value,
@@ -403,29 +404,26 @@ async function saveAsTemplate(name: string) {
     })
   })
   await initStoreModuleList()
-  const activeTemp = layoutTemplatesList.value.find((it: Template) => it.mdInterfaceTemplateId === res?.records)
+  const activeTemp = layoutTemplatesList.value.find((it: Template) => it.mdInterfaceTemplateId == res.records)
   setActiveTemplate(activeTemp)
 }
 
 // ---------------- 模板管理 End -----------------
 
 async function initStoreModuleList() {
-  // try {
-  //   const res = await templateUtils.getLayoutTemplates()
-  //   state.hasRequest = true
-  //   layoutTemplates.value = res || {}
-  //   provideInfo.layoutTemplates = res
-  //   // // console.log(' 【store】-273'(' 【initStoreModuleList】-198', allSystemElementsMap, allTenantElementsMap)
-  //   // // console.log(' 【store】-273'(' 【layoutTemplatesList 】-160', layoutTemplatesList)
-  // } catch (error) {
-  const originInfo = JSON.parse(JSON.stringify(provideInfo.localGroupInfo || {}))
-  state.hasRequest = true
-  console.log('%c [ originInfo ]-404', 'font-size:13px; background:pink; color:#bf2c9f;', originInfo)
-  props.config.currentGroupInfo = originInfo
-  provideInfo.currentGroupInfo = originInfo
-  return Promise.resolve()
-  // console.error('初始化存储模块列表失败:', error)
-  // }
+  try {
+    const res = IS_MOCK ? {} : await templateUtils.getLayoutTemplates()
+    state.hasRequest = true
+    layoutTemplates.value = res || {}
+    provideInfo.layoutTemplates = res
+    // // console.log(' 【store】-273'(' 【initStoreModuleList】-198', allSystemElementsMap, allTenantElementsMap)
+    // // console.log(' 【store】-273'(' 【layoutTemplatesList 】-160', layoutTemplatesList)
+  } catch (error) {
+    const originInfo = JSON.parse(JSON.stringify(provideInfo.localGroupInfo || {}))
+    props.config.currentGroupInfo = originInfo
+    provideInfo.currentGroupInfo = originInfo
+    console.error('初始化存储模块列表失败:', error)
+  }
 }
 
 // 所有系统级元素项信息
@@ -557,7 +555,7 @@ defineExpose({
       padding-left: 10px;
       gap: 6px;
 
-      >span:nth-child(2) {
+      > span:nth-child(2) {
         width: auto;
         opacity: 1;
         margin-left: 6px;
@@ -586,7 +584,7 @@ defineExpose({
     }
 
     // 隐藏文字
-    >span:nth-child(2) {
+    > span:nth-child(2) {
       width: 0;
       opacity: 0;
       overflow: hidden;
@@ -615,7 +613,7 @@ defineExpose({
       width: 100%;
       height: 100%;
 
-      >span:last-child {
+      > span:last-child {
         width: 0;
         opacity: 0;
         overflow: hidden;
@@ -625,7 +623,7 @@ defineExpose({
     }
   }
 
-  &:hover .menu-btn .menu-btn-inner>span:last-child {
+  &:hover .menu-btn .menu-btn-inner > span:last-child {
     width: auto;
     opacity: 1;
     margin-left: 6px;

@@ -116,8 +116,8 @@ function handleConfirm(obj, type) {
   if (type == 'manifest') {
     emits('getManifest', str)
   } else {
-    // console.log('【 主单号类型取第一个赋值 】-119', splitArr)
-    // 主单号类型取第一个赋值
+    // console.log('【 单号类型取第一个赋值 】-119', splitArr)
+    // 单号类型取第一个赋值
     if (props.type == 'order') {
       emits('update:modelValue', splitArr[0] || '')
     }
