@@ -10,11 +10,10 @@ export function getModuleList(params: any): ModuleIF[] {
   // const { t } = useI18n()
   // 临时实现 t 函数，实际应该使用 i18n
   const t = (key: string, defaultValue?: string) => defaultValue || key
-  const { orderData, readOnlyPage, dicts, openMawbDialog, selectCarrier, openPartyDialog } = params
-
+  const { GROUPNAME, readOnlyPage, dicts, openMawbDialog, selectCarrier, openPartyDialog } = params
   // 基本信息模块
   const basicInfo: ModuleIF = {
-    groupName: 'mainOrderTab', // 拖拽分组名称,groupName相同可互相拖拽
+    groupName: GROUPNAME.MAIN, // 拖拽分组名称,groupName相同可互相拖拽
     moduleId: 'basicInfoCard', // 唯一标识,对应DragElement的moduleId
     visible: false, // 模块是否在DragModule中显示为可拖拽卡片
     title: t('nls.BASIC_INFO', '基本信息'),
@@ -22,13 +21,13 @@ export function getModuleList(params: any): ModuleIF[] {
     elementLists: [
       // 联想控件示例
       {
-        elementId: 'aexBusiness_carrier',
+        elementId: 'business_carrier',
         span: 4,
-        prop: 'aexBusiness.carrier',
-        nameProp: 'aexBusiness.carrierName', //显示名称字段
+        prop: 'business.carrier',
+        // nameProp: 'business.carrierName', //显示名称字段
         label: t('nls.CARRIER', '航司'),
-        uiType: EL_ENUM.ASSOCIATE,
-        componentName: 'ILPMdCarrier', // 联想控件名称
+        uiType: EL_ENUM.INPUT,
+        // componentName: 'ILPMdCarrier', // 联想控件名称
         select: selectCarrier, // 选择回调
         disabled: readOnlyPage
       },
@@ -37,13 +36,13 @@ export function getModuleList(params: any): ModuleIF[] {
         elementId: 'aforder_mawbNo',
         span: 4,
         prop: 'aforder.mawbNo',
-        label: t('nls.MBL_NO', '主单号'),
-        uiType: EL_ENUM.SLOT, // 使用插槽自定义内容
+        label: t('nls.MBL_NO', '单号'),
+        uiType: EL_ENUM.INPUT, // 使用插槽自定义内容
         customLabel: {
           items: [
             {
               type: 'text',
-              text: t('nls.MBL_NO', '主单号')
+              text: t('nls.MBL_NO', '单号')
             },
             {
               type: 'checkbox',
@@ -51,12 +50,12 @@ export function getModuleList(params: any): ModuleIF[] {
               label: '',
               style: 'margin-left:auto;',
               change: (val) => {
-                params.changeMawbCode(val)
+                // params.changeMawbCode(val)
               }
             },
             {
               type: 'link',
-              text: t('nls.SELECT_MBL', '挑选主单号'),
+              text: t('nls.SELECT_MBL', '文字链接'),
               disabled: readOnlyPage,
               click: openMawbDialog
             }
@@ -68,17 +67,17 @@ export function getModuleList(params: any): ModuleIF[] {
         elementId: 'clientOrganization',
         span: 4,
         prop: '',
-        label: t('nls.CLIENT_ORG', '委托单位'),
-        uiType: EL_ENUM.COMPONENT
+        label: t('nls.CLIENT_ORG', '单位名称'),
+        uiType: EL_ENUM.INPUT
         // component: clientOrganization // 直接引用组件
       },
       // 字典下拉示例
       {
-        elementId: 'aexBusiness_bizMode',
+        elementId: 'business_bizMode',
         span: 4,
-        prop: 'aexBusiness.bizMode',
+        prop: 'business.bizMode',
         label: t('nls.BIZ_MODE', '业务模式'),
-        uiType: EL_ENUM.DICT_SELECT,
+        uiType: EL_ENUM.INPUT,
         dictName: 'AEX_BIZ_MODE', //字典数据编码
         dictOption: dicts?.AEX_BIZ_MODE, // 字典数据
         disabled: readOnlyPage
@@ -88,7 +87,7 @@ export function getModuleList(params: any): ModuleIF[] {
         elementId: 'afOrder_preEtd',
         span: 4,
         prop: 'aforder.preEtd',
-        label: t('nls.PRE_ETD', '预计离港日'),
+        label: t('nls.PRE_ETD', '时间'),
         uiType: EL_ENUM.DATETIME,
         disabled: readOnlyPage
       }
@@ -97,54 +96,62 @@ export function getModuleList(params: any): ModuleIF[] {
 
   // 货物信息模块(支持二级嵌套拖拽)
   const cargoInfo: ModuleIF = {
-    groupName: 'mainOrderTab',
+    groupName: GROUPNAME.MAIN,
     moduleId: 'cargoInfoId',
     title: t('nls.CARGO_INFO', '货物信息'),
     span: 24,
     // 第一层嵌套
     elementLists: [
-      // 货物信息-左侧(可嵌套拖拽区域)
       {
-        elementId: 'cargoInfo_left',
-        span: 16,
-        label: t('nls.CARGO_INFO_LEFT', '货物信息-左侧'),
-        requiredable: false, // 不允许配置必填
-        deletable: false, // 不允许删除
-        groupName: 'mainOrderTab',
-        // 第二层嵌套
-        elementLists: [
-          {
-            elementId: 'aforder_custBizNo',
-            span: 6,
-            prop: 'aforder.custBizNo',
-            label: t('nls.CUST_BIZ_NO', '客户订单号'),
-            uiType: EL_ENUM.INPUT,
-            disabled: readOnlyPage
-          },
-          // 35字符分隔输入框
-          {
-            elementId: 'airCargoPreM_goodsNameEn',
-            span: 12,
-            prop: 'airCargoPreM.goodsNameEn',
-            label: t('nls.GOODS_NAME_EN', '英文品名'),
-            uiType: EL_ENUM.DIVIDER_INPUT,
-            rows: 3,
-            disabled: readOnlyPage
-          },
-          // 复选框示例
-          {
-            elementId: 'airCargoPreM_isRe',
-            span: 6,
-            prop: 'airCargoPreM.isRe',
-            label: '',
-            uiType: EL_ENUM.CHECKBOX,
-            checkboxLabel: t('nls.IS_RE', '退运货'),
-            trueValue: 1,
-            falseValue: 0,
-            showLabel: false // 不显示label,只显示复选框
-          }
-        ]
+        elementId: 'aforder_custBizNo',
+        span: 6,
+        prop: 'aforder.custBizNo',
+        label: t('nls.CUST_BIZ_NO', '客户订单号'),
+        uiType: EL_ENUM.INPUT,
+        disabled: readOnlyPage
       },
+      // // 货物信息-左侧(可嵌套拖拽区域)
+      // {
+      //   groupName: GROUPNAME.MAIN,
+      //   elementId: 'cargoInfo_left',
+      //   span: 16,
+      //   label: t('nls.CARGO_INFO_LEFT', '货物信息-左侧'),
+      //   requiredable: false, // 不允许配置必填
+      //   deletable: false, // 不允许删除
+      //   // 第二层嵌套
+      //   elementLists: [
+      //     {
+      //       elementId: 'aforder_custBizNo',
+      //       span: 6,
+      //       prop: 'aforder.custBizNo',
+      //       label: t('nls.CUST_BIZ_NO', '客户订单号'),
+      //       uiType: EL_ENUM.INPUT,
+      //       disabled: readOnlyPage
+      //     },
+      //     // 35字符分隔输入框
+      //     {
+      //       elementId: 'airCargoPreM_goodsNameEn',
+      //       span: 12,
+      //       prop: 'airCargoPreM.goodsNameEn',
+      //       label: t('nls.GOODS_NAME_EN', '英文品名'),
+      //       uiType: EL_ENUM.TEXTAREA,
+      //       rows: 3,
+      //       disabled: readOnlyPage
+      //     },
+      //     // 复选框示例
+      //     {
+      //       elementId: 'airCargoPreM_isRe',
+      //       span: 6,
+      //       prop: 'airCargoPreM.isRe',
+      //       label: '',
+      //       uiType: EL_ENUM.CHECKBOX,
+      //       checkboxLabel: t('nls.IS_RE', '退运货'),
+      //       trueValue: 1,
+      //       falseValue: 0,
+      //       showLabel: false // 不显示label,只显示复选框
+      //     }
+      //   ]
+      // },
       // 货物信息-右侧(使用插槽自定义)
       {
         elementId: 'cargoInfo_right',
@@ -160,19 +167,19 @@ export function getModuleList(params: any): ModuleIF[] {
 
   // 收发通模块(使用customLabel添加链接)
   const shippingInfo: ModuleIF = {
-    groupName: 'mainOrderTab',
+    groupName: GROUPNAME.MAIN,
     moduleId: 'shippingInfoId',
-    title: t('nls.SHIPPING_INFO', '收发通'),
+    title: t('nls.SHIPPING_INFO', '接收信息'),
     span: 24,
     elementLists: [
       {
-        elementId: 'goShipper_partyName',
+        elementId: 'shipper_partyName',
         span: 12,
-        prop: 'goShipper.partyId',
-        nameProp: 'goShipper.partyName',
+        prop: 'shipper.partyId',
+        // nameProp: 'shipper.partyName',
         label: t('nls.SHIPPER', '发货人'),
-        uiType: EL_ENUM.ASSOCIATE,
-        componentName: 'ILPMdShipper',
+        uiType: EL_ENUM.INPUT,
+        // componentName: 'ILPMdShipper',
         customLabel: {
           items: [
             { type: 'text', text: t('nls.SHIPPER', '发货人') },
@@ -191,7 +198,7 @@ export function getModuleList(params: any): ModuleIF[] {
 
   // 备注信息模块(使用复选框组)
   const remarkInfo: ModuleIF = {
-    groupName: 'mainOrderTab',
+    groupName: GROUPNAME.MAIN,
     moduleId: 'remarkInfoId',
     title: t('nls.REMARK_INFO', '备注信息'),
     span: 24,
@@ -214,8 +221,8 @@ export function getModuleList(params: any): ModuleIF[] {
         elementId: 'goRemarks',
         span: 24,
         prop: '',
-        label: '',
-        uiType: EL_ENUM.COMPONENT
+        label: '备注',
+        uiType: EL_ENUM.INPUT
         // component: goRemarks,
         // showLabel: false
       }
