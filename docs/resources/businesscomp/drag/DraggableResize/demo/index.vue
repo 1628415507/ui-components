@@ -1,7 +1,12 @@
 <template>
   <DraggableResizeControl :config="dragConfig">
-    <el-form ref="mainGroupNameRef" :model="formData" :rules="formDataRules" :disabled="dragConfig.isEditing"
-      label-position="top">
+    <el-form
+      ref="dragFormRef"
+      :model="formData"
+      :rules="formDataRules"
+      :disabled="dragConfig.isEditing"
+      label-position="top"
+    >
       <el-tabs v-model="activeTab" @tab-click="handleTabChange">
         <el-tab-pane label="配置1" :name="GROUPNAME.MAIN" />
         <el-tab-pane label="配置2" :name="GROUPNAME.SECOND" />
@@ -9,12 +14,16 @@
       <!-- 拖拽组1 -->
       <div v-show="activeTab === GROUPNAME.MAIN">
         <z-info-card :header="'基本信息'" class="mt-10">
-          <DragElement :groupName="GROUPNAME.MAIN" moduleId="basicInfoCard" :config="dragConfig"
-            :formRef="mainGroupNameRef" :formValue="formData" :formRules="formDataRules"
-            :componentParams="componentParams">
-            <template #aforder_mawbNo="{ element }">
-              主单号插槽
-            </template>
+          <DragElement
+            :groupName="GROUPNAME.MAIN"
+            moduleId="basicInfoCard"
+            :config="dragConfig"
+            :formRef="dragFormRef"
+            :formValue="formData"
+            :formRules="formDataRules"
+            :componentParams="componentParams"
+          >
+            <template #aforder_mawbNo="{ element }">主单号插槽</template>
           </DragElement>
         </z-info-card>
         <!--:disabled="dragConfig.isEditing" 编辑状态禁用表单操作 -->
@@ -22,8 +31,14 @@
           <!-- #cargoInfoId:插槽名称对应moduleId -->
           <template #cargoInfoId="{ element: moduleEl }">
             <z-info-card :header="moduleEl.title" class="mt-10">
-              <DragElement :groupName="GROUPNAME.MAIN" moduleId="cargoInfoId" :config="dragConfig"
-                :formRef="mainGroupNameRef" :formValue="formData" :formRules="formDataRules">
+              <DragElement
+                :groupName="GROUPNAME.MAIN"
+                moduleId="cargoInfoId"
+                :config="dragConfig"
+                :formRef="dragFormRef"
+                :formValue="formData"
+                :formRules="formDataRules"
+              >
                 <!-- 嵌套的插槽內容 -->
                 <template #cargoInfo_right="{ element }">
                   <!-- 自定义右侧信息内容 -->
@@ -35,21 +50,39 @@
           <!-- 航班信息模块 -->
           <template #flightInfoId="{ element: moduleEl }">
             <z-info-card :header="moduleEl.title" class="mt-10">
-              <DragElement :groupName="GROUPNAME.MAIN" moduleId="flightInfoId" :config="dragConfig"
-                :formRef="mainGroupNameRef" :formValue="formData" :formRules="formDataRules"
-                :componentParams="componentParams" />
+              <DragElement
+                :groupName="GROUPNAME.MAIN"
+                moduleId="flightInfoId"
+                :config="dragConfig"
+                :formRef="dragFormRef"
+                :formValue="formData"
+                :formRules="formDataRules"
+                :componentParams="componentParams"
+              />
             </z-info-card>
           </template>
           <template #shippingInfoId="{ element: moduleEl }">
             <z-info-card :header="moduleEl.title" class="mt-10">
-              <DragElement :groupName="GROUPNAME.MAIN" moduleId="shippingInfoId" :config="dragConfig"
-                :formRef="mainGroupNameRef" :formValue="formData" :formRules="formDataRules" />
+              <DragElement
+                :groupName="GROUPNAME.MAIN"
+                moduleId="shippingInfoId"
+                :config="dragConfig"
+                :formRef="dragFormRef"
+                :formValue="formData"
+                :formRules="formDataRules"
+              />
             </z-info-card>
           </template>
           <template #remarkInfoId="{ element: moduleEl }">
             <z-info-card :header="moduleEl.title" class="mt-10">
-              <DragElement :groupName="GROUPNAME.MAIN" moduleId="remarkInfoId" :config="dragConfig"
-                :formRef="mainGroupNameRef" :formValue="formData" :formRules="formDataRules" />
+              <DragElement
+                :groupName="GROUPNAME.MAIN"
+                moduleId="remarkInfoId"
+                :config="dragConfig"
+                :formRef="dragFormRef"
+                :formValue="formData"
+                :formRules="formDataRules"
+              />
             </z-info-card>
           </template>
         </DragModule>
@@ -58,15 +91,19 @@
       <DragModule v-show="activeTab === GROUPNAME.SECOND" :groupName="GROUPNAME.SECOND" :config="dragConfig">
         <template #baseInfoCard="{ element: moduleEl }">
           <z-info-card :header="moduleEl.title" class="mt-10">
-            <DragElement :groupName="GROUPNAME.SECOND" moduleId="baseInfoCard" :config="dragConfig"
-              :formRef="mainGroupNameRef" :formValue="formData" :formRules="formDataRules">
-            </DragElement>
+            <DragElement
+              :groupName="GROUPNAME.SECOND"
+              moduleId="baseInfoCard"
+              :config="dragConfig"
+              :formRef="dragFormRef"
+              :formValue="formData"
+              :formRules="formDataRules"
+            ></DragElement>
           </z-info-card>
         </template>
       </DragModule>
     </el-form>
   </DraggableResizeControl>
-
 </template>
 
 <script setup lang="ts">
@@ -74,7 +111,6 @@ import { reactive, ref, computed, onMounted, nextTick, getCurrentInstance, watch
 import DraggableResizeControl from '../index.vue'
 import DragModule from '../DragModule.vue'
 import DragElement from '../DragElement.vue'
-// import GInfoCard from '@/components/GInfoCard/index.vue'
 import { getModuleList } from './mainConfig.ts'
 import { getModuleList as getModuleListSecond } from './secondConfig.ts'
 
@@ -82,19 +118,15 @@ const GROUPNAME = {
   MAIN: 'mainGroupName',
   SECOND: 'secondGroupName'
 }
-const handleClick = (tab: TabsPaneContext, event: Event) => {
-  console.log(tab, event)
-}
 
 const { proxy } = getCurrentInstance()
 
 // 表单数据(支持嵌套对象结构)
-const formData = reactive({
-})
+const formData = reactive({})
 
 // 表单验证规则
 const formDataRules = ref({})
-const mainGroupNameRef = ref(null)
+const dragFormRef = ref(null)
 const activeTab = ref(GROUPNAME.MAIN)
 // 组件参数:传递给自定义组件和配置函数的公共参数
 const componentParams = reactive({
@@ -102,8 +134,7 @@ const componentParams = reactive({
   formData,
   readOnlyPage: false,
   openMawbDialog: () => {
-    console.log('%c [ openMawbDialog ]-72', 'font-size:13px; background:pink; color:#bf2c9f;',)
-    /*打开主单号选择弹窗 */
+    console.log('%c [ openMawbDialog ]-72', 'font-size:13px; background:pink; color:#bf2c9f;')
   },
   selectCarrier: (val) => {
     /* 航司选择回调 */
@@ -122,21 +153,16 @@ const mainGroupNameConfig = reactive({
   moduleList: computed(() => getModuleList(componentParams))
 })
 dragConfig.groupInfo[GROUPNAME.MAIN] = mainGroupNameConfig
-// 主单Tab配置
+// 分单Tab配置
 const secondGroupNameConfig = reactive({
   groupName: GROUPNAME.SECOND,
   moduleList: computed(() => getModuleListSecond(componentParams))
 })
 dragConfig.groupInfo[GROUPNAME.SECOND] = secondGroupNameConfig
 
-// 监听activeTab变化,同步更新dragConfig
+// 监听activeTab变化,同步更新dragConfig的activeGroupName
 watch(activeTab, (val) => {
   dragConfig.activeGroupName = val
-  // if (val === GROUPNAME.MAIN) {
-  //   mainGroupNameConfig.moduleList = computed(() => getModuleList(componentParams))
-  // } else if (val === GROUPNAME.SECOND) {
-  //   secondGroupNameConfig.moduleList = computed(() => getModuleListSecond(componentParams))
-  // }
 })
 
 onMounted(async () => {
@@ -144,7 +170,7 @@ onMounted(async () => {
   await nextTick(() => {
     mainGroupNameConfig.moduleList = computed(() => getModuleList(componentParams))
     secondGroupNameConfig.moduleList = computed(() => getModuleListSecond(componentParams))
-    // proxy?.setFormRules(mainGroupNameRef.value, formDataRules, formData)
+    // proxy?.setFormRules(dragFormRef.value, formDataRules, formData)
   })
 })
 </script>

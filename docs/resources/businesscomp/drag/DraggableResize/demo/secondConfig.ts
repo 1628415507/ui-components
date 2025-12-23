@@ -29,7 +29,7 @@ export function getModuleList(params: any): ModuleIF[] {
           { label: t('nls.NEED_FUMIGATION', '熏蒸'), value: 'needFumigation' },
           { label: t('nls.NEED_WAREHOUSE', '仓储'), value: 'needWarehouse' },
           { label: t('nls.NEED_INSURANCE', '保险'), value: 'needInsurance' }
-        ],
+        ]
       },
       {
         elementId: 'airCargoPreM_goodsNameEn',
@@ -85,4 +85,3 @@ export function getModuleList(params: any): ModuleIF[] {
 
   return [basicInfo]
 }
-

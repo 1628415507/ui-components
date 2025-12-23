@@ -231,4 +231,3 @@ export function getModuleList(params: any): ModuleIF[] {
 
   return [basicInfo, cargoInfo, shippingInfo, remarkInfo]
 }
-
