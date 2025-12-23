@@ -15,6 +15,11 @@ resources/businesscomp/drag/dragGroup
 resources/businesscomp/drag/tablesDragHook
 :::
 
+## 拖拽配置
+
+::: example
+resources/businesscomp/drag/DraggableResize/demo/index
+:::
 <!-- ## 表格基础公共配置
 
 ::: example
