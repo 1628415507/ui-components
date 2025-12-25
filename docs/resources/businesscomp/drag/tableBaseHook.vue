@@ -9,7 +9,6 @@
     <vxe-table
       id="vxeTableId-assignedTable-01"
       ref="xTableRef"
-      show-overflow
       :row-config="{ useKey: true }"
       min-height="200px"
       height="200px"

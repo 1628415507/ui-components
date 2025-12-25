@@ -5,7 +5,6 @@
         <vxe-table
           id="vxeTableId-assignedTable-01"
           ref="assignedTableRef"
-          show-overflow
           :row-config="{ useKey: true }"
           min-height="200px"
           height="200px"

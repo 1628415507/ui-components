@@ -15,7 +15,7 @@ resources/businesscomp/drag/dragGroup
 resources/businesscomp/drag/tablesDragHook
 :::
 
-## 拖拽配置
+## 拖拽表单组件
 
 [使用文档参考](DraggableResize/Readme.md)
 

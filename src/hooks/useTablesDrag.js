@@ -32,7 +32,12 @@ function initTablesDrag(target, config) {
     if (!$pullRef) {
       return
     }
-    return Sortable.create($pullRef?.$el?.querySelector('.body--wrapper>.vxe-table--body tbody'), {
+    const el = $pullRef?.$el?.querySelector('tbody')
+    if (!el) {
+      return
+    }
+    // const el = $pullRef?.$el?.querySelector('.body--wrapper>.vxe-table--body tbody')
+    return Sortable.create(el, {
       handle: '.vxe-body--row',
       // animation: 150,
       group: {
