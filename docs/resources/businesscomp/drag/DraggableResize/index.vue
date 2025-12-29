@@ -101,7 +101,7 @@ import TemplateAuthorizationDialog from './TemplateAuthorizationDialog.vue'
 import SwitchTemplateDialog from './SwitchTemplateDialog.vue'
 import {
   ProvideDragConfig,
-  DragConfigPrivate,
+  DragConfig,
   ConfigState,
   ModuleIFPrivate,
   GroupIF,
@@ -115,7 +115,7 @@ import useTemplate from './utils/useTemplate'
 const IS_MOCK = true //是否开启本地调试使用,跳过接口请求逻辑
 
 const props = defineProps<{
-  config: DragConfigPrivate
+  config: DragConfig
 }>()
 
 const { proxy } = getCurrentInstance()
@@ -189,7 +189,6 @@ function updateActiveGroupInfo() {
   const curGroupInfo = props.config?.currentGroupInfo?.[groupName] //当前配置
   const localGroupInfo = provideInfo.localGroupInfo[groupName] //本地配置
   if (localGroupInfo?.moduleList?.length && !curGroupInfo?.moduleList?.length) {
-    props.config.currentGroupInfo[groupName] = JSON.parse(JSON.stringify(localGroupInfo || '{}'))
     provideInfo.currentGroupInfo[groupName] = JSON.parse(JSON.stringify(localGroupInfo || '{}'))
   }
 }
@@ -294,7 +293,6 @@ function setActiveTemplate(temp?: Template) {
     ? JSON.parse(temp.templateContent)
     : JSON.parse(JSON.stringify(props.config.groupInfo || {}))
   const curStoreInfo: Record<string, GroupIF> = JSON.parse(JSON.stringify(store.groupInfo || {}))
-  props.config.currentGroupInfo = curStoreInfo
   provideInfo.currentGroupInfo = curStoreInfo
   updateActiveGroupInfo()
   provideInfo.storeGroupInfo = store?.groupInfo || null
@@ -371,7 +369,7 @@ async function saveSYSTemplate() {
     ...sysLevelTemplate,
     templateName: '系统级模板',
     templateContent: JSON.stringify({
-      groupInfo: props.config.currentGroupInfo,
+      groupInfo: provideInfo.currentGroupInfo,
       version: new Date().getTime()
     })
   })
@@ -384,7 +382,7 @@ async function saveTemplate() {
   const res = await saveConfig(activeTemplate.value.level, {
     ...activeTemplate.value,
     templateContent: JSON.stringify({
-      groupInfo: props.config.currentGroupInfo,
+      groupInfo: provideInfo.currentGroupInfo,
       version: new Date().getTime()
     })
   })
@@ -400,7 +398,7 @@ async function saveAsTemplate(name: string) {
     mdInterfaceTemplateId: undefined,
     templateName: name,
     templateContent: JSON.stringify({
-      groupInfo: props.config.currentGroupInfo,
+      groupInfo: provideInfo.currentGroupInfo,
       version: new Date().getTime()
     })
   })
@@ -421,7 +419,6 @@ async function initStoreModuleList() {
     // // console.log(' 【store】-273'(' 【layoutTemplatesList 】-160', layoutTemplatesList)
   } catch (error) {
     const originInfo = JSON.parse(JSON.stringify(provideInfo.localGroupInfo || {}))
-    props.config.currentGroupInfo = originInfo
     provideInfo.currentGroupInfo = originInfo
     console.error('初始化存储模块列表失败:', error)
   }
@@ -482,7 +479,7 @@ const provideInfo: ProvideDragConfig = reactive({
   refreshTrigger: -1,
   localGroupInfo: props.config.groupInfo,
   storeGroupInfo: null,
-  currentGroupInfo: props.config.currentGroupInfo,
+  currentGroupInfo: props.config.groupInfo,
   allLocalElementsMap: allLocalElementsMap,
   allSystemElementsMap: allSystemElementsMap,
   allTenantElementsMap: allTenantElementsMap,
@@ -499,7 +496,7 @@ onBeforeMount(async () => {
   } else {
     setActiveTemplate()
   }
-  // console.log(' 【store】-273'(' 【props.config.currentGroupInfo】-453', props.config.currentGroupInfo)
+  // console.log(' 【store】-273'(' 【props.config.currentGroupInfo】-453', provideInfo.currentGroupInfo)
 })
 
 onMounted(() => {

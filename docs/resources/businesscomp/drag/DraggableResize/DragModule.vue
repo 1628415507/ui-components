@@ -34,13 +34,13 @@
 import draggable from 'vuedraggable'
 import { defineProps, ref, computed, inject, onMounted, nextTick, watch, getCurrentInstance } from 'vue'
 import { isEqual } from '../../../methods/tools'
-import type { ProvideDragConfig, DragConfigPrivate, ModuleIFPrivate } from '@/components/DraggableResize/type/index'
+import type { ProvideDragConfig, DragConfig, ModuleIFPrivate } from '@/components/DraggableResize/type/index'
 
 const { proxy } = getCurrentInstance()
 
 const props = defineProps<{
   groupName: string
-  config: DragConfigPrivate
+  config: DragConfig
   gap: Number //间距。默认10
 }>()
 
@@ -74,7 +74,7 @@ function getColStyle(moduleEl: ModuleIFPrivate) {
 
 // 拖拽结束处理
 function endModuleDrag(evt: any) {
-  props.config.currentGroupInfo[props.groupName].moduleList = moduleList.value
+  provideInfo.currentGroupInfo[props.groupName].moduleList = moduleList.value
 }
 
 // 更新模块属性
@@ -108,7 +108,7 @@ function formatElementLists(list: any[], level = 1, isSub = false) {
 
 // 判断当前模块数据是否变化
 function isModuleChange() {
-  const newInfo = props.config.currentGroupInfo?.[props.groupName]?.moduleList
+  const newInfo = provideInfo.currentGroupInfo?.[props.groupName]?.moduleList
   const curOldInfo = formatElementLists(oldInfo.value)
   // console.log(' oldInfo】', oldInfo.value)
   // console.log(' isModuleChange】', newInfo, curOldInfo)
@@ -141,8 +141,8 @@ function isModuleChange() {
 
 //初始化存储的模块列表
 function initStoreModuleList() {
-  if (props.config.currentGroupInfo?.[props.groupName]?.moduleList) {
-    moduleList.value = props.config.currentGroupInfo[props.groupName].moduleList || []
+  if (provideInfo.currentGroupInfo?.[props.groupName]?.moduleList) {
+    moduleList.value = provideInfo.currentGroupInfo[props.groupName].moduleList || []
     // console.log('initStoreModuleList】 -86', props.groupName, moduleList.value)
     setOldInfo()
     // 延迟设置初始化状态,避免和updateDragInfo的监听同时触发
@@ -209,8 +209,8 @@ watch(
 
 onMounted(() => {
   // 确保当前分组信息存在
-  if (props.config.currentGroupInfo && !props.config.currentGroupInfo?.[props.groupName]) {
-    props.config.currentGroupInfo[props.groupName] = JSON.parse(
+  if (provideInfo.currentGroupInfo && !provideInfo.currentGroupInfo?.[props.groupName]) {
+    provideInfo.currentGroupInfo[props.groupName] = JSON.parse(
       JSON.stringify(provideInfo.localGroupInfo[props.groupName] || {})
     )
   }

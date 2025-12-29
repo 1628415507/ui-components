@@ -42,12 +42,6 @@ export interface DragConfig {
   groupInfo: Record<string, GroupIF> // 分组信息
   isEditing: boolean
 }
-
-// 拖拽配置接口(组件内部使用)
-export interface DragConfigPrivate extends DragConfig {
-  currentGroupInfo: Record<string, GroupIF> // 当前分组信息
-}
-
 // 提供给后代组件的信息
 export interface ProvideDragConfig {
   refreshTrigger: number
@@ -90,4 +84,3 @@ export interface LayoutTemplates {
 // 导出所有类型
 export * from './customLabel'
 export * from './element'
-

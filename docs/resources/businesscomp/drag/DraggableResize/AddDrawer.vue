@@ -37,12 +37,22 @@
 
 <script setup lang="ts">
 import AddDrawerDrag from './AddDrawerDrag.vue'
-import { ref, defineEmits, defineProps, defineExpose, computed, onMounted, watch, getCurrentInstance } from 'vue'
-import type { DragConfigPrivate, ModuleIFPrivate } from './type/index'
+import {
+  inject,
+  ref,
+  defineEmits,
+  defineProps,
+  defineExpose,
+  computed,
+  onMounted,
+  watch,
+  getCurrentInstance
+} from 'vue'
+import type { ProvideDragConfig, DragConfig, ModuleIFPrivate } from './type/index'
 
 const props = defineProps<{
   modelValue: boolean
-  config: DragConfigPrivate
+  config: DragConfig
 }>()
 
 const { proxy } = getCurrentInstance()
@@ -113,16 +123,17 @@ function getCount(moduleItem: ModuleIFPrivate): number {
 function saveElConfig(): void {
   emits('save')
 }
+const provideInfo = inject<ProvideDragConfig>('provideInfo', {} as ProvideDragConfig)
 
 // 初始化模块列表
 function initModuleList() {
   const activeGroupName = props.config.activeGroupName
-  moduleList.value = props.config.currentGroupInfo?.[activeGroupName]?.moduleList || []
+  moduleList.value = provideInfo.currentGroupInfo?.[activeGroupName]?.moduleList || []
 }
 
 // 监听当前分组信息变化
 watch(
-  () => props.config.currentGroupInfo,
+  () => provideInfo.currentGroupInfo,
   (val: ModuleIFPrivate[] | undefined) => {
     if (!moduleList.value.length) {
       initModuleList()

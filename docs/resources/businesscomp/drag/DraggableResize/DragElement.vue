@@ -162,7 +162,7 @@ import {
 } from 'vue'
 import type {
   ProvideDragConfig,
-  DragConfigPrivate,
+  DragConfig,
   ModuleIFPrivate,
   ElementConfig
 } from '@/components/DraggableResize/type/index'
@@ -173,7 +173,7 @@ import _ from 'lodash-es'
 interface Props {
   groupName: string
   moduleId: string
-  config: DragConfigPrivate
+  config: DragConfig
   formRef: FormInstance
   formValue: Record<string, any>
   formRules: FormRules
@@ -420,7 +420,7 @@ function initStoreDragInfo() {
     const storeGroupInfo = provideInfo.storeGroupInfo?.[props.groupName]?.moduleList || []
     const storeModuleList = JSON.parse(JSON.stringify(storeGroupInfo))
     const storeDragInfo = storeModuleList?.find((it) => it.moduleId === props.moduleId)
-    props.config.currentGroupInfo?.[props.groupName]?.moduleList?.forEach((curModuleIt) => {
+    provideInfo.currentGroupInfo?.[props.groupName]?.moduleList?.forEach((curModuleIt) => {
       if (curModuleIt.moduleId === props.moduleId) {
         if (storeDragInfo?.showElementLists?.length) {
           curModuleIt.showElementLists = storeDragInfo.showElementLists
@@ -458,7 +458,7 @@ watch(
 
 // 监听当前分组信息变化
 watch(
-  () => props.config.currentGroupInfo,
+  () => provideInfo.currentGroupInfo,
   () => {
     bindObjReferenceAddress()
   },

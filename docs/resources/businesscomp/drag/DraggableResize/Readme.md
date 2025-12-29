@@ -194,16 +194,15 @@ export function getModuleList(params: any): ModuleIF[] {
 
 | 参数 | 说明 | 类型 | 默认值 | 必填 |
 |------|------|------|--------|------|
-| config | 拖拽配置对象 | `DragConfigPrivate` | - | ✅ |
+| config | 拖拽配置对象 | `DragConfig` | - | ✅ |
 
-#### DragConfigPrivate 接口
+#### DragConfig 接口
 
 ```typescript
-interface DragConfigPrivate {
+interface DragConfig {
   activeGroupName: string        // 当前活动分组名称
   groupInfo: Record<string, GroupIF>  // 所有分组信息
   isEditing: boolean             // 是否处于编辑模式
-  currentGroupInfo: Record<string, GroupIF>  // 当前分组信息（组件内部使用）
 }
 ```
 
@@ -221,7 +220,7 @@ interface DragConfigPrivate {
 | 参数 | 说明 | 类型 | 默认值 | 必填 |
 |------|------|------|--------|------|
 | groupName | 拖拽分组名称 | `string` | - | ✅ |
-| config | 拖拽配置对象 | `DragConfigPrivate` | - | ✅ |
+| config | 拖拽配置对象 | `DragConfig` | - | ✅ |
 | gap | 模块间距（px） | `number` | 10 | ❌ |
 
 #### Slots
@@ -244,7 +243,7 @@ interface DragConfigPrivate {
 |------|------|------|--------|------|
 | groupName | 拖拽分组名称 | `string` | - | ✅ |
 | moduleId | 模块唯一标识 | `string` | - | ✅ |
-| config | 拖拽配置对象 | `DragConfigPrivate` | - | ✅ |
+| config | 拖拽配置对象 | `DragConfig` | - | ✅ |
 | formRef | 表单实例 | `FormInstance` | - | ✅ |
 | formValue | 表单数据对象 | `Record<string, any>` | `{}` | ✅ |
 | formRules | 表单验证规则 | `FormRules` | - | ✅ |
@@ -306,7 +305,7 @@ interface DragConfigPrivate {
 |------|------|------|--------|------|
 | groupName | 拖拽分组名称 | `string` | - | ✅ |
 | formValue | 表单数据对象 | `Record<string, any>` | - | ✅ |
-| config | 拖拽配置对象 | `DragConfigPrivate` | - | ✅ |
+| config | 拖拽配置对象 | `DragConfig` | - | ✅ |
 | colEl | 元素配置对象 | `ElementConfig` | - | ✅ |
 
 #### 功能说明

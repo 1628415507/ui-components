@@ -84,7 +84,7 @@
 <script setup lang="ts">
 import { defineProps, computed, inject } from 'vue'
 import { EL_ENUM } from './type/elementEnum'
-import type { ProvideDragConfig, DragConfigPrivate, ElementConfig, CustomLabelItem } from './type/index'
+import type { ProvideDragConfig, DragConfig, ElementConfig, CustomLabelItem } from './type/index'
 import FormItem from './FormItem.vue'
 
 const provideInfo = inject<ProvideDragConfig>('provideInfo', {} as ProvideDragConfig)
@@ -93,7 +93,7 @@ const provideInfo = inject<ProvideDragConfig>('provideInfo', {} as ProvideDragCo
 const props = defineProps<{
   groupName: string
   formValue: Record<string, any>
-  config: DragConfigPrivate
+  config: DragConfig
   colEl: ElementConfig
 }>()
 
@@ -117,13 +117,13 @@ const handleLabelClick = (labelItem: CustomLabelItem) => {
   }
 }
 
-// 更新复选框值
-function onLabelCheckboxChange(val: any, labelItem: CustomLabelItem, colEl: ElementConfig) {
-  const formObj = getFormValueByProp(labelItem.prop)
-  const fieldProp = getFieldProp(labelItem.prop)
-  formObj[fieldProp] = val // 更新对象值
-  labelItem.change && labelItem.change(val, labelItem, colEl)
-}
+// // 更新复选框值
+// function onLabelCheckboxChange(val: any, labelItem: CustomLabelItem, colEl: ElementConfig) {
+//   const formObj = getFormValueByProp(labelItem.prop)
+//   const fieldProp = getFieldProp(labelItem.prop)
+//   formObj[fieldProp] = val // 更新对象值
+//   labelItem.change && labelItem.change(val, labelItem, colEl)
+// }
 
 // 获取fieldProp对应层级的对象
 function getFormValueByProp(prop: string): Record<string, any> {

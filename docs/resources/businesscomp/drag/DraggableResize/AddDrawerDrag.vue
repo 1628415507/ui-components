@@ -35,11 +35,11 @@ import { EL_ENUM } from './type/elementEnum'
 import { ref, defineProps, defineExpose, computed, onMounted, reactive, withDefaults } from 'vue'
 import draggable from 'vuedraggable'
 import { ElMessage } from 'element-plus'
-import type { DragConfigPrivate, ModuleIFPrivate, ElementConfig } from '@/components/DraggableResize/type/index'
+import type { DragConfig, ModuleIFPrivate, ElementConfig } from '@/components/DraggableResize/type/index'
 
 const props = withDefaults(
   defineProps<{
-    config: DragConfigPrivate
+    config: DragConfig
     moduleItem: ModuleIFPrivate
     moduleId: string
     level: number
