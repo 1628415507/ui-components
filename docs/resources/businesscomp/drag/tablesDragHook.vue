@@ -24,7 +24,6 @@
         <vxe-table
           id="vxeTableId-unAssignedTable-01"
           ref="unAssignedTableRef"
-          show-overflow
           :data="unAssignedTableData"
           size="mini"
           border
