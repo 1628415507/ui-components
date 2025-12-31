@@ -5,9 +5,9 @@
  */
 import useSetTableHeight from './useSetTableHeight'
 import useDragTable from './useDragTable'
-import useSaveTableParams from './useSaveTableParams'
-import useSetElTable from './useSetElTable'
+// import useSaveTableParams from './useSaveTableParams'
+// import useSetElTable from './useSetElTable'
 import { useResetRef } from './useResetRef'
 import useTablesDrag from './useTablesDrag'
 
-export { useTablesDrag, useSetTableHeight, useDragTable, useSaveTableParams, useSetElTable, useResetRef }
+export { useTablesDrag, useSetTableHeight, useDragTable, useResetRef }
