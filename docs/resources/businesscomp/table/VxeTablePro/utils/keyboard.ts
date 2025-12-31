@@ -1,7 +1,7 @@
 /*
  * @Description:表格键盘事件
  * @Date: 2024-08-07 18:01:28
- * @LastEditTime: 2024-08-28 13:54:52
+ * @LastEditTime: 2025-01-02 17:40:53
  */
 const types = ['input', 'select', 'textarea']
 const KEY_CODES = {
@@ -29,7 +29,7 @@ function getFocusableInputs(rowElement) {
 function handleUnpDown(params) {
   const { $event, $table } = params
   let $editRecord = $table.getEditRecord()
-  // let field = $editRecord.column.field
+  let field = $editRecord.column.field
   let rowIndex = $editRecord.rowIndex
   let tableData = $table.getTableData().fullData
   let newRowIndex = 0
@@ -45,14 +45,14 @@ function handleUnpDown(params) {
     return
   }
   const nextRow = tableData[newRowIndex]
-  // $table.setEditRow(nextRow, field) //激活行编辑并激活指定单元格
-  $table.setEditRow(nextRow) //激活行编辑并激活第一个单元格
+  $table.setEditRow(nextRow, field) //激活行编辑并激活指定单元格
+  // $table.setEditRow(nextRow) //激活行编辑并激活第一个单元格
   // console.log('【  $editRecord.column.field 】-64', $editRecord.column.field)
   // console.log('【 $event.key  】-16', $event.keyCode, newRowIndex)
 }
 // 回车键换下一行
 async function handleEnter(params) {
-  const { $event, $table,isSelect } = params
+  const { $event, $table, isSelect } = params
   // console.log('【 回车 】-100', isSelect,$event, $event.preventDefault())
   let $editRecord = $table.getEditRecord()
   const curCellEl = $editRecord.cell
@@ -81,7 +81,7 @@ async function handleEnter(params) {
     const nextRowInputs = getFocusableInputs(nextRowElement) //
     // console.log('【 nextRowInputs 】-87', nextRowInputs)
     const nextFocusInput = nextRowInputs[0]
-    !isSelect&&nextFocusInput.setAttribute('focused', true) //设置focused属性，代表已处理过聚焦
+    !isSelect && nextFocusInput.setAttribute('focused', true) //设置focused属性，代表已处理过聚焦
     nextFocusInput.focus()
   }
 }
@@ -92,9 +92,9 @@ export const tableKeydown = async (params) => {
     handleEnter(params)
   }
   //上下切换行
-  // if (keyCode === KEY_CODES.UP || keyCode === KEY_CODES.DOWN) {
-  //   handleUnpDown(params)
-  // }
+  if (keyCode === KEY_CODES.UP || keyCode === KEY_CODES.DOWN) {
+    handleUnpDown(params)
+  }
   // // 左右键事件
   // if (keyCode === KEY_CODES.LEFT || keyCode === KEY_CODES.RIGHT) {
   // }
