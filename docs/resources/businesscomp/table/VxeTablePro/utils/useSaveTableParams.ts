@@ -1,9 +1,17 @@
 import { onUnmounted, ref } from 'vue'
-import { useI18n } from 'vue-i18n'
+// import { useI18n } from 'vue-i18n'
 import Sortable from 'sortablejs'
 // import request from '@/utils/request'
-import { ROLE_TYPE } from '@/enums/SystemEnum.ts'
-
+export const enum ROLE_TYPE {
+  USER = 'U', // 用户级布局 principal_group_code != 1000 and is_super_admin != 1
+  SYSTEM = 'S', // 系统级布局 principal_group_code = 1000
+  TENANT = 'T' // 租户级布局 principal_group_code != 1000 and is_super_admin = 1
+}
+function useI18n() {
+  return {
+    t: (key: string) => key
+  }
+}
 // 设置vxe-table表格配置
 const setVxeTableConfig = (data) => {
   return Promise.resolve({})
