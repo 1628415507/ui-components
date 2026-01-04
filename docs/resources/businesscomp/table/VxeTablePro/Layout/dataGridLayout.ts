@@ -160,7 +160,7 @@ export default class dxLayout {
         }
       })
         .then((res: any) => {
-          const { sysLevelTemplate, tenantLevelTemplate, userLevelTemplates } = res
+          const { sysLevelTemplate, tenantLevelTemplate, userLevelTemplates } = res || {}
           // 系统布局
           if (sysLevelTemplate) {
             res.sysLevelTemplate = this.getTemplateContentItem(sysLevelTemplate)
@@ -171,7 +171,7 @@ export default class dxLayout {
             res.tenantLevelTemplate = this.getTemplateContentItem(filterTenantLevelTemplate)
           }
           // 用户布局
-          if (userLevelTemplates.length) {
+          if (userLevelTemplates?.length) {
             res.userLevelTemplates = this.filterLayoutByAllowedFields(res, TEMP_TYPE.USER)
             res.userLevelTemplates = res.userLevelTemplates.map((template: any) => {
               return this.getTemplateContentItem(template)

@@ -126,7 +126,7 @@ export default function useSaveTableParams(config = { isSave: true }) {
       } else {
         const isDisabled = !column
         options.forEach((list) => {
-          list.forEach((item) => {
+          list?.forEach((item) => {
             item.disabled = isDisabled
             if (item.code == 'hideColumn') {
               if (

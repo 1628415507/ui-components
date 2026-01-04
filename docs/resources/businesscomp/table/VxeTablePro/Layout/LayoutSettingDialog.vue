@@ -248,7 +248,7 @@ const props = defineProps({
 })
 
 const roleType = ref() //当前用户类型
-const route = useRoute()
+const route = {} // useRoute()
 
 const layoutPath = computed(() => {
   if (route?.meta?.originUrl) {

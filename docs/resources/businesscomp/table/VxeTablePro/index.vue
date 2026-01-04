@@ -79,6 +79,8 @@ export default {
 </script>
 
 <script setup lang="ts">
+import { VxeTable, VxeColumn } from 'vxe-table'
+import 'vxe-table/lib/style.css'
 import { useRoute } from 'vue-router'
 import { ref, onMounted, defineExpose, onUnmounted, computed, useAttrs, nextTick, provide, defineEmits } from 'vue'
 import useSaveTableParams from './utils/useSaveTableParams.ts' //表格公共方法
@@ -90,17 +92,16 @@ import type { VxeToolbarInstance } from 'vxe-table'
 import { exposeVxeTableMethods, isValidTableInstance, type IExtendsVxeTableInstance } from './utils/useExposeMethods'
 import vxeTableExt from './utils/vxeTableExt'
 import { tableKeydown } from './utils/keyboard.ts'
-
 const route = useRoute()
 const instance = getCurrentInstance()
 const proxy = instance?.proxy
 const attrs = useAttrs()
-const pageStateInstance = {} //pageState.instance(route as any)
+// const pageStateInstance = pageState.instance(route as any)
 
 const props = defineProps({
   showToolbar: {
     type: Boolean,
-    default: true
+    default: false
   },
   useExtend: {
     type: Boolean, //是否开启扩展方法
@@ -175,7 +176,7 @@ const mergedRowConfig = computed(() => {
 
 // 国际化空数据提示
 const emptyText = computed(() => {
-  return proxy?.$t('tip.noData')
+  return '暂无数据'
 })
 
 const toolbarRef = ref<VxeToolbarInstance>()
@@ -558,11 +559,12 @@ function initDragCheckbox() {
 // ---------------------------------------------------------------- 拖拽选择功能 End ----------------------------------------------------------------
 
 onMounted(() => {
+  console.log('%c [ xTableProRef.value ]-562', 'font-size:13px; background:pink; color:#bf2c9f;', xTableProRef.value)
   if (!isValidTableInstance(xTableProRef.value)) return
   $tablePro = xTableProRef.value
   // 自动注册表格实例到页面状态管理
   if ($tablePro) {
-    pageStateInstance.addVxeTableInstance($tablePro)
+    // pageStateInstance.addVxeTableInstance($tablePro)
   }
   if (!$tablePro.id) {
     console.error('【表格id不能为空】', $tablePro)

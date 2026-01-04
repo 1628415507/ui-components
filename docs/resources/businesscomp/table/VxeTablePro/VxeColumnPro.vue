@@ -60,6 +60,7 @@ export default {
 </script>
 
 <script setup lang="ts">
+import { VxeTable, VxeColumn } from 'vxe-table'
 import useSetElTable from './utils/useSetElTable' //表格公共方法
 import {
   getCurrentInstance,
