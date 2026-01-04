@@ -10,7 +10,3 @@
 | ---------------------------------------------- | ------------ |
 | [fakerjs](https://fakerjs.dev/api/string.html) | 生成随机数据 |
 
-
-::: example
-resources/businesscomp/table/vxeTablePro
-::: 

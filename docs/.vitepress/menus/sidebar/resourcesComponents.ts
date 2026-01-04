@@ -25,6 +25,7 @@ export default [
     items: [
       { text: '自定义CSS', link: '/resources/businesscomp/css/index.md' },
       { text: '拖拽', link: '/resources/businesscomp/drag/index.md' },
+      { text: '表格', link: '/resources/businesscomp/table/index.md' },
     ]
   },
   // { text: '自定义指令', link: '/resources/directive/index.md' },
