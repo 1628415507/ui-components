@@ -1,0 +1,52 @@
+// 自定义表头需添加该样式
+.custom-header {
+  display: inline-block;
+  // height: var(--vxe-header-height);
+  // overflow: hidden;
+  //   background-color: red;
+}
+
+// 表格布局
+.vxe-context-menu--option-wrapper {
+  .begin-group {
+    border-top: 1px solid var(--vxe-ui-table-border-color); //右键菜单分隔线
+  }
+  .layout-checked {
+    &:before {
+      content: '√'; //默认布局勾选
+      color: var(--vxe-ui-font-primary-color);
+    }
+  }
+}
+// 自定义表格样式
+.vxe-table-pro {
+  height: 100%;
+  position: relative;
+  width: 100%;
+  // font-size: 14px;
+
+  // 内嵌表格样式
+  &.is-embedded {
+    background-color: #f9f9f9;
+    --vxe-bg-header: #f6f6f6; // 表头背景色
+    --vxe-row-height: 36px; //表头高度
+    .vxe-header--column {
+      // 表头下边框
+      background-image: none;
+    }
+  }
+  .vxe-toolbar-wrap {
+    position: absolute;
+    top: 0;
+    z-index: 100;
+    // margin-left: var(--vxe-checkbox-column-width, 50px);
+    width: var(--vxe-seq-column-width, 48px);
+    min-height: var(--vxe-header-height, 48px);
+    // background-color: red;
+    // 工具栏样式
+    .vxe-toolbar {
+      background-color: transparent !important;
+      padding: 0 !important;
+    }
+  }
+}

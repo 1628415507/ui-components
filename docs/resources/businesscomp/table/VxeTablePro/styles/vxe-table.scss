@@ -1,0 +1,342 @@
+/**
+ * VXE Table 全局样式优化
+ * @author:zhuangwx
+ * @Description: vxe-table全局样式调整和主题定制
+ * @Date: 2024-03-22 17:42:11
+ * @LastEditTime: 2024-09-18 15:57:04
+ */
+
+// ==================== CSS 变量定义 ====================
+:root {
+  // VXE Table 颜色变量
+  --vxe-bg-primary: #fbfcfd;
+  --vxe-bg-white: #fff;
+  --vxe-bg-stripe: #f5f6f7;
+  --vxe-bg-hover: #f4f6f9;
+  --vxe-bg-header: #f3f4f5;
+  --vxe-bg-filter-active: #e7eaed;
+  --vxe-bg-current: #d4edff;
+  
+  // VXE Table 边框变量
+  --vxe-border-color: #ededed;
+  --vxe-border-radius: 10px;
+  
+  // VXE Table 尺寸变量
+  --vxe-row-height: 35px;
+  --vxe-header-height: 38px;
+  --vxe-cell-padding: 12px;
+  --vxe-input-height: 36px;
+  --vxe-font-size-mini: 13px;
+  
+  // VXE Table 阴影变量
+  --vxe-shadow-active: 0 0 0 2px rgba(59, 130, 246, 0.3);
+  
+  // VXE Table 层级变量
+  --vxe-z-index-high: 9999;
+  --vxe-z-index-expanded: 99;
+  
+  // VXE Table 文字颜色
+  --vxe-text-color: #333;
+  --vxe-text-required: #ff4d4f;
+}
+
+// ==================== 主题配置 ====================
+html[data-vxe-ui-theme='light'] {
+  --vxe-ui-font-primary-color: var(--el-color-primary);
+}
+// ==================== 工具栏样式 ====================
+.vxe-toolbar {
+  background-color: var(--vxe-bg-primary) !important;
+  padding-right: 16px !important;
+}
+
+// ==================== 表格基础样式 ====================
+
+// 隐藏导出的参数设置行
+.vxe-export--panel tbody tr:last-of-type {
+  display: none;
+}
+
+// 表格内容背景色(virtual-scrolling标识虚拟滚动不设置背景色)
+.vxe-table:not(.virtual-scrolling) {
+  .vxe-table--body-wrapper {
+    background: var(--vxe-bg-white);
+  }
+}
+
+// 展开行样式
+.vxe-body--expanded-row {
+  position: relative;
+  z-index: var(--vxe-z-index-expanded);
+}
+
+// 表格滚动样式
+.vxe-table--render-default:not(.is--empty).is--footer.is--scroll-x .vxe-table--body-wrapper {
+  overflow-x: auto;
+}
+
+// 筛选弹窗-自定义序列弹框层级
+.vxe-table--filter-wrapper,
+.vxe-custom--option-wrapper {
+  z-index: var(--vxe-z-index-high) !important;
+}
+
+// ==================== 滚动条样式 ====================
+::-webkit-scrollbar-thumb {
+  border-radius: var(--vxe-border-radius) !important;
+}
+
+// 表格底部滚动条隐藏
+.vxe-table.is--footer .vxe-table--body-wrapper.body--wrapper {
+  &::-webkit-scrollbar-thumb:horizontal,
+  &::-webkit-scrollbar-track:horizontal {
+    background-color: transparent;
+  }
+}
+
+// 移除虚拟滚动条的边框
+.vxe-table--scroll-y-virtual {
+  width: 0 !important;
+ 
+}
+.vxe-table--scroll-x-virtual {
+  height: 0 !important;
+ 
+}
+// ==================== 表格文字和尺寸 ====================
+
+// 表格基础文字颜色
+.vxe-table--header-wrapper,
+.vxe-table--footer-wrapper,
+.vxe-table--render-default {
+  color: var(--vxe-text-color) !important;
+}
+
+// 迷你尺寸表格字体
+.vxe-table--render-default.size--mini {
+  font-size: var(--vxe-font-size-mini) !important;
+}
+
+// 统一行高设置
+.vxe-table--render-default .vxe-body--column,
+.vxe-table--render-default .vxe-footer--column,
+.vxe-table--render-default .vxe-header--column {
+  height: var(--vxe-row-height) !important;
+  line-height: normal !important;
+}
+
+// 表格底部列样式
+.vxe-table--footer .vxe-footer--column {
+  padding: 0 !important;
+}
+
+// ==================== 单元格内容样式 ====================
+
+// 单元格内容布局
+.vxe-table--render-default .vxe-body--column {
+  .vxe-cell {
+    padding: 0 !important;
+    
+    // 单元格标签样式
+    .vxe-cell--label {
+      margin: var(--vxe-cell-padding) !important;
+    }
+    
+    // 搜索容器样式
+    .friendSearchContainer {
+      padding: 0;
+      margin-top: 0;
+    }
+    
+    // 表单控件统一高度
+    .g-select,
+    .el-select,
+    .el-input,
+    .my-input-sc,
+    .el-select__input, 
+    .el-select__wrapper {
+      height: var(--vxe-input-height) !important;
+      min-height: var(--vxe-input-height) !important;
+    }
+    
+    // 表单项高度
+    .my-input-sc .el-form-item {
+      height: 100%;
+    }
+    
+    // 行内错误提示位置
+    .el-form-item__error--inline {
+      position: absolute;
+      top: 34px;
+    }
+    
+    // 单元格文本内边距
+    > span {
+      padding: 0 5px;
+    }
+  }
+}
+// ==================== 行样式配置 ====================
+
+// 取消所有行的下边框
+.vxe-table--body .vxe-body--row {
+  border-bottom: none !important;
+}
+
+// 新增行样式
+.vxe-table--body .row--new {
+  border-bottom: none !important;
+  background: var(--main-hover-color) !important;
+}
+
+// 斑马条纹行样式
+.vxe-table .vxe-body--row.row--stripe {
+  background: var(--vxe-bg-stripe) !important;
+}
+
+// 鼠标悬停行样式
+.vxe-table .vxe-body--row.row--hover {
+  background-color: var(--vxe-bg-hover) !important;
+}
+
+// ==================== 表头样式 ====================
+
+// 表头背景和高度
+.vxe-header--row {
+  background-color: var(--vxe-bg-header) !important;
+  height: var(--vxe-header-height) !important;
+}
+
+// 表头文字垂直居中
+.vxe-header--column .vxe-header--label {
+  line-height: var(--vxe-header-height);
+}
+
+// 表头文字样式
+.vxe-cell--title {
+  font-weight: normal !important;
+  font-family: "Helvetica Neue", Helvetica, sans-serif;
+}
+
+// 复选框样式
+.vxe-checkbox--icon {
+  font-weight: normal !important;
+}
+
+// ==================== 边框和交互样式 ====================
+
+// 单元格边框
+.vxe-table .vxe-body--column,
+.vxe-table .vxe-header--column {
+  border-left: 1px solid var(--vxe-border-color);
+  border-right: 1px solid var(--vxe-border-color);
+}
+
+// 隐藏调整大小控件
+.vxe-resizable {
+  opacity: 0;
+}
+// 隐藏表头的拖拽图标
+.vxe-header--row .vxe-table-icon-drag-handle {
+  display: none;
+}
+// 列调整控件透明化
+.vxe-cell--col-resizable {
+  opacity: 0 !important;
+  background: transparent !important;
+}
+
+// ==================== 筛选和排序图标 ====================
+
+// 筛选图标自定义
+.vxe-table-icon-funnel:before {
+  content: url('../assets/icons/search.svg') !important;
+}
+
+// 激活状态的筛选图标
+.is--filter-active:not(.pro) {
+  background-color: var(--vxe-bg-filter-active);
+  
+  .vxe-table-icon-funnel:before {
+    content: url('../assets/icons/search_active.svg') !important;
+  }
+}
+
+// 排序激活状态颜色
+.sort--active {
+  color: var(--vxe-primary-darken-color) !important;
+}
+
+.sort--active:before {
+  color: var(--vxe-ui-font-primary-color) !important;
+}
+
+// 排序按钮样式
+.vxe-table .vxe-sort--asc-btn,
+.vxe-table .vxe-sort--desc-btn {
+  font-size: 14px !important;
+  width: 16px !important;
+  height: 16px !important;
+  line-height: 22px !important;
+  vertical-align: middle !important;
+  margin-left: -6px;
+  margin-top: -6px;
+  
+  &:hover {
+    color: var(--vxe-ui-font-primary-color) !important;
+  }
+}
+
+// 排序图标位置
+.vxe-cell--sort {
+  position: absolute !important;
+  left: 10px !important;
+  font-size: 1.6rem;
+}
+
+// ==================== 树形和分组样式 ====================
+
+// 树形按钮和分组按钮左对齐
+.vxe-table--render-default .vxe-cell--tree-btn,
+.vxe-table--render-default .vxe-row-group--node-btn {
+  float: left !important;
+}
+
+// ==================== 行状态样式 ====================
+
+// 编辑状态的增强标识
+.vxe-table .vxe-body--row.row--actived {
+  box-shadow: var(--vxe-shadow-active) !important;
+}
+
+// 当前行悬停样式
+.vxe-table .vxe-body--row.row--current:hover,
+.vxe-table .vxe-body--row.row--current.row--hover {
+  background-color: var(--vxe-bg-current) !important;
+}
+
+// 当前行覆盖斑马条纹样式
+.vxe-table .vxe-body--row.row--current.row--stripe,
+.vxe-table--render-default .vxe-body--row.row--current > .vxe-body--column {
+  background: var(--main-hover-color) !important;
+}
+
+// 编辑行样式
+.vxe-body--row .edit-row {
+  background: var(--main-hover-color) !important;
+}
+
+// ==================== 特殊功能样式 ====================
+
+// 必填字段标题颜色
+.vxe-table .vxe-cell--wrapper:has(.vxe-cell--required-icon) .vxe-cell--title {
+  color: var(--vxe-text-required) !important;
+}
+
+// 筛选器位置调整
+.vxe-table .vxe-cell--wrapper .vxe-cell--filter {
+  position: absolute;
+  right: 0.2rem;
+  top: 55%;
+  transform: translateY(-50%);
+}

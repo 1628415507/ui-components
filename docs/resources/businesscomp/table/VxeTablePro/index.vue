@@ -24,7 +24,7 @@
       :column-drag-config="{
         trigger: 'cell',
         checkMethod: ({ column }) => {
-          return true //允许拖拽的条件:不是特殊列、不是固定列、不是必填列
+          return true // 允许拖拽的条件：不是特殊列、不是固定列、不是必填列
         }
       }"
       @column-drag-end="columnDragEndEvent"
@@ -55,7 +55,7 @@
       @cell-mouseenter="onCellMouseenter"
     >
       <!-- <template #header>
-        每次查询会重复渲染,不能放在这里
+        每次查询会重复渲染，不能放在这里
         <LayoutSetting :tableRef="xTableProRef" style="margin-top: 4px"/>
       </template> -->
       <vxe-column v-if="showSeq" type="seq" title=" " width="45" fixed="left" align="center" class-name="vxe-seq" />
@@ -71,22 +71,19 @@
     </vxe-table>
   </div>
 </template>
-
 <script lang="ts">
 export default {
   name: 'VxeTablePro'
 }
 </script>
-
 <script setup lang="ts">
 import { VxeTable, VxeColumn } from 'vxe-table'
-import 'vxe-table/lib/style.css'
 import { useRoute } from 'vue-router'
 import { ref, onMounted, defineExpose, onUnmounted, computed, useAttrs, nextTick, provide, defineEmits } from 'vue'
 import useSaveTableParams from './utils/useSaveTableParams.ts' //表格公共方法
 import useSetElTable from './utils/useSetElTable.ts' //表格公共方法
 import LayoutSetting from './Layout/LayoutSettingDialog.vue' //表格公共方法
-// import pageState from './utils/pageState'
+// import pageState from '@/utils/pageState'
 import { getCurrentInstance } from 'vue'
 import type { VxeToolbarInstance } from 'vxe-table'
 import { exposeVxeTableMethods, isValidTableInstance, type IExtendsVxeTableInstance } from './utils/useExposeMethods'
@@ -136,7 +133,7 @@ const props = defineProps({
   //限制展示列数
   limitFieldCount: {
     type: Number,
-    default: 0 //表示不限制
+    default: 0 // 0表示不限制
   },
   enterSwitch: {
     type: Boolean,
@@ -152,7 +149,7 @@ const props = defineProps({
   }
 })
 
-const useSetTable = useSetElTable()
+// const useSetTable = useSetElTable()
 const {
   initTableConfig,
   onHeaderCellMenu,
@@ -167,7 +164,7 @@ const {
 const mergedRowConfig = computed(() => {
   const defaultRowConfig = { isCurrent: true }
   const externalRowConfig = attrs['row-config'] || {}
-  // 合并配置,外部传入的配置会覆盖默认配置
+  // 合并配置，外部传入的配置会覆盖默认配置
   return {
     ...defaultRowConfig,
     ...externalRowConfig
@@ -184,12 +181,12 @@ const xTableProRef = ref<IExtendsVxeTableInstance>()
 let $tablePro: any = null
 let vxeInsert: any = () => {}
 const editingRowIndex = ref(null)
-// 行样式配置(通过索引判断)
-function rowStyle({ rowIndex }) {
-  // 判断是否为编辑行(用索引对比)
+// 行样式配置（通过索引判断）
+const rowStyle = ({ rowIndex }) => {
+  // 判断是否为编辑行（用索引对比）
   if (rowIndex === editingRowIndex.value) {
     return {
-      backgroundColor: 'rgba(239, 246, 246, 1)' //编辑行背景色
+      backgroundColor: 'rgba(239, 246, 246, 1)' // 编辑行背景色
     }
   }
   return {
@@ -233,33 +230,35 @@ function insert(params: any): any {
   }
   return vxeInsert(params)
 }
-
 const resetFiltersTrigger = ref(-1)
 provide('resetFiltersTrigger', resetFiltersTrigger)
 
+// 是否有变化的数据
 function setColumnFilterOptions(tableData) {
-  //是否有变化的数据
   resetFiltersTrigger.value++
-  // useSetTable.setColumnFilterOptions ($tablePro, tableData)
+  // useSetTable.setColumnFilterOptions($tablePro, tableData)
   //设置表格列过滤值
 }
-
 // 是否有变化的数据
 function hasEditData() {
   if (!isValidTableInstance($tablePro)) return false
   const { insertRecords, updateRecords, removeRecords } = $tablePro.getRecordset()
   return (insertRecords.length || updateRecords.length || removeRecords.length) > 0
 }
-
 // 判断页面为已修改状态
 function checkPageModified() {
   // try {
   //   if (hasEditData()) {
   //     pageStateInstance.setModified(true)
-  //     pageStateInstance.addVxeTableInstance($tablePro)
+  //     // 自动注册表格实例到页面状态管理
+  //     if ($tablePro) {
+  //       pageStateInstance.addVxeTableInstance($tablePro)
+  //     }
   //   } else {
   //     pageStateInstance.reset()
-  //     pageStateInstance.removeVxeTableInstance($tablePro)
+  //     if ($tablePro) {
+  //       pageStateInstance.removeVxeTableInstance($tablePro)
+  //     }
   //   }
   // } catch (error) {
   //   console.warn('pageState modify failed:', error)
@@ -292,7 +291,7 @@ function dataChangeEvent(e: any) {
   // 数据变化事件
   checkPageModified()
 }
-// ---------------------------------------------------------------- 排序状态管理 Start
+// ------------------------------------------ 排序状态管理  Start --------------------------------------------------------
 const sortColumns = ref<Array<{ field: string; order: string }>>([])
 const emit = defineEmits(['sortChange'])
 let sortMap = new Map()
@@ -341,7 +340,7 @@ function onSortChange(params: any) {
     return
   }
 
-  // console.log(' 【 sortMap 】 -265', sortMap)
+  // console.log('【 sortMap 】-265', sortMap)
   if (sortList && sortList.length > 0) {
     sortColumns.value = sortList
   } else {
@@ -366,7 +365,7 @@ function updateSortOrderBadges() {
   const tableEl = ($tablePro as any).$el
   if (!tableEl) return
   removeBadge()
-  // 如果没有排序列,直接返回
+  // 如果没有排序列，直接返回
   if (sortColumns.value.length === 0) return
   const headerCells = tableEl.querySelectorAll('.vxe-header--column')
   // // 为每个排序列添加序号徽章
@@ -375,40 +374,43 @@ function updateSortOrderBadges() {
       // 通过 cell 属性查找对应的列
       const columnNode = $tablePro.getColumnNode(cell)
       const column = columnNode.item
-      // console.log('columnNode】-265', columnNode, column)
-      if (column && column.field === sortCol.field) {
-        const fieldIndex = sortColumns.value.findIndex((item) => item.field === column.field)
+      // console.log('【 columnNode 】-265', columnNode, column)
+      if (column?.field === sortCol.field) {
+        const fieldIndex = Array.from(sortMap.keys()).indexOf(column.field)
         const sortOrder = fieldIndex + 1
         // 查找排序图标容器
         const sortIcon = cell.querySelector('.vxe-cell--sort') as HTMLElement
         if (sortIcon) {
           // 检查是否已存在徽章
-          let badge = sortIcon.querySelector('.vxe-sort-order-badge') as HTMLElement
-          if (!badge) {
-            // 创建新的徽章元素
-            badge = document.createElement('span')
+          const existingBadge = sortIcon.querySelector('.vxe-sort-order-badge')
+          if (!existingBadge) {
+            const badge = document.createElement('span')
             badge.className = 'vxe-sort-order-badge'
+            badge.textContent = String(sortOrder)
             // 确保排序图标容器是相对定位
-            sortIcon.style.position = 'relative'
+            if (getComputedStyle(sortIcon).position === 'static') {
+              sortIcon.style.position = 'relative'
+            }
             sortIcon.appendChild(badge)
+          } else {
+            // 更新已存在徽章的数字
+            existingBadge.textContent = String(sortOrder)
           }
-          // 更新已存在徽章的数字
-          badge.textContent = String(sortOrder)
         }
       }
     })
   })
 }
-
 /**
  * 获取排序信息
  * @returns 排序
  */
 function getSorts(dataField?: string, sortOrder?: string) {
+  // console.log('【 sortMap 】-265', sortMap, sortMap.values())
   if (!isValidTableInstance($tablePro)) return []
-  const sortcolumns = Array.from(sortMap.values()) // $tablePro.getSortColumns()
+  const sortColumns = Array.from(sortMap.values()) // $tablePro.getSortColumns()
   const sorts: Array<any> = []
-  sortcolumns.forEach((column, idx) => {
+  sortColumns.forEach((column, idx) => {
     if (column.order && (!dataField || column.field === dataField)) {
       sorts.push({
         propertyName: column.field,
@@ -419,20 +421,21 @@ function getSorts(dataField?: string, sortOrder?: string) {
   })
   return sorts
 }
-// ---------------------------------------------------------------- 排序状态管理 End ----------------------------------------------------------------
+// ------------------------------------------ 排序状态管理  End --------------------------------------------------------
 
-//列拖拽结束事件
+// 列拖拽结束事件
 function columnDragEndEvent(params: any) {
   const { newIndex, oldIndex, column } = params
   if (newIndex !== oldIndex) {
-    //调用自动保存布局
+    // 调用自动保存布局
     columnDragEnd({ $table: $tablePro, column, newIndex, oldIndex })
   }
 }
-//清除筛选触发器,用于通知子组件执行 clearFilter
+// 清除筛选触发器，用于通知子组件执行 clearFilter
 // const clearFilterTrigger = ref(0)
 // 提供清除筛选的方法给子组件
 // provide('clearFilterTrigger', clearFilterTrigger)
+
 function clearFilterPro() {
   $tablePro.clearFilter()
   // 触发所有子列组件执行 clearFilter
@@ -441,43 +444,61 @@ function clearFilterPro() {
 // 扩展方法
 function extendsMethods() {
   if (!isValidTableInstance($tablePro)) return
+
   $tablePro.hasEditData = hasEditData
   $tablePro.clearFilterPro = clearFilterPro
   $tablePro.setColumnFilterOptions = setColumnFilterOptions
   $tablePro.insert = insert
   $tablePro.getSorts = getSorts
 }
+// let currentData = ref({})
+//表格过滤事件
+// function onFilterChange({ column, filters }) {
+//   //单列筛选全部重置筛选
+//   if (filters.length === 1 && filters[0].values.length === column.filters.length) {
+//     $tablePro.clearFilter(column)
+//   }
+//   nextTick(() => {
+//     setFilterOptions()
+//   })
+// }
 
-// ---------------------------------------------------------------- 拖拽选择功能 Start ----------------------------------------------------------------
+// ------------------------------------------ 拖拽选择功能 Start --------------------------------------------------------
 /**
- * 拖拽选择功能
- * 在序号列或复选框列上拖拽,可以批量切换行的复选框状态
- * 注意:由于使用了 :checkbox-config="{ range: false }",所以需要自定义实现拖拽选择功能
- * 拖拽范围内的行:已勾选的行会变成未勾选,未勾选的行会变成已勾选
- * 拖拽范围外的行:不受影响
- * 每次拖拽操作都是独立的,可以累积选择
+ * 拖拽选择功能说明：
+ * 1. 在序号列或勾选列上按住鼠标并拖拽，可以批量切换行的复选框状态(:checkbox-config="{ range: false }"：关闭原来的功能，改成自定义实现)
+ * 2. 拖拽范围内的行：已勾选则取消勾选，未勾选则勾选
+ * 3. 拖拽范围外的行：不受影响，保持原有选中状态（不会清空之前的选项）
+ * 4. 每次拖拽操作是独立的，可以累积选择
  */
 const dragColumns = ['seq', 'checkbox']
 const hoveringCell = ref({}) //当前移入的单元格
-
+/**
+ * 判断鼠标是否在序号列或勾选列上
+ */
 function isInSpecialColumn(event: MouseEvent): 'seq' | 'checkbox' | null {
   if (!isValidTableInstance($tablePro)) return null
+
   const target = event.target as HTMLElement
   if (!target) return null
+
   // 向上查找单元格元素
   let element = target
   while (element && element !== document.body) {
-    // 检查是否是序号列单元格(使用多种方式匹配)
-    //closest():从当前元素开始,向上遍历其所有祖先元素(包括自身),直到找到第一个匹配指定 CSS 选择器的元素。
+    // 检查是否是序号列单元格（使用多种方式匹配）
+    //closest() : 从当前元素开始，向上遍历其所有祖先元素（包括自身），直到找到第一个匹配指定 CSS 选择器的元素。
     if (element.closest('.vxe-seq')) {
       return 'seq'
     }
-    // 检查是否是勾选列单元格(使用多种方式匹配)
+
+    // 检查是否是勾选列单元格（使用多种方式匹配）
     if (element.closest('.vxe-checkbox')) {
       return 'checkbox'
     }
+
     element = element.parentElement as HTMLElement
   }
+
   return null
 }
 
@@ -488,13 +509,14 @@ function onCellMouseenter(e) {
 /**
  * 鼠标按下事件
  */
-const mouseDownSeq = ref(-1) // 鼠标按下时的序号
+const mouseDownSeq = ref(-1) //鼠标按下时的序号
 function handleMouseDown(event: MouseEvent) {
   if (!dragColumns.includes(hoveringCell.value?.column?.type)) {
     return
   }
   mouseDownSeq.value = hoveringCell.value.seq
 }
+
 /**
  * 鼠标释放事件
  */
@@ -525,12 +547,12 @@ function handleMouseUp(event: MouseEvent) {
 }
 
 /**
- * 包装的鼠标按下事件处理(只处理特殊列)
+ * 包装的鼠标按下事件处理（只处理特殊列）
  */
 function wrappedHandleMouseDown(event: MouseEvent) {
   // 检查是否在序号列或复选框列上
   const target = isInSpecialColumn(event)
-  if (!target) return // 不在特殊列上,不处理
+  if (!target) return // 不在特殊列上，不处理
   handleMouseDown(event)
 }
 
@@ -543,7 +565,7 @@ function initDragCheckbox() {
   const tableEl = ($tablePro as any).$el
   if (!tableEl) return
 
-  // 使用事件委托,在表格容器上监听,但只处理序号列和复选框列的事件
+  // 使用事件委托，在表格容器上监听，但只处理序号列和复选框列的事件
   // 通过 wrappedHandleMouseDown 和 wrappedHandleMouseMove 函数来过滤
   tableEl.addEventListener('mousedown', wrappedHandleMouseDown, true)
 
@@ -556,10 +578,9 @@ function initDragCheckbox() {
     document.removeEventListener('mouseup', handleMouseUp, true)
   }
 }
-// ---------------------------------------------------------------- 拖拽选择功能 End ----------------------------------------------------------------
+// ------------------------------------------ 拖拽选择功能 End --------------------------------------------------------
 
 onMounted(() => {
-  console.log('%c [ xTableProRef.value ]-562', 'font-size:13px; background:pink; color:#bf2c9f;', xTableProRef.value)
   if (!isValidTableInstance(xTableProRef.value)) return
   $tablePro = xTableProRef.value
   // 自动注册表格实例到页面状态管理
@@ -615,18 +636,23 @@ defineExpose({
   getTable: getTableInstance
 })
 </script>
-
+<style scoped lang="scss">
+:deep(.vxe-table--body-wrapper) {
+  overflow-y: auto;
+  min-height: v-bind(minHeight + 'px');
+}
+</style>
+<style lang="scss">
+// 表格的全局样式
+@import 'vxe-table/lib/style.css';
+// @import './styles/vxe-table.scss';
+@import './styles/vxe-custom.scss';
+</style>
+<!-- 
 <style scoped lang="scss">
 .vxe-table-pro {
-  height: 100%;
-  position: relative;
-  width: 100%;
-  // font-size: 14px;
 
   .vxe-toolbar-wrap {
-    position: absolute;
-    top: 7px;
-    z-index: 100;
     margin-left: 0;
     width: 45px;
     // 工具栏样式
@@ -635,7 +661,6 @@ defineExpose({
       padding: 0 !important;
     }
   }
-
   :deep(.vxe-table--body-wrapper) {
     overflow-y: auto;
     min-height: v-bind(minHeight + 'px');
@@ -665,7 +690,7 @@ defineExpose({
   }
   .layout-checked {
     &:before {
-      content: 'V'; //默认布局勾选
+      content: '√'; //默认布局勾选
       color: #008000;
     }
   }
@@ -682,4 +707,4 @@ defineExpose({
     font-size: 9px;
   }
 }
-</style>
+</style> -->

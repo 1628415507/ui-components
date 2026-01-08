@@ -1,14 +1,8 @@
-// import request from '@/utils/request'
-// import { TEMP_TYPE } from '@/enums/SystemEnum'
+import request from '../../../../../../src/utils/request'
 const enum TEMP_TYPE {
   USER = 'USER', // 用户级布局 principal_group_code != 1000 and is_super_admin != 1
   SYSTEM = 'SYS', // 系统级布局 principal_group_code = 1000
   TENANT = 'TENANT' // 租户级布局 principal_group_code != 1000 and is_super_admin = 1
-}
-function request(options: any) {
-  return new Promise((resolve, reject) => {
-    resolve()
-  })
 }
 export default class dxLayout {
   private tableConfig: any
@@ -19,7 +13,7 @@ export default class dxLayout {
     const tableId = $table.id
     this.layoutTableId = tableId
     this.layoutPath = tableConfig.layoutPath
-    // console.log('【 layoutPath 】 -115', this.layoutPath)
+    // console.log('【 layoutPath 】-115', this.layoutPath)
   }
   getLayout(name: any, pathname: any) {
     return new Promise((resolve, reject) => {
@@ -51,6 +45,7 @@ export default class dxLayout {
         })
     })
   }
+
   postSaveLayout(saveData: any) {
     return new Promise((resolve, reject) => {
       request({
@@ -72,7 +67,9 @@ export default class dxLayout {
         url: '/ilp-common-service/mdInterfaceTemplate/deleteById',
         method: 'post',
         data: templateId.toString(),
-        headers: { 'Content-Type': 'text/plain' }
+        headers: {
+          'Content-Type': 'text/plain'
+        }
       })
         .then((res) => {
           resolve(true)
@@ -82,19 +79,17 @@ export default class dxLayout {
         })
     })
   }
-  // 处理权限过滤:根据上级允许的字段过滤字段
+  // 处理权限过滤：根据上级允许的字段过滤字段
   filterLayoutByAllowedFields(res: any, level: string) {
     const { sysLevelTemplate, tenantLevelTemplate, userLevelTemplates } = res
     const sysContent = sysLevelTemplate?.templateContent ? JSON.parse(sysLevelTemplate.templateContent) : null
     const tenantContent = tenantLevelTemplate?.templateContent ? JSON.parse(tenantLevelTemplate.templateContent) : null
     // 租户布局列过滤
     if (level === TEMP_TYPE.TENANT) {
-      if (!sysContent) {
-        return tenantLevelTemplate
-      }
-      const sysAllowedFields = sysContent.layout?.map((it: any) => it.field) || []
-      // 过滤用户模板的布局,只保留租户级允许的字段
-      const filteredLayout = (tenantContent?.layout || []).filter((layoutItem: any) => {
+      if (!sysContent) return tenantLevelTemplate
+      const sysAllowedFields = sysContent.layout?.map((it) => it.field) || []
+      // 过滤用户模板的布局，只保留租户级允许的字段
+      const filteredLayout = (tenantContent.layout || []).filter((layoutItem: any) => {
         return sysLevelTemplate ? sysAllowedFields.includes(layoutItem.field) : true
       })
       // 返回过滤后的用户模板
@@ -109,15 +104,14 @@ export default class dxLayout {
     // 用户布局列过滤
     if (level === TEMP_TYPE.USER) {
       const allowedLayout = tenantContent?.layout || sysContent?.layout || []
-      const tenantAllowedFields = allowedLayout.map((it: any) => it.field) || []
+      const tenantAllowedFields = allowedLayout.map((it) => it.field) || []
       // 过滤用户级模板
       const list = userLevelTemplates.map((userTemplate: any) => {
-        const userContent = userTemplate.templateContent ? JSON.parse(userTemplate.templateContent) : {}
-        if (userTemplate.templateName === this.tableConfig.DEFAULT_TEMP_NAME) {
-          //默认布局取上级的模板
-          userContent.layout = tenantContent?.layout || sysContent?.layout || []
+        const userContent = userTemplate?.templateContent ? JSON.parse(userTemplate.templateContent) : {}
+        if (userTemplate.templateName == this.tableConfig.DEFAULT_TEMP_NAME) {
+          userContent.layout = tenantContent?.layout || sysContent?.layout || [] //默认布局取上级的模板
         }
-        // 过滤用户模板的布局,只保留租户级允许的字段
+        // 过滤用户模板的布局，只保留租户级允许的字段
         const filteredLayout = (userContent?.layout || []).filter((layoutItem: any) => {
           return tenantLevelTemplate || sysLevelTemplate ? tenantAllowedFields.includes(layoutItem.field) : true
         })
@@ -160,7 +154,7 @@ export default class dxLayout {
         }
       })
         .then((res: any) => {
-          const { sysLevelTemplate, tenantLevelTemplate, userLevelTemplates } = res || {}
+          const { sysLevelTemplate, tenantLevelTemplate, userLevelTemplates } = res
           // 系统布局
           if (sysLevelTemplate) {
             res.sysLevelTemplate = this.getTemplateContentItem(sysLevelTemplate)
@@ -171,13 +165,13 @@ export default class dxLayout {
             res.tenantLevelTemplate = this.getTemplateContentItem(filterTenantLevelTemplate)
           }
           // 用户布局
-          if (userLevelTemplates?.length) {
+          if (userLevelTemplates.length) {
             res.userLevelTemplates = this.filterLayoutByAllowedFields(res, TEMP_TYPE.USER)
             res.userLevelTemplates = res.userLevelTemplates.map((template: any) => {
               return this.getTemplateContentItem(template)
             })
           }
-          // console.log('【getTableTemplates】 -607', res)
+          // console.log('【 getTableTemplates 】-607', res)
           resolve(res)
         })
         .catch((err) => {

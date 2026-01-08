@@ -1,5 +1,5 @@
 <template>
-  <el-dialog title="new" append-to-body v-model="dialogVisible" width="350" draggable align-center>
+  <el-dialog :title="$t('vxeTable.new')" append-to-body v-model="dialogVisible" width="350" draggable align-center>
     <el-form
       :model="formData"
       ref="formRef"
@@ -10,12 +10,12 @@
     >
       <el-row :gutter="15" style="height: 100px">
         <el-col :span="22">
-          <el-form-item label="labelName">
+          <el-form-item :label="$t('vxeTable.labelName') + ':'" prop="layoutName">
             <el-input
               ref="labelNameRef"
               v-model="formData.layoutName"
               v-uppercase
-              placeholder=""
+              placeholder=" "
               clearable
               @keyup.enter="handleConfirm"
             />
@@ -24,22 +24,25 @@
       </el-row>
     </el-form>
     <div class="flex-c">
-      <el-button type="primary" @click="handleConfirm" style="width: 50px" :disabled="loading">OK</el-button>
-      <el-button type="primary" @click="handleCancel">cancel</el-button>
+      <el-button type="primary" @click="handleConfirm" style="width: 50px" :disabled="loading">
+        {{ $t('vxeTable.ok') }}
+      </el-button>
+      <el-button type="primary" @click="handleCancel">{{ $t('vxeTable.cancel') }}</el-button>
     </div>
   </el-dialog>
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, reactive, computed, getCurrentInstance } from 'vue'
+import { onMounted, ref, reactive, computed, defineProps, defineEmits, getCurrentInstance } from 'vue'
 
 const props = defineProps<{
   modelValue: boolean
-  loading?: boolean
+  loading: boolean
 }>()
-
+const $t = (key: string) => {
+  return key
+}
 const emit = defineEmits(['update:modelValue', 'confirm', 'cancel'])
-
 const dialogVisible = computed({
   get(): boolean {
     return props.modelValue
@@ -48,28 +51,19 @@ const dialogVisible = computed({
     emit('update:modelValue', val)
   }
 })
-
 const { proxy } = getCurrentInstance()
 
 const formRef = ref()
-
 const formData = reactive({
   layoutName: ''
 })
 
 const rules = computed(() => ({
   layoutName: [
-    {
-      required: true,
-      message: proxy.$t('vxeTable.labelNameRequired'),
-      trigger: ['blur', 'change']
-    },
+    { required: true, message: proxy.$t('vxeTable.labelNameRequired'), trigger: ['blur', 'change'] },
     {
       max: 200,
-      message: proxy.$t('rules.richLength', {
-        label: proxy.$t('vxeTable.labelName'),
-        maxLength: 200
-      }),
+      message: proxy.$t('rules.richLength', { label: proxy.$t('vxeTable.labelName'), maxLength: 200 }),
       trigger: ['blur', 'change']
     }
   ]
