@@ -8,6 +8,7 @@
 
 import { makeInstaller } from './utils/makeInstaller';
 import installs from './components/installs';
+import './styles/index.scss';
 export * from './components/components';//y引入所有组件
 
 export default makeInstaller([...installs]);
