@@ -6,6 +6,7 @@
 <!-- 题库https://github.com/pro-collection/interview-question/issues -->
 
 ## 各分支说明
+- 其他分支如果需要使用 `components` 分支的组件，通过 `npm` 包引入使用
 
 <div class="doc-table">
 
