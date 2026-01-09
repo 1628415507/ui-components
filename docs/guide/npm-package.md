@@ -21,7 +21,7 @@
 
 ### 2. 配置 npm 代理
 
-- `npm config get registry`
+- 先获取和保存原来的代理地址：`npm config get registry`
 - 切换为 npm 源：`npm config set registry https://registry.npmjs.org`
   ![alt text](./img/npm-registry.png)
   （ 后面发布完可以切回原来的镜像地址：npm config get registry）
