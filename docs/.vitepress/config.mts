@@ -25,7 +25,7 @@ export default defineConfig({
     sidebar: menus.sidebar,//左侧菜单
     i18nRouting: true,//开启多语言
     socialLinks: [
-      { icon: 'github', link: 'https://gitee.com/sunshine365D/z-ui' }
+      { icon: 'github', link: 'https://github.com/1628415507/ui-components' }
     ],
     //右侧锚点目录配置
     outline: {
