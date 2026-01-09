@@ -1,7 +1,7 @@
 <!--
  * @Description: 
  * @Date: 2024-07-16 13:49:04
- * @LastEditTime: 2024-08-19 09:45:46
+ * @LastEditTime: 2025-07-25 11:18:04
 -->
 <template>
   <!-- <el-button type="primary" @click="autoCompleteConfig.multiple = !autoCompleteConfig.multiple">
@@ -26,7 +26,8 @@ import { getCurrentInstance, ref, defineEmits } from 'vue'
 const { proxy } = getCurrentInstance()
 const selectVal = ref()
 const autoCompleteConfig = ref({
-  url: '/jhj-base-management/sysUser/queryAssociate', // 后台请求接口
+  // url: '/jhj-base-management/sysUser/queryAssociate', // 后台请求接口
+  url: '/mock/associate/user', // 后台请求接口
   multiple: false, // 是否多选
   // 显示列配置
   showColumn: [
