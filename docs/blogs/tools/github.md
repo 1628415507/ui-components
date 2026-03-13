@@ -32,7 +32,7 @@ Host github.com
     IdentityFile ~/.ssh/id_rsa
 
 # 账号二：个人账号 (例如：hongzf)
-Host github-personal
+Host github-personal #表示别名为github-personal
     HostName github.com
     User git
     # 注意：此处使用你刚才生成的私钥绝对路径
@@ -49,9 +49,10 @@ Host github-personal
 ```powershell
 # 查看当前远程地址
 git remote -v
-# 将原来的 git@github.com 替换为配置中的别名 github-personal
-# 格式：git remote set-url origin git@虚拟主机名:用户名/仓库名.git
-git remote set-url origin git@github-personal:用户名/仓库名.git
+# 将原来的 git@github.com 替换为配置中的别名 "github-personal"
+# 格式：git remote set-url origin git@别名:用户名/仓库名.git
+# git remote set-url origin git@github-personal:用户名/仓库名.git
+git remote set-url origin git@github-personal:1628415507/ui-components.git
 ```
 
 ### 第五步：最后再次尝试推送：
