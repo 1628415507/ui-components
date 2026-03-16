@@ -8,8 +8,8 @@ import os
 # ↑ 导入 Python 标准库 os，用于读取环境变量等（本文件中未直接使用，注释里提到了 os.getenv）
 
 client = OpenAI(
-    # 从环境变量 OPENAI_API_KEY 读取；若未设置，可用下面注释方式写死（勿提交到 Git）
-    api_key=os.getenv("OPENAI_API_KEY"),
+    # 在电脑的环境变量中配置 OPENAI_API_KEY和DASHCOPE_KEY（电脑需重启），代码会自动读取；若未设置，可用下面注释方式写死（勿提交到 Git）
+    # api_key=os.getenv("OPENAI_API_KEY"),
     # ↑ api_key：调用 API 所需的密钥，这里写死；生产环境建议用 os.getenv("OPENAI_API_KEY") 从环境变量读取
     base_url="https://dashscope.aliyuncs.com/compatible-mode/v1",
     # ↑ base_url：API 基础地址，阿里云 DashScope 的「兼容 OpenAI」端点
