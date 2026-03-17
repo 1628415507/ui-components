@@ -33,3 +33,5 @@
 ![alt text](image-7.png)
 
 ## 04 [OpenAI库的流式输出](https://www.bilibili.com/video/BV1yjz5BLEoY?spm_id_from=333.788.player.switch&vd_source=9d75580d0b23d1137d56e03a996ac726&p=9)
+- 配置`stream=True `, 然后for循环输出
+- 可以让结果一段段输出
