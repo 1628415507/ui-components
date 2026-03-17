@@ -4,13 +4,14 @@
 > API： https://bailian.console.aliyun.com/cn-beijing/?tab=model#/api-key
 
 ![alt text](image.png)
+------------------------------
 
-## No.2
+## 01 apiKey调用
 - Python安装openai： `pip install openai -i  https://pypi.tuna.tsinghua.edu.cn/simple`
 - [pycharm安装](https://www.runoob.com/w3cnote/pycharm-windows-install.html)
 
-
-## [0.3-Ollama](https://www.bilibili.com/video/BV1yjz5BLEoY?spm_id_from=333.788.player.switch&vd_source=9d75580d0b23d1137d56e03a996ac726&p=5)
+------------------------------
+## [02 Ollama](https://www.bilibili.com/video/BV1yjz5BLEoY?spm_id_from=333.788.player.switch&vd_source=9d75580d0b23d1137d56e03a996ac726&p=5)
 ### Ollama简介
 - 开源软件，支持在本地运行模型
 ![alt text](image.png)
@@ -23,3 +24,12 @@
 ### 本地如何使用Ollama
 - 启动Ollama
 - 调整配置文件的`base_url`和`model`
+
+------------------------------
+## 03 [OpenAI库的基础使用](https://www.bilibili.com/video/BV1yjz5BLEoY?spm_id_from=333.788.player.switch&vd_source=9d75580d0b23d1137d56e03a996ac726&p=8)
+- 回复越多，消耗的tokens越多
+![alt text](image-4.png)
+![alt text](image-5.png)
+![alt text](image-7.png)
+
+## 04 [OpenAI库的流式输出](https://www.bilibili.com/video/BV1yjz5BLEoY?spm_id_from=333.788.player.switch&vd_source=9d75580d0b23d1137d56e03a996ac726&p=9)
