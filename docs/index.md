@@ -35,3 +35,8 @@
 ## 04 [OpenAI库的流式输出](https://www.bilibili.com/video/BV1yjz5BLEoY?spm_id_from=333.788.player.switch&vd_source=9d75580d0b23d1137d56e03a996ac726&p=9)
 - 配置`stream=True `, 然后for循环输出
 - 可以让结果一段段输出
+
+## 05-openai-附带历史消息调用模型
+- 通过多条message记录历史消息
+![alt text](image-6.png)
+![alt text](image-8.png)
