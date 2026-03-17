@@ -30,4 +30,4 @@ for chunk in response:
     delta = chunk.choices[0].delta
     # ↑ choices 是数组，取第一个元素；delta 表示「本块」相对上一块的新增内容（角色、内容等）
     print(delta.content, end=" ", flush=True)
-            # ↑ 打印思考内容；end=" " 每一段以空格分隔，flush=True 立即刷新到终端，
+    # ↑ 打印思考内容；end=" " 每一段以空格分隔，flush=True 立即刷新到终端，
