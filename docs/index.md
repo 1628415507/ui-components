@@ -109,3 +109,8 @@
 
 ## LangChain
 - 可以在本地配置调用ollama
+### 流式输出
+![alt text](image-20.png)
+
+### 聊天模型（HumanMessage）
+![alt text](88e47332-1edd-4975-a2d4-0a8e83d8dee0.png)

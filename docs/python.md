@@ -15,7 +15,7 @@ Python 使用 `#` 来表示单行注释。三引号 `"""` 或 `'''` 常用于多
 """
 ```
 
-## 2. 导入模块 (Imports)
+## 2. 导入模块 (Import)
 Python 通过 `import` 关键字来使用外部库或内置功能。
 
 ```python
@@ -25,7 +25,7 @@ from openai import OpenAI  # 从 openai 库中只导入 OpenAI 这个类
 ```
 
 ## 3. 变量与赋值 (Variables)
-Python 是动态类型语言，不需要声明类型。
+Python 是动态类型语言，**不需要声明类型**。
 
 ```python
 client = OpenAI(...)   # 赋值一个对象
