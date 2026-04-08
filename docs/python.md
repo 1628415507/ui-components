@@ -97,24 +97,57 @@ for chunk in completion:
 
 ---
 
-## 6. 函数与方法调用 (Functions)
-```python
-print("内容", end="", flush=True) 
-# print 是内置函数
-# end="" 表示打印后不换行
-# flush=True 表示立即刷新显示到屏幕上
+## 6. 函数与自定义逻辑 (Functions)
+Python 使用 `def` 关键字定义函数。
 
-os.getenv("KEY") # 获取环境变量
+```python
+def calculate_something(a, b):
+    """这是函数文档字符串 (docstring)"""
+    if a > b:
+        return a + b
+    return a * b
+
+# 调用函数
+result = calculate_something(10, 20)
 ```
 
-## 7. JSON 处理 (JSON Handling)
-AI 项目中经常涉及 JSON 的转换：
-- `json.dumps(obj, ensure_ascii=False)`：将 Python 对象转成 JSON 字符串（`ensure_ascii=False` 保证中文不乱码）。
-- `json.loads(json_str)`：将 JSON 字符串转回 Python 对象（字典或列表）。
+### 6.1 常用内置函数与技巧
+- **print("内容", end="", flush=True)**：
+    - `end=""`：表示打印后不换行（默认是 `\n`）。在流式输出（Stream）中非常常用，让字符逐个水平排列。
+    - `flush=True`：表示立即刷新缓冲区，将内容输出到屏幕。在流式输出中，若不设置此参数，内容可能会被缓存而无法实时显示。
+- **zip(list1, list2)**：同时遍历两个列表。
+  ```python
+  for a, b in zip(vec_a, vec_b):
+    # vec_a[0],vec_b[0]
+    # vec_a[1],vec_b[1]
+    # vec_a[2],vec_b[2]
+      dot_sum += a * b
+  ```
+- **len(obj)**：获取列表或字符串的长度。
+- **raise ValueError("msg")**：手动抛出异常。
 
 ---
 
-## 8. 进阶小技巧 (Specific Tips)
+## 7. 模块与包 (Modules)
+除了基础的 `import`，还有一些常用模式：
+
+- **as 关键字 (别名)**：简化长模块名。
+  ```python
+  import numpy as np  # 之后可以用 np.sqrt() 代替 numpy.sqrt()
+  ```
+- **`if __name__ == '__main__'`:**：确保代码块仅在直接运行该脚本时执行，被导入时不执行。
+
+---
+
+## 8. JSON 与数据处理 (Data Handling)
+AI 项目中经常涉及 JSON 的转换与数学计算：
+- `json.dumps(obj, ensure_ascii=False)`：将 Python 对象转成 JSON 字符串（`ensure_ascii=False` 保证中文不乱码）。
+- `json.loads(json_str)`：将 JSON 字符串转回 Python 对象。
+- **数学运算**：`**` 表示幂运算（如 `x**2` 是平方），`+=` 是累加。
+
+---
+
+## 9. 进阶小技巧 (Specific Tips)
 - **hasattr(obj, "attr")**：检查对象是否有某个属性。在处理大模型流式返回时很有用。
 - **None**：Python 的空值（类似于 JS 的 `null`）。
 - **对象属性访问**：使用点号 `.`，如 `chunk.choices[0].delta.content`。
