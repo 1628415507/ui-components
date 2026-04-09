@@ -1,7 +1,7 @@
 # LangChain 常用语法梳理
 
-这份文档基于 当前项目目录 下的实战代码，为你梳理了 LangChain 的核心组件用法。
-
+- 这份文档基于 当前项目目录 下的实战代码，为你梳理了 LangChain 的核心组件用法。
+- 使用前需先配置环境变量： OPENAI_API_KEY和DASHCOPE_KEY（电脑需重启）
 ---
 
 ## 1. 模型接入 (Models)
@@ -21,17 +21,26 @@ LangChain 通过 `langchain_community` 提供了对通义千问的支持。
   ```
 
 ### 1.2 Ollama (本地模型)
-用于调用本地运行的 LLM。
-```python
-from langchain_ollama import OllamaLLM
-model = OllamaLLM(model="qwen3:4b")
-```
+用于调用本地运行的 LLM 或聊天模型。
+
+- **大语言模型 (LLM)**：
+  ```python
+  from langchain_ollama import OllamaLLM
+  model = OllamaLLM(model="qwen3:4b")
+  ```
+- **聊天模型 (Chat Model)**：
+  ```python
+  from langchain_ollama import ChatOllama
+  model = ChatOllama(model="qwen3:4b")
+  ```
 
 ---
 
 ## 2. 消息类型 (Messages)
-在聊天模型中，对话由不同类型的消息组成：
+在聊天模型中，对话由不同类型的消息组成。
 
+### 2.1 标准类形式
+需要从 `langchain_core.messages` 导入。
 - **SystemMessage**：系统指令，设定 AI 的角色或行为。
 - **HumanMessage**：用户发送的消息。
 - **AIMessage**：AI 的回复消息。
@@ -44,6 +53,19 @@ messages = [
     HumanMessage(content="写首诗吧"),
     AIMessage(content="..."),
     HumanMessage(content="再来一首")
+]
+```
+
+### 2.2 简写形式 (元组)
+**推荐用法**：使用 `(角色, 内容)` 的元组形式，优点是不需要导入消息类，且**支持变量注入**。
+角色关键字：`"system"`, `"human"`, `"ai"`。
+
+```python
+messages = [
+    ("system", "你是一个诗人。"),
+    ("human", "写一首唐诗。"),
+    ("ai", "锄禾日当午..."),
+    ("human", "再写一首。")
 ]
 ```
 
