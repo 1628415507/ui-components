@@ -1,38 +1,66 @@
 # LangChain 常用语法梳理
 
 - 这份文档基于 当前项目目录 下的实战代码，为你梳理了 LangChain 的核心组件用法。
-- 使用前需先配置环境变量： OPENAI_API_KEY和DASHCOPE_KEY（电脑需重启）
+- 使用前需先配置环境变量： `OPENAI_API_KEY`和`DASHSCOPE_API_KEY`（电脑需重启）
 ---
 
 ## 1. 模型接入 (Models)
 
-### 1.1 通义千问 (Tongyi)
-LangChain 通过 `langchain_community` 提供了对通义千问的支持。
+### 1.1 大语言模型 (LLM)
+适用于简单的文本补全。
 
-- **大语言模型 (LLM)**：适用于简单的文本补全。
+- **通义千问 (Tongyi)**：
+LangChain 通过 `langchain_community` 提供了对通义千问的支持。
   ```python
   from langchain_community.llms.tongyi import Tongyi
   model = Tongyi(model="qwen-max")
   ```
-- **聊天模型 (Chat Model)**：适用于多轮对话。
-  ```python
-  from langchain_community.chat_models.tongyi import ChatTongyi
-  model = ChatTongyi(model="qwen3-max")
-  ```
-
-### 1.2 Ollama (本地模型)
-用于调用本地运行的 LLM 或聊天模型。
-
-- **大语言模型 (LLM)**：
+- **Ollama (本地)**：
   ```python
   from langchain_ollama import OllamaLLM
   model = OllamaLLM(model="qwen3:4b")
   ```
-- **聊天模型 (Chat Model)**：
+- **方法**：使用 `invoke` 或 `stream`。
+
+### 1.2 聊天模型 (Chat Model)
+适用于**多轮对话**（支持 System/Human/AI 消息序列）。
+
+- **通义千问 (Tongyi)**：
+  ```python
+  from langchain_community.chat_models.tongyi import ChatTongyi
+  model = ChatTongyi(model="qwen3-max")
+  ```
+- **Ollama (本地)**：
   ```python
   from langchain_ollama import ChatOllama
   model = ChatOllama(model="qwen3:4b")
   ```
+- **方法**：使用 `invoke` 或 `stream`。
+
+### 1.3 嵌入模型 (Embeddings)
+用于**将文本转化为向量**，常用于**向量搜索**。
+
+- **阿里云 (DashScope)**：
+  ```python
+  from langchain_community.embeddings import DashScopeEmbeddings
+  # 默认模型为 text-embeddings-v1
+  model = DashScopeEmbeddings() 
+  ```
+- **Ollama (本地)**：
+  ```python
+  from langchain_ollama import OllamaEmbeddings
+  model = OllamaEmbeddings(model="qwen3-embedding:4b")
+  ```
+
+- **方法** 
+  嵌入模型**不使用** `invoke` 或 `stream`。
+  - **embed_query(text)**：将**单个**查询字符串转化为向量。
+  - **embed_documents(list)**：将一组文档字符串**批量**转化为向量列表。
+
+```python
+vector = model.embed_query("我喜欢你")
+vectors = model.embed_documents(["我喜欢你", "我稀饭你"])
+```
 
 ---
 
@@ -57,8 +85,8 @@ messages = [
 ```
 
 ### 2.2 简写形式 (元组)
-**推荐用法**：使用 `(角色, 内容)` 的元组形式，优点是不需要导入消息类，且**支持变量注入**。
-角色关键字：`"system"`, `"human"`, `"ai"`。
+- **推荐用法**：使用 `(角色, 内容)` 的元组形式，优点是不需要导入消息类，且**支持变量注入**。
+- 角色关键字：`"system"`, `"human"`, `"ai"`。
 
 ```python
 messages = [
@@ -74,14 +102,14 @@ messages = [
 ## 3. 模型调用方式 (Invocation)
 
 ### 3.1 同步调用 (invoke)
-一次性获取完整结果。
+**一次性**获取完整结果。
 ```python
 res = model.invoke(input="你是谁？")
 print(res)
 ```
 
 ### 3.2 流式输出 (stream)
-实时获取模型生成的文本块。
+**实时获取**模型生成的文本块。
 
 - **LLM 模式**：直接迭代 chunk。
   ```python
@@ -99,6 +127,9 @@ print(res)
 ---
 
 ## 4. 环境配置
+### 4.1 方式1 在系统环境变量中配置
+
+### 4.2 方式2 env文件配置
 通常使用 `.env` 文件管理 API Key，并通过 `dotenv` 加载。
 ```python
 from dotenv import load_dotenv

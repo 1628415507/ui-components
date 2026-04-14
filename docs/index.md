@@ -114,3 +114,5 @@
 
 ### 聊天模型（HumanMessage）
 ![alt text](88e47332-1edd-4975-a2d4-0a8e83d8dee0.png)
+
+![alt text](image-21.png)
