@@ -135,3 +135,58 @@ print(res)
 from dotenv import load_dotenv
 load_dotenv() # 自动读取当前目录下的 .env 文件
 ```
+
+---
+
+## 5. 提示词模板 (Prompts)
+
+在 LangChain 中，将变量注入提示词并调用模型主要有两种常见模式。
+
+### 5.1 定义提示词模板 (PromptTemplate)
+首先，我们需要定义一个包含变量（用 `{}` 包裹）的模板。
+
+```python
+from langchain_core.prompts import PromptTemplate
+
+# 定义模板：支持 lastname 和 gender 两个变量
+prompt_template = PromptTemplate.from_template("我的邻居姓{lastname}, 刚生了{gender}")
+```
+
+### 5.2 方式 1：手动格式化 (Manual Format)
+**流程**：手动调用 `.format()` 生成最终字符串，再将其传给模型。
+
+- **代码示例**：
+  ```python
+  # 1. 格式化为最终字符串 (注入变量)
+  prompt_text = prompt_template.format(lastname="张", gender="女儿")
+  
+  # 2. 将字符串直接传给模型 invoke
+  res = model.invoke(input=prompt_text)
+  ```
+- **特点**：逻辑解耦，你可以先打印 `prompt_text` 检查内容是否正确再进行模型调用。
+
+### 5.3 方式 2：构建 LCEL 执行链 (Chain)
+- LCEL (LangChain Expression Language) 是 LangChain 推荐的构建复杂链条的方式。
+- **流程**：使用 `|` 管道操作符将模板和模型物理“连接”在一起，形成一个整体。
+
+- **代码示例**：
+  ```python
+  # 1. 定义执行链 (模板 | 模型)
+  chain = prompt_template | model
+  
+  # 2. 调用链：直接传入变量字典 (自动完成注入与调用)
+  # 注意：此时 invoke 的输入是字典，而非字符串！
+  res = chain.invoke(input={"lastname": "张", "gender": "女儿"})
+  ```
+
+---
+
+## 6. 核心对比：为什么推荐方式 2？
+
+| 维度 | 方式 1 (Manual) | 方式 2 (LCEL Chain) |
+| :--- | :--- | :--- |
+| **操作符** | 使用 `.format()` 方法 | 使用 `|` 管道操作符 |
+| **invoke 输入** | 必须传入**字符串** (String) | 必须传入**变量字典** (Dict) |
+| **代码量** | 较多 (需手动管理中间变量) | 极简 (一行构建链) |
+| **可扩展性** | 难。若增加 Parser 需手动嵌套 | 易。可继续拼接 `\| parser` |
+| **推荐场景** | 仅用于调试或简单的提示词生成 | **生产环境、复杂逻辑链条** |
