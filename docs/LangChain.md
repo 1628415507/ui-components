@@ -179,6 +179,59 @@ prompt_template = PromptTemplate.from_template("我的邻居姓{lastname}, 刚�
   res = chain.invoke(input={"lastname": "张", "gender": "女儿"})
   ```
 
+### 5.4 少样本提示词模板 (FewShotPromptTemplate)
+适用于通过**提供少量示例**来引导模型生成特定格式或逻辑的回复。
+
+- **核心组件**：
+  - `example_prompt`: 单个示例的模板。
+  - `examples`: 示例数据列表（List of Dict）。
+  - `prefix`: 示例前的引导语。
+  - `suffix`: 示例后的后缀，通常包含最终要注入的变量。
+  - `input_variables`: 声明在前缀或后缀中需要注入的变量名。
+
+- **代码示例**：
+  ```python
+  from langchain_core.prompts import PromptTemplate, FewShotPromptTemplate
+  
+  # 1. 定义单个示例的模板
+  example_template = PromptTemplate.from_template("单词：{word}, 反义词：{antonym}")
+  
+  # 2. 准备示例数据
+  examples_data = [
+      {"word": "大", "antonym": "小"},
+      {"word": "上", "antonym": "下"},
+  ]
+  
+  # 3. 构建 FewShotPromptTemplate
+  few_shot_template = FewShotPromptTemplate(
+      example_prompt=example_template,
+      examples=examples_data,
+      prefix="告知我单词的反义词，我提供如下的示例：",
+      suffix="基于前面的示例告知我，{input_word}的反义词是？",
+      input_variables=['input_word']
+  )
+  
+  # 4. 生成提示词并调用
+  prompt_text = few_shot_template.invoke(input={"input_word": "左"}).to_string()
+  res = model.invoke(input=prompt_text)
+  ```
+
+### 5.5 提示词值转换 (PromptValue Methods)
+当对提示词模板调用 `.invoke()` 时，返回的不是单纯的字符串，而是一个 `PromptValue` 对象（如 `StringPromptValue`）。为了将其传递给需要字符串输入的组件（如某些 LLM 或打印调试），可以使用以下方法：
+
+- **to_string()**：
+  - **功能**：将提示词对象转换为纯文本字符串。
+  - **使用场景**：当你需要查看生成的最终提示词内容，或者需要手动将提示词传给 `model.invoke(input=prompt_text)` 时使用。
+  - **示例**：
+    ```python
+    # 转换为字符串
+    text = prompt_template.invoke({"var": "value"}).to_string()
+    print(text)
+    ```
+- **to_messages()**：
+  - **功能**：将提示词对象转换为消息列表（List of BaseMessage）。
+  - **使用场景**：当使用 `ChatPromptTemplate` 且需要将结果传给聊天模型（ChatModel）时使用。
+
 ---
 
 ## 6. 核心对比：为什么推荐方式 2？

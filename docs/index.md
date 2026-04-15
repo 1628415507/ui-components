@@ -1,3 +1,5 @@
+# gemini
+https://gemini.google.com/
 # AI大模型
 >
 > 脑图：<https://docs.qq.com/mind/DWkdKVnhQUWtrYmtJ>
