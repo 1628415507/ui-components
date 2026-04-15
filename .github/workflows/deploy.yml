@@ -37,14 +37,16 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20 # 升级到 Node 20，避免旧版本兼容性问题
+          node-version: 22 # 升级到 Node 22
           cache: npm
       - name: Setup Pages
         uses: actions/configure-pages@v4
       - name: Install dependencies
-        run: npm install # 将 npm ci 改为 npm install，容错性更高
+        run: npm install
       - name: Build with VitePress
-        run: npm run docs:build # 或 pnpm docs:build / yarn docs:build / bun run docs:build
+        run: |
+          npm install -g vitepress # 确保 vitepress 已全局或本地安装
+          npm run docs:build
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
