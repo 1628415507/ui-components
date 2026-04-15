@@ -10,7 +10,7 @@ vue 是采用**数据劫持**+**发布者-订阅者模式**的方式：
   > vue3 是通过`new Proxy()`来劫持各个属性的 setter，getter
 - 当获取某个属性值时，会触发该属性的 getter，发布者就可以将该属性加入**订阅者的集合管理数组 dep**中，
 - 当更新某个属性值时，就会触发该属性的 setter，发布者可以调用`dep.notice()`方法，通知订阅者调用**自身**的 `update()` 方法，更新视图
-  > 订阅者就是 Watcher，依赖收集器 dep 中的 subs
+  > 订阅者就是 Watcher(来自 complier)，依赖收集器 dep 中的 subs
 
 ## 【数据劫持】
 
@@ -132,7 +132,7 @@ dep.notify()
 - 每当数据发生变化，就会触发 `setter`。这时候 Observer 就要通知订阅者(`dep.notify()`)，订阅者就是 dep 里面的 Watcher
   ![alt text](./img/Observer.png)
 
-```js{8,9,10,19}
+```js{8,9,10,19,45}
 // docs\blogs\framework\vue\vModel\test\js\observer.js
 function defineReactive(data, key, value) {
   //递归调用，监听所有属性
@@ -182,15 +182,17 @@ Dep.target = null
 
 ### 2. Compile（解析模板指令）
 
+作用：解析模板指令`{ { } }`和`v-model`，`new Wather`绑定相应的更新函数
+
 > `document.createDocumentFragment()`:文档片段,是一种轻量级的临时容器，用于在内存中构建和操作 DOM 结构，然后一次性插入到文档中，从而提高性能和效率。
 
-- Compile（指令解析器）主要做的事情是**解析模板指令**,对每个元素节点的指令进行扫描跟解析,根据指令模板替换数据,以及绑定相应的更新函数
+- Compile（指令解析器）主要做的事情是**解析模板指令**，对每个元素节点的指令进行扫描跟解析，根据指令模板替换数据，以及绑定相应的更新函数
 - **将模板`{ { } }`中的变量替换成数据**(对模板中的变量进行`new Wather`)，然后初始化**渲染页面视图**
 - 并将每个指令对应的节点**绑定更新函数(`update`)**，添加监听数据的订阅者，**一旦数据有变动，收到通知，更新试图**
   ![alt text](./img/image-1.png)
   ![alt text](./img/Compile.png)
 
-```js{10,11,12,28,31,33,39,55,64,65}
+```js{10,11,12,28,31,33,39,55,64,65,72,73,76,81}
 // 解析el中的所有'{{}}'中的变量并添加到wather监听
 function Compile(vm) {
   this.vm = vm
@@ -215,13 +217,13 @@ Compile.prototype = {
     }
     return fragment
   },
-  compileNode: function (fragment) {
+  compileNode: function (fragment) {//重新渲染文档片段，解析更新值
     let childNodes = [...fragment.childNodes] //子节点
     childNodes.forEach((node) => {
       // 解析dom元素上的v-model指令
       // <input class="form-control" v-model="name" type="text">
       if (this.isElementNode(node)) {
-        this.compile(node)
+        this.compile(node)//解析v-model指令
       }
       // 解析dom中的模板{{name}}中的变量，并添加到watcher中
       // 匹配name: <h1>{{name}}</h1>
@@ -229,11 +231,11 @@ Compile.prototype = {
       let text = node.textContent
       if (reg.test(text)) {
         let prop = reg.exec(text)[1]
-        this.compileText(node, prop) //替换模板
+        this.compileText(node, prop) //解析和替换模板{{}}内容
       }
       //编译子节点
       if (node.childNodes && node.childNodes.length) {
-        this.compileNode(node)
+        this.compileNode(node)//递归
       }
     })
   },
@@ -255,7 +257,7 @@ Compile.prototype = {
     let text = this.vm.$data[prop] //触发observer中，Object.defineProperty里的 get方法
     this.updateView(node, text)
     new Watcher(this.vm, prop, (value) => {
-      this.updateView(node, value)
+      this.updateView(node, value)//传入回调函数
     })
   },
   // 【更新Model模板值】
@@ -265,6 +267,7 @@ Compile.prototype = {
     new Watcher(this.vm, prop, (value) => {
       this.updateModel(node, value)
     })
+    // v-model绑定的表单标签进行监听, 触发set
     node.addEventListener('input', (e) => {
       let newValue = e.target.value
       if (val === newValue) {

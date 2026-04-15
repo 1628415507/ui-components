@@ -6,6 +6,7 @@
 <!-- 题库https://github.com/pro-collection/interview-question/issues -->
 
 ## 各分支说明
+- 其他分支如果需要使用 `components` 分支的组件，通过 `npm` 包引入使用
 
 <div class="doc-table">
 
@@ -41,18 +42,19 @@
 ```
 
 ## 网址资源
+
 ### 第三方库
 
 - 拖拽
   - es-drager：https://vangleer.github.io/es-drager/#/basic
 - 表格
- - 
+-
+
 ### 教程
 
 - 组件库搭建：https://www.cnblogs.com/wp-leonard/p/17894496.html
 - 博客搭建：https://blog.csdn.net/WNX10086/article/details/137160521
 - 图标大全：https://www.emojiall.com/zh-hans/categories/G#google_vignette
-
 
 ### 他人参考博客
 

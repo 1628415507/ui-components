@@ -46,7 +46,7 @@ function fn2() {
   return function () {
     console.log(test)
     return test
-    // `return` 的函数中存在函数 `fn2` 中的 `test` 变量的引用，
+    // return的函数中引用了函数fn2中的 `test` 变量，
     // 所以 `test` 并不会被回收，也就造成了内存泄漏
   }
 }

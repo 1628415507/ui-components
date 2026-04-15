@@ -13,7 +13,8 @@ export default [
       { text: '前端水印', link: '/blogs/business/watermark/index.md' },
       { text: 'Dom', link: '/blogs/business/dom/index.md' },
       { text: 'Node', link: '/blogs/business/node/index.md' },
-      { text: '登录相关', link: '/blogs/business/login.md' }
+      { text: '登录相关', link: '/blogs/business/login.md' },
+      { text: 'Nginx', link: '/blogs/business/nginx.md' }
     ]
   }
 ]

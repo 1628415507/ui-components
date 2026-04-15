@@ -1,7 +1,7 @@
 /*
  * @Description: 
  * @Date: 2024-06-26 11:40:35
- * @LastEditTime: 2025-05-13 13:22:15
+ * @LastEditTime: 2024-08-16 13:32:42
  */
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
@@ -12,6 +12,7 @@ import dts from 'vite-plugin-dts'//自动生成类型声明文件(*.d.ts)
 import AutoImport from 'unplugin-auto-import/vite'
 import Components from 'unplugin-vue-components/vite'
 import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
+import { viteMockServe } from 'vite-plugin-mock'; // 引入Mock插件
 // import vueJsx from '@vitejs/plugin-vue-jsx'
 // import { ZResolver } from './resolver'//解析以“Z”开头的组件，
 
@@ -19,18 +20,12 @@ const resolve = (dir: string) => path.resolve(__dirname, '.', dir)
 
 // https://blog.csdn.net/qq_63358859/article/details/133808112
 // https://vitejs.dev/config/
-export default defineConfig(() => {
+export default defineConfig((command) => {
   return {
+    // base:'/ui-components',
     plugins: [
       vue(),
-      dts({
-        // 输出目录
-        outDir: ['types'],
-        // 将动态引入转换为静态（例如：`import('vue').DefineComponent` 转换为 `import { DefineComponent } from 'vue'`）
-        staticImport: true,
-        // 将所有的类型合并到一个文件中
-        rollupTypes: true,
-      }),
+      dts(),
       vueSetupExtend(),
       viteCompression({
         verbose: true,
@@ -57,7 +52,8 @@ export default defineConfig(() => {
       alias: {
         // 设置路径
         '~': path.resolve(__dirname, './'),
-        '@': path.resolve(__dirname, './src')
+        '@': path.resolve(__dirname, 'src'),
+        '@mock': path.resolve(__dirname, 'mock')
       }
     },
     // 打包命令配置 这是一个包含构建选项的对象。
