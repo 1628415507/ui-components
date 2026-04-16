@@ -14,7 +14,7 @@ export default [
       { text: '自定义', link: '/resources/businesscomp/charts/index.md' },
       { text: '自定义CSS', link: '/resources/businesscomp/css/index.md' },
       { text: '拖拽', link: '/resources/businesscomp/drag/index.md' },
-      { text: '地图', link: '/resources/businesscomp/map/index.md' },
+      // { text: '地图', link: '/resources/businesscomp/map/index.md' },
     ]
   },
   // { text: '自定义指令', link: '/resources/directive/index.md' },
