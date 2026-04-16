@@ -17,15 +17,23 @@ import { onMounted } from 'vue'
 // const resourcesData = [
 //   "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'stroke-width='1.6'viewBox='0 0 20 20'%3E%3Cpath fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' d='m14.386 14.386 4.088 4.088-4.088-4.088A7.533 7.533 0 1 1 3.733 3.733a7.533 7.533 0 0 1 10.653 10.653z'/%3E%3C/svg%3E"
 // ]
-const indexedDB = window.indexedDB || window.mozIndexedDB || window.webkitIndexedDB || window.msIndexedDB
-// window.IDBTransaction = window.IDBTransaction || window.webkitIDBTransaction || window.msIDBTransaction || { READ_WRITE: "readwrite" };
-// window.IDBKeyRange = window.IDBKeyRange || window.webkitIDBKeyRange || window.msIDBKeyRange;
+
+const getIndexedDB = () => {
+  if (typeof window === 'undefined') return null
+  return window.indexedDB || window.mozIndexedDB || window.webkitIndexedDB || window.msIndexedDB
+}
+
 const dbName = 'myDatabase'
 let dbVersion = 1
 
 // 打开或创建一个数据库
 function openIndexedDB() {
   return new Promise((resolve, reject) => {
+    const indexedDB = getIndexedDB()
+    if (!indexedDB) {
+      reject('IndexedDB not supported in this environment')
+      return
+    }
     const request = indexedDB.open(dbName, dbVersion)
     request.onerror = function (event) {
       reject()
