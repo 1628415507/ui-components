@@ -22,7 +22,7 @@
 
 * **原子组件去 Context 化**：将 `ElementRenderer` 对 Context 的依赖转化为 Props 注入，使其成为一个纯净的渲染单元，从而让 `React.memo` 真正发挥作用。
 
-  ![image-20260213164355248](E:/HZF/my-github/ui-components-resources/docs/blogs/business/performance/image-20260213164355248.png)
+  ![image-20260213164355248](./image-20260213164355248.png)
 
 ### 第二阶段：交互体验优化 (核心突破)
 **目标**：将高频交互逻辑与 React 渲染引擎解耦。
@@ -35,9 +35,9 @@
 
   
 
-  ![image-20260213164435245](E:/HZF/my-github/ui-components-resources/docs/blogs/business/performance/image-20260213164435245.png)
+  ![image-20260213164435245](./image-20260213164435245.png)
 
-![image-20260213165025914](E:/HZF/my-github/ui-components-resources/docs/blogs/business/performance/image-20260213165025914.png)
+![image-20260213165025914](./image-20260213165025914.png)
 
 > **总结：拖拽和宽度调节的过程中不进行数据的同步，因为需要同步的数据结构较为复杂，需要深层遍历，且数据修改会触发子组件的监听，从而引起重绘，所以改为拖拽结束后再同步，可以减少数据操作和重绘**
 
@@ -55,7 +55,7 @@
 
 * **非阻塞首屏渲染 (Skeleton Ready)**：移除初始化时的强制白屏阻塞。允许页面先行渲染本地 `initialConfig`，待远程模板加载完成后再静默合并。解决了大页面首屏响应慢的问题。
 
-  ![image-20260213165133667](E:/HZF/my-github/ui-components-resources/docs/blogs/business/performance/image-20260213165133667.png)
+  ![image-20260213165133667](./image-20260213165133667.png)
 
   > **总结：将需要被监听的数据颗粒度细化，避免其中的某个部分改变，导致不相关的监听也被触发，从而引起重绘；细化后按需监听，组件按需订阅，避免全量重绘，只有真正需要监听调整的部分才触发**
 
