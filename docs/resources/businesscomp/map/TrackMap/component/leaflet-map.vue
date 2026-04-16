@@ -20,12 +20,9 @@
 </template>
 
 <script>
-import L from 'leaflet'
-import 'leaflet/dist/leaflet.css'
-import 'leaflet-polylinedecorator' // 给线条添加箭头图标
-import './MovingMarker.js' //图标移动工具
 import ControlBox from './control-box.vue'
 
+let L = null
 const baseStyle = {
   weight: 8,
   opacity: 1 // 定义线的透明度
@@ -281,41 +278,53 @@ export default {
     },
     initMap() {
       return new Promise((resolve) => {
-        this.map = L.map('container', {
-          zoomControl: false //隐藏自带的缩放控件;
-          // zoom: 6,
-          // minZoom: 3
-          // doubleClickZoom: false, // 禁用双击放大
+        if (typeof window === 'undefined') {
+          resolve()
+          return
+        }
+        Promise.all([
+          import('leaflet'),
+          import('leaflet/dist/leaflet.css'),
+          import('leaflet-polylinedecorator'),
+          import('./MovingMarker.js')
+        ]).then(([leaflet]) => {
+          L = leaflet.default || leaflet
+          this.map = L.map('container', {
+            zoomControl: false //隐藏自带的缩放控件;
+            // zoom: 6,
+            // minZoom: 3
+            // doubleClickZoom: false, // 禁用双击放大
+          })
+          this.map.setView(this.mapCenter, 13)
+          let tileLayer = L.tileLayer(
+            'http://webrd01.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=7&x={x}&y={y}&z={z}'
+          )
+          // tileLayer.setZIndex(10); //TODO
+          tileLayer.addTo(this.map)
+          carIcon = L.icon({
+            pane: 'markerPane',
+            iconUrl: 'https://a.amap.com/jsapi_demos/static/demo-center-v2/car.png',
+            //   iconUrl: require('../static/car.png'), //'https://a.amap.com/jsapi_demos/static/demo-center-v2/car.png',
+            iconSize: [20, 40],
+            // className：设置一个class自定义图标的CSS属性
+            // TODO:适用性？
+            iconAnchor: [10, 10] //图标相对其左上角的坐标，默认情况下，图标的左上角是标记的位置（[0,0]）
+            // popupAnchor: [-3, -76]//弹出的窗口的坐标，相对于图标的描点而言，将在这里打开弹框 （[0,0]）
+            // shadowUrl: 'my-icon-shadow.png',
+            // shadowSize: [68, 95]
+            // shadowAnchor: [22, 94]
+          })
+          // 设置图层层级
+          this.map.createPane('markerPane') //标识层级
+          this.map.getPane('markerPane').style.zIndex = Z_INDEX.MARKER
+          this.map.createPane('passedPane') //实际轨迹层级
+          this.map.getPane('passedPane').style.zIndex = Z_INDEX.PASSED
+          this.map.createPane('actualPane') //实际轨迹层级
+          this.map.getPane('actualPane').style.zIndex = Z_INDEX.ACTUAL
+          this.map.createPane('planPane') //计划轨迹层级
+          this.map.getPane('planPane').style.zIndex = Z_INDEX.PLAN
+          resolve()
         })
-        this.map.setView(this.mapCenter, 13)
-        let tileLayer = L.tileLayer(
-          'http://webrd01.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=7&x={x}&y={y}&z={z}'
-        )
-        // tileLayer.setZIndex(10); //TODO
-        tileLayer.addTo(this.map)
-        carIcon = L.icon({
-          pane: 'markerPane',
-          iconUrl: 'https://a.amap.com/jsapi_demos/static/demo-center-v2/car.png',
-          //   iconUrl: require('../static/car.png'), //'https://a.amap.com/jsapi_demos/static/demo-center-v2/car.png',
-          iconSize: [20, 40],
-          // className：设置一个class自定义图标的CSS属性
-          // TODO:适用性？
-          iconAnchor: [10, 10] //图标相对其左上角的坐标，默认情况下，图标的左上角是标记的位置（[0,0]）
-          // popupAnchor: [-3, -76]//弹出的窗口的坐标，相对于图标的描点而言，将在这里打开弹框 （[0,0]）
-          // shadowUrl: 'my-icon-shadow.png',
-          // shadowSize: [68, 95]
-          // shadowAnchor: [22, 94]
-        })
-        // 设置图层层级
-        this.map.createPane('markerPane') //标识层级
-        this.map.getPane('markerPane').style.zIndex = Z_INDEX.MARKER
-        this.map.createPane('passedPane') //实际轨迹层级
-        this.map.getPane('passedPane').style.zIndex = Z_INDEX.PASSED
-        this.map.createPane('actualPane') //实际轨迹层级
-        this.map.getPane('actualPane').style.zIndex = Z_INDEX.ACTUAL
-        this.map.createPane('planPane') //计划轨迹层级
-        this.map.getPane('planPane').style.zIndex = Z_INDEX.PLAN
-        resolve()
       })
     },
     destroyMap() {

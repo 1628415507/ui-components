@@ -11,12 +11,10 @@
 </template>
 
 <script>
-import L from 'leaflet'
-import 'leaflet/dist/leaflet.css'
-import 'leaflet-polylinedecorator' // 给线条添加箭头图标
 import { getRandomColor } from './util.js'
 import markerImg from '../static/marker.png'
 
+let L = null
 const baseStyle = {
   weight: 8,
   opacity: 1 // 定义线的透明度
@@ -203,30 +201,41 @@ export default {
     },
     initMap() {
       return new Promise((resolve) => {
-        this.map = L.map('routeMapContainerId', {
-          zoomControl: false //隐藏自带的缩放控件;
-          // zoom: 6,
-          // minZoom: 3
-          // doubleClickZoom: false, // 禁用双击放大
+        if (typeof window === 'undefined') {
+          resolve()
+          return
+        }
+        Promise.all([
+          import('leaflet'),
+          import('leaflet/dist/leaflet.css'),
+          import('leaflet-polylinedecorator')
+        ]).then(([leaflet]) => {
+          L = leaflet.default || leaflet
+          this.map = L.map('routeMapContainerId', {
+            zoomControl: false //隐藏自带的缩放控件;
+            // zoom: 6,
+            // minZoom: 3
+            // doubleClickZoom: false, // 禁用双击放大
+          })
+          this.map.setView(this.mapCenter, 13)
+          let tileLayer = L.tileLayer(
+            'http://webrd01.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=7&x={x}&y={y}&z={z}'
+          )
+          // tileLayer.setZIndex(10); //TODO
+          tileLayer.addTo(this.map)
+          markerIcon = L.icon({
+            pane: 'markerPane',
+            iconUrl: markerImg, // require('../static/marker.png'), //'https://a.amap.com/jsapi_demos/static/demo-center-v2/car.png',
+            iconSize: [imgW, imgW],
+            iconAnchor: [imgW / 2, imgW / 2]
+          })
+          // 设置图层层级
+          this.map.createPane('markerPane') //标识层级
+          this.map.getPane('markerPane').style.zIndex = Z_INDEX.MARKER
+          this.map.createPane('linePane') //实际轨迹层级
+          this.map.getPane('linePane').style.zIndex = Z_INDEX.ACTUAL
+          resolve()
         })
-        this.map.setView(this.mapCenter, 13)
-        let tileLayer = L.tileLayer(
-          'http://webrd01.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=7&x={x}&y={y}&z={z}'
-        )
-        // tileLayer.setZIndex(10); //TODO
-        tileLayer.addTo(this.map)
-        markerIcon = L.icon({
-          pane: 'markerPane',
-          iconUrl: markerImg, // require('../static/marker.png'), //'https://a.amap.com/jsapi_demos/static/demo-center-v2/car.png',
-          iconSize: [imgW, imgW],
-          iconAnchor: [imgW / 2, imgW / 2]
-        })
-        // 设置图层层级
-        this.map.createPane('markerPane') //标识层级
-        this.map.getPane('markerPane').style.zIndex = Z_INDEX.MARKER
-        this.map.createPane('linePane') //实际轨迹层级
-        this.map.getPane('linePane').style.zIndex = Z_INDEX.ACTUAL
-        resolve()
       })
     },
     destroyMap() {
