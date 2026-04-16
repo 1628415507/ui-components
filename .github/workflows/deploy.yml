@@ -13,6 +13,11 @@ on:
   # 允许你从 Actions 选项卡手动运行此工作流程
   workflow_dispatch:
 
+# 全局环境变量
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true # 消除 Node 20 警告，强制使用 Node 24
+  NODE_OPTIONS: --max-old-space-size=4096 # 增加构建内存限制
+
 # 设置 GITHUB_TOKEN 的权限，以允许部署到 GitHub Pages
 permissions:
   contents: read
@@ -37,16 +42,12 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 22 # 升级到 Node 22
+          node-version: 22
           cache: npm
-      - name: Setup Pages
-        uses: actions/configure-pages@v4
       - name: Install dependencies
         run: npm install
       - name: Build with VitePress
-        run: |
-          npm install -g vitepress # 确保 vitepress 已全局或本地安装
-          npm run docs:build
+        run: npm run docs:build
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
@@ -63,4 +64,4 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
