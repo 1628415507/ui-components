@@ -36,16 +36,17 @@
 </template>
 
 <script>
-import AMapLoader from '@amap/amap-jsapi-loader'
 import LeftBox from './left-box.vue'
 // 常量
 import { themeColor, AREA_TYPE, SHAPE } from '../config.js'
 import { AMAP_CONFIG } from '../../mapConfig.js'
 const aMapKey = AMAP_CONFIG.key
-window._AMapSecurityConfig = {
-  serviceHost: 'http://127.0.0.1:9000/_AMapService',
-  securityJsCode: AMAP_CONFIG.securityJsCode
-  // securityJsCode: '0dadd5bc9a65f75344ee87d1e1dc5672' // // key:'bf2b2192907b6eb2a0363dd9beb0aa60',请求行政区域数据需要
+if (typeof window !== 'undefined') {
+  window._AMapSecurityConfig = {
+    serviceHost: 'http://127.0.0.1:9000/_AMapService',
+    securityJsCode: AMAP_CONFIG.securityJsCode
+    // securityJsCode: '0dadd5bc9a65f75344ee87d1e1dc5672' // // key:'bf2b2192907b6eb2a0363dd9beb0aa60',请求行政区域数据需要
+  }
 }
 
 const num = 16
@@ -640,59 +641,61 @@ export default {
       })
     },
     initMap() {
-      AMapLoader.load({
-        key: aMapKey, //bf2b2192907b6eb2a0363dd9beb0aa60 申请好的Web端开发者Key，首次调用 load 时必填
-        version: '2.0', // 指定要加载的 JSAPI 的版本，缺省时默认为 1.4.15
-        // 需要使用的的插件列表，如比例尺'AMap.Scale'等
-        plugins: [
-          'AMap.DistrictSearch', //区域查询
-          'AMap.MouseTool', //绘制图形
-          'AMap.CircleEditor', //编辑圆形
-          'AMap.RectangleEditor', //编辑矩形
-          'AMap.PolyEditor', //编辑多边形
-          'AMap.Scale', //比例尺
-          'AMap.ToolBar' //缩放控件
-          // 'AMap.Geocoder',
-          // 'AMap.Driving',
-          // 'AMap.AutoComplete',
-          // 'AMap.PlaceSearch',
-          // 'AMap.InfoWindow'
-        ]
+      import('@amap/amap-jsapi-loader').then((AMapLoader) => {
+        AMapLoader.load({
+          key: aMapKey, //bf2b2192907b6eb2a0363dd9beb0aa60 申请好的Web端开发者Key，首次调用 load 时必填
+          version: '2.0', // 指定要加载的 JSAPI 的版本，缺省时默认为 1.4.15
+          // 需要使用的的插件列表，如比例尺'AMap.Scale'等
+          plugins: [
+            'AMap.DistrictSearch', //区域查询
+            'AMap.MouseTool', //绘制图形
+            'AMap.CircleEditor', //编辑圆形
+            'AMap.RectangleEditor', //编辑矩形
+            'AMap.PolyEditor', //编辑多边形
+            'AMap.Scale', //比例尺
+            'AMap.ToolBar' //缩放控件
+            // 'AMap.Geocoder',
+            // 'AMap.Driving',
+            // 'AMap.AutoComplete',
+            // 'AMap.PlaceSearch',
+            // 'AMap.InfoWindow'
+          ]
+        })
+          .then((AMap) => {
+            this.AMap = AMap
+            // ---------- 初始化地图容器id ----------
+            this.map = new AMap.Map('drawMapContainerId', {
+              resizeEnable: true,
+              zoom: 12 //地图显示的缩放级别
+            })
+            this.map.addControl(new AMap.Scale())
+            this.map.addControl(new AMap.ToolBar())
+            // ---------- 初始行政区域查询 ----------
+            this.districtSearch = new this.AMap.DistrictSearch({
+              subdistrict: 1, //显示下级行政区级数，1表示返回下一级行政区
+              showbiz: false //最后一级返回街道信息
+              // extensions: 'all' //返回行政区边界坐标组等具体信息
+              // level: 'country'   //[ city ,] 关键字对应的行政区级别，country表示国家
+            })
+            // ---------- 初始化绘制工具 ----------
+            this.initMouseTool() //
+            this.isInitComplete = true
+            // this.$nextTick(() => {
+            //     console.log('【 加载第一个 】-120');
+            this.drawDistrictItem(this.dataList[0], false)
+            // });
+            // ---------- 设置公共节点样式 ----------
+            nodeIcon = new AMap.Icon({
+              size: new AMap.Size(num, num),
+              image: require('../static/node.png'),
+              imageSize: new AMap.Size(num, num),
+              imageOffset: new AMap.Pixel(0, 0) //解决图片只显示一半的问题
+            })
+          })
+          .catch((e) => {
+            console.log('【 地图初始化失败 】-630', e)
+          })
       })
-        .then((AMap) => {
-          this.AMap = AMap
-          // ---------- 初始化地图容器id ----------
-          this.map = new AMap.Map('drawMapContainerId', {
-            resizeEnable: true,
-            zoom: 12 //地图显示的缩放级别
-          })
-          this.map.addControl(new AMap.Scale())
-          this.map.addControl(new AMap.ToolBar())
-          // ---------- 初始行政区域查询 ----------
-          this.districtSearch = new this.AMap.DistrictSearch({
-            subdistrict: 1, //显示下级行政区级数，1表示返回下一级行政区
-            showbiz: false //最后一级返回街道信息
-            // extensions: 'all' //返回行政区边界坐标组等具体信息
-            // level: 'country'   //[ city ,] 关键字对应的行政区级别，country表示国家
-          })
-          // ---------- 初始化绘制工具 ----------
-          this.initMouseTool() //
-          this.isInitComplete = true
-          // this.$nextTick(() => {
-          //     console.log('【 加载第一个 】-120');
-          this.drawDistrictItem(this.dataList[0], false)
-          // });
-          // ---------- 设置公共节点样式 ----------
-          nodeIcon = new AMap.Icon({
-            size: new AMap.Size(num, num),
-            image: require('../static/node.png'),
-            imageSize: new AMap.Size(num, num),
-            imageOffset: new AMap.Pixel(0, 0) //解决图片只显示一半的问题
-          })
-        })
-        .catch((e) => {
-          console.log('【 地图初始化失败 】-630', e)
-        })
     },
     destroyMap() {
       this.map?.destroy()

@@ -18,7 +18,6 @@
 </template>
 
 <script>
-import AMapLoader from '@amap/amap-jsapi-loader'
 import { AMAP_CONFIG } from '../../mapConfig.js'
 import LeftBox from './left-box.vue'
 // 地图对象
@@ -26,9 +25,11 @@ let AMap = null
 const imgW = 8
 const imgH = 8
 const amapKey = AMAP_CONFIG.key
-window._AMapSecurityConfig = {
-  serviceHost: 'http://127.0.0.1:9000/_AMapService',
-  securityJsCode: AMAP_CONFIG.securityJsCode
+if (typeof window !== 'undefined') {
+  window._AMapSecurityConfig = {
+    serviceHost: 'http://127.0.0.1:9000/_AMapService',
+    securityJsCode: AMAP_CONFIG.securityJsCode
+  }
 }
 
 export default {
@@ -160,68 +161,69 @@ export default {
     },
     initMap() {
       return new Promise((resolve, reject) => {
-        AMapLoader.load({
-          key: amapKey, //申请好的Web端开发者Key，首次调用 load 时必填
-          version: '2.0', // 指定要加载的 JSAPI 的版本，缺省时默认为 1.4.15
-          plugins: [
-            // 'AMap.InfoWindow', //自定义窗体
-            // 'AMap.Polyline',
-            // 'AMap.Scale',
-            'AMap.Driving',
-            'AMap.Geocoder', //反编码
-            'AMap.AutoComplete', //自动提示
-            'AMap.PlaceSearch' //搜素信息
-          ] // 需要使用的的插件列表，如比例尺'AMap.Scale'等
-        })
-          .then((res) => {
-            AMap = res
-            this.AMap = AMap
-            console.log('【 AMap 】-196', AMap)
+        import('@amap/amap-jsapi-loader').then((AMapLoader) => {
+          AMapLoader.load({
+            key: amapKey, //申请好的Web端开发者Key，首次调用 load 时必填
+            version: '2.0', // 指定要加载的 JSAPI 的版本，缺省时默认为 1.4.15
+            plugins: [
+              // 'AMap.InfoWindow', //自定义窗体
+              // 'AMap.Polyline',
+              // 'AMap.Scale',
+              'AMap.Driving',
+              'AMap.Geocoder', //反编码
+              'AMap.AutoComplete', //自动提示
+              'AMap.PlaceSearch' //搜素信息
+            ] // 需要使用的的插件列表，如比例尺'AMap.Scale'等
+          })
+            .then((res) => {
+              AMap = res
+              this.AMap = AMap
+              console.log('【 AMap 】-196', AMap)
 
-            //设置地图容器id
-            this.map = new AMap.Map('container', {
-              resizeEnable: true,
-              zoom: 12, //地图显示的缩放级别
-              zIndex: 99
+              //设置地图容器id
+              this.map = new AMap.Map('container', {
+                resizeEnable: true,
+                zoom: 12, //地图显示的缩放级别
+                zIndex: 99
+              })
+              //
+              // const cityCode = '010';
+              // var geocoder = new AMap.Geocoder({
+              //     city: '010', //城市设为北京，默认：“全国”
+              //     radius: 1000 //范围，默认：500
+              // });
+              // console.log('【  geocoder.getLocation 】-211', geocoder.getLocation);
+              // geocoder.getLocation(cityCode, (status, result) => {
+              //     console.log('【 status, result 】-211', status, result);
+              //     if (status === 'complete' && result.info === 'OK') {
+              //         console.log('【  result.geocodes 】-208', result.geocodes);
+              //         var location = result.geocodes[0].location;
+              //         // 在地图上添加标记
+              //         var marker = new AMap.Marker({
+              //             position: location,
+              //             map: this.map
+              //         });
+              //         // 地图自适应显示标记
+              //         this.map.setFitView();
+              //     } else {
+              //         console.error('获取经纬度失败');
+              //     }
+              // });
+              // 初始化自定义图标
+              // imgIcon = new AMap.Icon({
+              //     size: new AMap.Size(imgW, imgW),
+              //     // image: 'https://a.amap.com/jsapi_demos/static/demo-center-v2/car.png',
+              //     image: require('../static/marker.png'),
+              //     imageSize: new AMap.Size(imgW, imgW),
+              //     imageOffset: new AMap.Pixel(0, 0) //解决图片只显示一半的问题
+              // });
+              resolve()
             })
-
-            //
-            // const cityCode = '010';
-            // var geocoder = new AMap.Geocoder({
-            //     city: '010', //城市设为北京，默认：“全国”
-            //     radius: 1000 //范围，默认：500
-            // });
-            // console.log('【  geocoder.getLocation 】-211', geocoder.getLocation);
-            // geocoder.getLocation(cityCode, (status, result) => {
-            //     console.log('【 status, result 】-211', status, result);
-            //     if (status === 'complete' && result.info === 'OK') {
-            //         console.log('【  result.geocodes 】-208', result.geocodes);
-            //         var location = result.geocodes[0].location;
-            //         // 在地图上添加标记
-            //         var marker = new AMap.Marker({
-            //             position: location,
-            //             map: this.map
-            //         });
-            //         // 地图自适应显示标记
-            //         this.map.setFitView();
-            //     } else {
-            //         console.error('获取经纬度失败');
-            //     }
-            // });
-            // 初始化自定义图标
-            // imgIcon = new AMap.Icon({
-            //     size: new AMap.Size(imgW, imgW),
-            //     // image: 'https://a.amap.com/jsapi_demos/static/demo-center-v2/car.png',
-            //     image: require('../static/marker.png'),
-            //     imageSize: new AMap.Size(imgW, imgW),
-            //     imageOffset: new AMap.Pixel(0, 0) //解决图片只显示一半的问题
-            // });
-            resolve()
-          })
-          .catch((e) => {
-            reject(e)
-            console.error('地图初始化失败', e)
-          })
+            .catch((e) => {
+              reject(e)
+              console.error('地图初始化失败', e)
+            })
+        })
       })
     },
     destroyMap() {

@@ -25,7 +25,6 @@
 </template>
 
 <script>
-import AMapLoader from '@amap/amap-jsapi-loader'
 import ControlBox from './control-box.vue'
 import { AMAP_CONFIG } from '../../mapConfig.js'
 // 地图对象
@@ -276,66 +275,68 @@ export default {
     },
     initMap() {
       return new Promise((resolve, reject) => {
-        AMapLoader.load({
-          key: amapKey, //申请好的Web端开发者Key，首次调用 load 时必填
-          version: '2.0', // 指定要加载的 JSAPI 的版本，缺省时默认为 1.4.15
-          plugins: [
-            'AMap.InfoWindow', //自定义窗体
-            'AMap.MoveAnimation', //动画
-            'AMap.Polyline',
-            'AMap.GraspRoad' //轨迹纠偏
-            // 'AMap.Driving',
-          ] // 需要使用的的插件列表，如比例尺'AMap.Scale'等
+        import('@amap/amap-jsapi-loader').then((AMapLoader) => {
+          AMapLoader.load({
+            key: amapKey, //申请好的Web端开发者Key，首次调用 load 时必填
+            version: '2.0', // 指定要加载的 JSAPI 的版本，缺省时默认为 1.4.15
+            plugins: [
+              'AMap.InfoWindow', //自定义窗体
+              'AMap.MoveAnimation', //动画
+              'AMap.Polyline',
+              'AMap.GraspRoad' //轨迹纠偏
+              // 'AMap.Driving',
+            ] // 需要使用的的插件列表，如比例尺'AMap.Scale'等
+          })
+            .then((res) => {
+              AMap = res
+              //设置地图容器id
+              this.map = new AMap.Map('trackMapContainerId', {
+                resizeEnable: true,
+                zoom: 12, //地图显示的缩放级别
+                zIndex: 99
+              })
+              // 初始化车辆轨迹
+              this.graspRoad = new AMap.GraspRoad()
+              // 初始化汽车图标
+              carIcon = new AMap.Icon({
+                size: new AMap.Size(20, 40),
+                image: 'https://a.amap.com/jsapi_demos/static/demo-center-v2/car.png',
+                // image: require('../static/car.png'),
+                imageSize: new AMap.Size(20, 40),
+                imageOffset: new AMap.Pixel(0, 0) //解决图片只显示一半的问题
+              })
+              resolve()
+              /* ---------------------------------- 添加Marker 自定义窗体---------------------------------- */
+
+              // // 构造点标记
+              // let marker = new AMap.Marker({
+              //     icon: 'https://webapi.amap.com/theme/v1.3/markers/n/mark_b.png',
+              //     position: [116.405467, 39.907761],
+              //     anchor: 'bottom-center'
+              // });
+              // //事件绑定
+              // document.querySelector('#add-marker').onclick = () => {
+              //     //鼠标点击marker弹出自定义的信息窗体
+              //     marker.on('click', () => {
+              //         this.pop.open(this.map, marker.getPosition());
+              //     });
+
+              //     this.map.add(marker);
+              //     this.map.setFitView();
+              // };
+              // document.querySelector('#remove-marker').onclick = () => {
+              //     this.map.remove(marker);
+              //     this.map.setFitView();
+              // };
+              // /* ---------------------------------- end 添加Marker ---------------------------------- */
+              // this.map.on('click', () => {});
+              /* ------------------------------ Autocomplete ------------------------------ */
+            })
+            .catch((e) => {
+              // reject(e)
+              // console.error('地图初始化失败', e)
+            })
         })
-          .then((res) => {
-            AMap = res
-            //设置地图容器id
-            this.map = new AMap.Map('trackMapContainerId', {
-              resizeEnable: true,
-              zoom: 12, //地图显示的缩放级别
-              zIndex: 99
-            })
-            // 初始化车辆轨迹
-            this.graspRoad = new AMap.GraspRoad()
-            // 初始化汽车图标
-            carIcon = new AMap.Icon({
-              size: new AMap.Size(20, 40),
-              image: 'https://a.amap.com/jsapi_demos/static/demo-center-v2/car.png',
-              // image: require('../static/car.png'),
-              imageSize: new AMap.Size(20, 40),
-              imageOffset: new AMap.Pixel(0, 0) //解决图片只显示一半的问题
-            })
-            resolve()
-            /* ---------------------------------- 添加Marker 自定义窗体---------------------------------- */
-
-            // // 构造点标记
-            // let marker = new AMap.Marker({
-            //     icon: 'https://webapi.amap.com/theme/v1.3/markers/n/mark_b.png',
-            //     position: [116.405467, 39.907761],
-            //     anchor: 'bottom-center'
-            // });
-            // //事件绑定
-            // document.querySelector('#add-marker').onclick = () => {
-            //     //鼠标点击marker弹出自定义的信息窗体
-            //     marker.on('click', () => {
-            //         this.pop.open(this.map, marker.getPosition());
-            //     });
-
-            //     this.map.add(marker);
-            //     this.map.setFitView();
-            // };
-            // document.querySelector('#remove-marker').onclick = () => {
-            //     this.map.remove(marker);
-            //     this.map.setFitView();
-            // };
-            // /* ---------------------------------- end 添加Marker ---------------------------------- */
-            // this.map.on('click', () => {});
-            /* ------------------------------ Autocomplete ------------------------------ */
-          })
-          .catch((e) => {
-            // reject(e)
-            // console.error('地图初始化失败', e)
-          })
       })
     },
     destroyMap() {
