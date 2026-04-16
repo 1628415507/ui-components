@@ -5,7 +5,7 @@
 -->
 <!-- 题库https://github.com/pro-collection/interview-question/issues -->
 
-## 各分支说明
+## github-page相关分支说明
 - 其他分支如果需要使用 `components` 分支的组件，通过 `npm` 包引入使用
 
 <div class="doc-table">
@@ -13,10 +13,10 @@
 | 分支       | 说明                 | 类型                                  |
 | ---------- | -------------------- | ------------------------------------- |
 | base       | 基础分支             | `base`                                |
-| blogs      | 博客分支             | `base->blogs->develop->master`        |
-| components | 组件分支             | `base->components->develop->master`   |
-| develop    | 开发分支             | `develop->master`                     |
-| master     | github-page 部署分支 | push 到此分支会自动发布到 github-page |
+| blogs      | 博客分支             | `base->blogs->develop->production`        |
+| components | 组件分支             | `base->components->develop->production`   |
+| develop    | 开发分支             | `develop->production`                     |
+| production | github-page 部署分支 | push 到此分支会自动发布到 github-page |
 
 </div>
 
