@@ -8,5 +8,5 @@
 ![alt text](image-3.png)
 
 ## 校验-接口请求优化
-![alt text](image-2.png)
+<!-- ![alt text](image-2.png) -->
 
