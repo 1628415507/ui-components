@@ -30,21 +30,13 @@
 </template>
 
 <script>
-import 'leaflet/dist/leaflet.css'
-// import '../static/leaflet/leaflet.css';
-
-import L from 'leaflet'
-// Leaflet的绘图插件
-import '@geoman-io/leaflet-geoman-free' //  npm i @geoman-io/leaflet-geoman-free
-import '@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css'
-// import 'leaflet.pm';
-// import 'leaflet.pm/dist/leaflet.pm.css';
-
 // 组件
 import LeftBox from './left-box.vue'
 import GeofencingBox from './geofencing-box.vue'
 // 常量
 import { themeColor, AREA_TYPE, SHAPE } from '../config.js'
+
+let L = null
 const baseStyle = {
   cursor: 'pointer', //绘制区域的箭头样式
   color: themeColor, // 边线颜色
@@ -396,64 +388,73 @@ export default {
       editable && this.editShape(this.layers[layerKey].layer, SHAPE.RECTANGLE)
     },
     initMap() {
-      this.map = L.map(
-        'mapContainer',
-        { zoomControl: false } //隐藏自带的缩放控件;
-      )
-      // 添加缩放控件
-      L.control
-        .zoom({
-          position: 'bottomright'
-        })
-        .addTo(this.map)
-      // 添加比例尺
-      L.control
-        .scale({
-          position: 'bottomleft',
-          metric: true, //是否显示公制单位（米、千米）。默认为 true
-          imperial: false // 是否显示英制单位（英尺、英里）
-        })
-        .addTo(this.map)
+      if (typeof window === 'undefined') return
+      Promise.all([
+        import('leaflet'),
+        import('leaflet/dist/leaflet.css'),
+        import('@geoman-io/leaflet-geoman-free'),
+        import('@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css')
+      ]).then(([leaflet]) => {
+        L = leaflet.default || leaflet
+        this.map = L.map(
+          'mapContainer',
+          { zoomControl: false } //隐藏自带的缩放控件;
+        )
+        // 添加缩放控件
+        L.control
+          .zoom({
+            position: 'bottomright'
+          })
+          .addTo(this.map)
+        // 添加比例尺
+        L.control
+          .scale({
+            position: 'bottomleft',
+            metric: true, //是否显示公制单位（米、千米）。默认为 true
+            imperial: false // 是否显示英制单位（英尺、英里）
+          })
+          .addTo(this.map)
 
-      this.map.setView(this.mapCenter, 13)
-      const OSMUrl = 'http://webrd01.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=7&x={x}&y={y}&z={z}'
-      let tileLayer = L.tileLayer(OSMUrl)
-      tileLayer.addTo(this.map)
-      // 绘制事件监听
-      // this.map.on('pm:drawstart', e => {
-      //     // console.log(e, '绘制开始第一个点');
-      // });
-      // this.map.on('pm:drawend', e => {
-      //     // console.log(e, '禁⽌绘制、绘制结束');
-      // });
-      this.isInitComplete = true
-      this.map.on('pm:create', (e) => {
-        console.log('initMap-绘制完成', e)
-        const layerKey = this.districtItem.layerKey
-        this.removeShape(SHAPE.CIRCLE, layerKey) // 先清空上一个绘制的圆形
-        if (!this.layers[layerKey]) {
-          this.layers[layerKey] = {}
-        }
-        const layer = e.layer
-        layer.setStyle(baseStyle)
-        this.layers[layerKey].layer = layer
-        //   圆形
-        if (e.shape === 'Circle') {
-          this.editShape(this.layers[layerKey].layer, SHAPE.CIRCLE)
-        }
-        // 矩形
-        if (e.shape === 'Rectangle') {
-          this.editShape(this.layers[layerKey].layer, SHAPE.RECTANGLE)
-        }
-        // 多边形
-        if (e.shape === 'Polygon') {
-          this.editShape(this.layers[layerKey].layer, SHAPE.POLYGON)
-        }
+        this.map.setView(this.mapCenter, 13)
+        const OSMUrl = 'http://webrd01.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=7&x={x}&y={y}&z={z}'
+        let tileLayer = L.tileLayer(OSMUrl)
+        tileLayer.addTo(this.map)
+        // 绘制事件监听
+        // this.map.on('pm:drawstart', e => {
+        //     // console.log(e, '绘制开始第一个点');
+        // });
+        // this.map.on('pm:drawend', e => {
+        //     // console.log(e, '禁⽌绘制、绘制结束');
+        // });
+        this.isInitComplete = true
+        this.map.on('pm:create', (e) => {
+          console.log('initMap-绘制完成', e)
+          const layerKey = this.districtItem.layerKey
+          this.removeShape(SHAPE.CIRCLE, layerKey) // 先清空上一个绘制的圆形
+          if (!this.layers[layerKey]) {
+            this.layers[layerKey] = {}
+          }
+          const layer = e.layer
+          layer.setStyle(baseStyle)
+          this.layers[layerKey].layer = layer
+          //   圆形
+          if (e.shape === 'Circle') {
+            this.editShape(this.layers[layerKey].layer, SHAPE.CIRCLE)
+          }
+          // 矩形
+          if (e.shape === 'Rectangle') {
+            this.editShape(this.layers[layerKey].layer, SHAPE.RECTANGLE)
+          }
+          // 多边形
+          if (e.shape === 'Polygon') {
+            this.editShape(this.layers[layerKey].layer, SHAPE.POLYGON)
+          }
+        })
+        // 清除图层时触发
+        // this.map.on('pm:globalremovalmodetoggled', e => {
+        //     // console.log(e, '清除图层时调用');
+        // });
       })
-      // 清除图层时触发
-      // this.map.on('pm:globalremovalmodetoggled', e => {
-      //     // console.log(e, '清除图层时调用');
-      // });
     },
     destroyMap() {
       // this.map && this.map.destroy();
