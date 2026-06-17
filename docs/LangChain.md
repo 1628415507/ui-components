@@ -310,16 +310,57 @@ chain.run()
   # 此时 res 是 str 类型，而不是 AIMessage
   ```
 
-### 6.2 为什么需要 Parser？
+### 6.2 JsonOutputParser 解析器
+
+`JsonOutputParser` 用于将模型返回的 JSON 字符串解析为 Python 的**字典 (Dict)** 格式。
+
+- **核心功能**：
+    - 将 `AIMessage` 中的 JSON 文本提取并转换为 `dict`。
+    - 配合提示词中的格式说明，可以实现结构化数据的提取。
+
+- **代码示例**：
+  ```python
+  from langchain_core.output_parsers import JsonOutputParser
+  
+  json_parser = JsonOutputParser()
+  
+  # 在链中使用
+  chain = prompt | model | json_parser
+  res = chain.invoke({"lastname": "张", "gender": "女儿"})
+  # 此时 res 是 dict 类型，例如: {"name": "张若曦"}
+  ```
+
+### 6.3 为什么需要 Parser？
 
 在复杂的 LCEL 链中，Parser 起到了“类型桥梁”的作用：
 
-1. **类型转换**：模型默认返回 `AIMessage` 对象，包含元数据。如果你只需要文本内容，`StrOutputParser` 可以帮你提取。
-2. **链式衔接**：如果你想**将一个模型的输出作为另一个模型的输入**，通常需要先通过 Parser 将其转换为字符串。
-    - **示例：多模型级联**
+1. **类型转换**：模型默认返回 `AIMessage` 对象，包含元数据。如果你只需要文本内容或结构化数据，Parser 可以帮你提取。
+2. **链式衔接**：如果你想**将一个模型的输出作为另一个模型的输入**，通常需要先通过 Parser 将其转换为字符串或字典。
+    - **示例：多模型级联 (Multi-step Chain)**
       ```python
-      # 模型1的输出经过 parser 变成字符串，才能作为模型2的输入
-      chain = prompt | model | parser | model | parser
+      # 1. 第一个模型生成 JSON 格式的名字
+      # 2. JsonOutputParser 将其转换为字典 {"name": "..."}
+      # 3. 第二个提示词模板接收该字典作为输入变量 {name}
+      # 4. 第二个模型解析名字含义
+      chain = first_prompt | model | json_parser | second_prompt | model | str_parser
+      
+      for chunk in chain.stream({"lastname": "张", "gender": "女儿"}):
+          print(chunk, end="", flush=True)
       ```
-    - **注意**：模型返回结果是 `AIMessage` 类型，不能直接调用 `invoke`（在某些链式逻辑中），所以需要 parser。
+    - **注意**：模型返回结果是 `AIMessage` 类型，而提示词模板通常需要 `dict` 作为输入。因此，`JsonOutputParser` 在这种级联场景中至关重要。
 
+
+### 6.4 链式逻辑与兼容性 (LCEL Compatibility)
+
+在构建 LCEL 链时，必须确保前后组件的**输入和输出类型兼容**。
+
+| 组件 | 输入要求 | 输出类型 |
+| :--- | :--- | :--- |
+| **提示词模板 (PromptTemplate)** | 字典 (`dict`) | `PromptValue` 对象 |
+| **模型 (Model)** | `PromptValue` / 字符串 / 消息序列 (`BaseMessage`, `list`, `tuple`, `str`, `dict`) | `AIMessage` |
+| **StrOutputParser** | `AIMessage` | 字符串 (`str`) |
+| **JsonOutputParser** | `AIMessage` | 字典 (`dict`) |
+
+**核心原则**：上一个组件的**输出**必须符合下一个组件的**输入要求**。例如，如果下一个组件是 `PromptTemplate`，上一个组件必须输出 `dict`。
+
+---

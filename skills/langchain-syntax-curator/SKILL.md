@@ -9,23 +9,19 @@ description: 从 LangChain 相关的 Python 文件中和图片中梳理出常用
 从 LangChain 源码或实战代码中提取核心组件 (Models, Prompts, Parsers, LCEL, Chains) 的用法，并同步到 `docs/LangChain.md`。
 
 ## 执行流程
-1. **组件识别**：
-    - 识别使用的模型接口 (ChatOpenAI, Ollama, etc.)。
-    - 识别 PromptTemplate 和 Message 类型。
-    - 识别 OutputParser (StrOutputParser, JsonOutputParser)。
-    - 识别 LCEL (LangChain Expression Language) 的 `|` 管道用法。
-2. **逻辑提取**：提取 Chain 的组合方式、Runnable 接口的调用 (`invoke`, `stream`, `batch`) 以及多轮对话管理。
-3. **更新文档**：
-    - 读取 `docs/LangChain.md`。
-    - 按 LangChain 的核心模块 (Models, Prompts, Chains, etc.) 进行分类整理。
-    - 重点记录该代码解决的特定问题（例如：如何处理流式输出，如何进行结构化输出）。
+1. **深度分析**：
+    - 识别模型接口、Prompt 模板、OutputParser 及 LCEL 管道逻辑。
+    - 提取 Runnable 接口调用（`invoke`, `stream`, `batch`）及多轮对话管理。
+2. **分类同步**：
+    - 将提取的知识点按模块（Models, Prompts, Chains 等）更新至 `docs/LangChain.md`。
+    - 重点记录代码解决的特定问题及实现逻辑。
 
 ## 梳理规范
-- **聚焦原则**：如果用户提供了具体的文件路径，则仅针对这些文件进行语法梳理和文档更新。严禁将工作区内其他无关文件纳入梳理范围。
-- **全量提取**：如果示例文件中出现了文档中尚未整理的方法（例如 `to_string()`、`save()` 等），必须将其功能介绍及详细用法同步补充到 `docs/LangChain.md` 的相关章节中。
-- **模块化**：按 LangChain 官方文档的核心组件结构进行组织。
-- **LCEL 重点**：详细记录 `Runnable` 序列的管道式拼接方式。
-- **实战导向**：不仅记录“是什么”，还要记录“为什么这么连”。
+- **精准去重**：梳理描述应精准简洁，严禁出现意思相近的语句重复出现。
+- **范围限制**：仅针对用户指定的文件进行梳理，严禁引入无关代码。
+- **全量补全**：若示例中出现文档未涵盖的新方法（如 `to_string()`, `save()`），必须同步补充其功能与用法。
+- **逻辑导向**：不仅记录“是什么”，更要通过 LCEL 序列展示“如何组合”以及“为什么这样设计”。
+- **模块化组织**：严格遵循 LangChain 官方核心组件结构进行文档更新。
 
 ## 推荐章节
 - Models (ChatModels, Embeddings)
