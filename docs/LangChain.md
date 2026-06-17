@@ -363,4 +363,32 @@ chain.run()
 
 **核心原则**：上一个组件的**输出**必须符合下一个组件的**输入要求**。例如，如果下一个组件是 `PromptTemplate`，上一个组件必须输出 `dict`。
 
+### 6.5 自定义逻辑 (RunnableLambda)
+
+如果你需要在 LCEL 链中加入自定义的 Python 函数逻辑，可以使用 `RunnableLambda`。
+
+- **核心用法**：
+    - **手动封装**：使用 `RunnableLambda(your_function)` 将函数封装为 Runnable 对象。
+    - **自动转换（推荐）**：在 `|` 管道中直接使用函数或 `lambda` 表达式，LangChain 会自动将其转换为 `RunnableLambda`。
+    - **无缝集成**：封装后的函数遵循 `Runnable` 接口，支持 `invoke`, `stream`, `batch` 等方法，并能完美融入 LCEL 管道。
+
+- **应用场景：类型适配桥梁**：
+  ```python
+  from langchain_core.runnables import RunnableLambda
+  
+  # 定义一个简单的 lambda 函数，将 AIMessage 转换为 PromptTemplate 需要的字典
+  # 输入：ai_msg (AIMessage)
+  # 输出：{"name": ai_msg.content} (dict)
+  chain = (
+      first_prompt 
+      | model 
+      | (lambda ai_msg: {"name": ai_msg.content}) # 自动转换为 RunnableLambda
+      | second_prompt 
+      | model 
+      | str_parser
+  )
+  
+  res = chain.invoke({"lastname": "曹", "gender": "女孩"})
+  ```
+
 ---
