@@ -1,5 +1,9 @@
+import os
+from dotenv import load_dotenv
 from langchain_core.prompts import PromptTemplate, FewShotPromptTemplate
 from langchain_community.llms.tongyi import Tongyi
+
+load_dotenv()
 
 # 示例的模板
 example_template = PromptTemplate.from_template("单词：{word}, 反义词：{antonym}")
@@ -21,6 +25,6 @@ few_shot_template = FewShotPromptTemplate(
 prompt_text = few_shot_template.invoke(input={"input_word": "左"}).to_string()
 print(prompt_text)
 
-model = Tongyi(model="qwen-max")
+model = Tongyi(model=os.getenv("TONGYI_LLM_MODEL_NAME"))
 
 print(model.invoke(input=prompt_text))

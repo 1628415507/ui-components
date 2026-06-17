@@ -8,7 +8,7 @@ load_dotenv()
 chat_prompt_template = ChatPromptTemplate.from_messages(
     [
         ("system", "你是一个边塞诗人，可以作诗。"),
-        MessagesPlaceholder("history"), # 声明参数history
+        MessagesPlaceholder("history"),
         ("human", "请再来一首唐诗"),
     ]
 )
@@ -20,12 +20,15 @@ history_data = [
     ("ai", "锄禾日当午，汗滴禾下锄，谁知盘中餐，粒粒皆辛苦"),
 ]
 
-# StringPromptValue    to_string()
-prompt_text = chat_prompt_template.invoke({"history": history_data}).to_string()# 传入参数history
-
 model = ChatTongyi(model=os.getenv("TONGYI_CHAT_MODEL_NAME"))
 
-res = model.invoke(prompt_text)
+# 组成链，要求每一个组件都是Runnable接口的子类
+chain = chat_prompt_template | model
 
-print(res.content, type(res))
+# 通过链去调用invoke或stream
+# res = chain.invoke({"history": history_data})
+# print(res.content)
 
+# 通过stream流式输出
+for chunk in chain.stream({"history": history_data}):
+    print(chunk.content, end="", flush=True)

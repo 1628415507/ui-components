@@ -1,8 +1,12 @@
+import os
+from dotenv import load_dotenv
 from langchain_ollama import ChatOllama
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
 
+load_dotenv()
+
 # 得到模型对象, qwen3-max就是聊天模型
-model = ChatOllama(model="qwen3:4b")
+model = ChatOllama(model=os.getenv("OLLAMA_MODEL_NAME"))
 
 # 准备消息列表
 messages = [

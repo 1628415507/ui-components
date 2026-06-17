@@ -1,7 +1,11 @@
 from langchain_community.chat_models.tongyi import ChatTongyi
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # 得到模型对象, qwen3-max就是聊天模型
-model = ChatTongyi(model="qwen3-max")
+model = ChatTongyi(model=os.getenv("TONGYI_CHAT_MODEL_NAME"))
 
 # 准备消息列表
 messages = [

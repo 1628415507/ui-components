@@ -1,6 +1,10 @@
+import os
+from dotenv import load_dotenv
 from langchain_community.llms.tongyi import Tongyi
 
-model = Tongyi(model="qwen-max")
+load_dotenv()
+
+model = Tongyi(model=os.getenv("TONGYI_LLM_MODEL_NAME"))
 
 # 通过stream方法获得流式输出
 res = model.stream(input="你是谁呀能做什么？")

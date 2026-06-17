@@ -1,7 +1,10 @@
+import os
+from dotenv import load_dotenv
 from langchain_ollama import OllamaEmbeddings
 
+load_dotenv()
 
-model = OllamaEmbeddings(model="qwen3-embedding:4b")
+model = OllamaEmbeddings(model=os.getenv("OLLAMA_EMBEDDING_MODEL_NAME"))
 
 # 不用invoke stream
 # embed_query、embed_documents
