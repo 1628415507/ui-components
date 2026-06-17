@@ -168,11 +168,11 @@ prompt_template = PromptTemplate.from_template("我的邻居姓{lastname}, 刚�
 ### 5.3 方式 2：构建 LCEL 执行链 (Chain)
 - LCEL (LangChain Expression Language) 是 LangChain 推荐的构建复杂链条的方式。
 - **流程**：使用 `|` 管道操作符将模板和模型物理“连接”在一起，形成一个整体。
-
+- A|B : **上一个组件A的输出**作为**下一个组件B的输入**
 - **代码示例**：
   ```python
   # 1. 定义执行链 (模板 | 模型)
-  chain = prompt_template | model
+  chain = prompt_template | model # 链：上一个组件（prompt_template）的输出作为下一个组件（model）的输入
   
   # 2. 调用链：直接传入变量字典 (自动完成注入与调用)
   # 注意：此时 invoke 的输入是字典，而非字符串！
