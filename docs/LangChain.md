@@ -286,3 +286,40 @@ chain.run()
 
 ---
 
+## 6. 输出解析器 (Output Parsers)
+
+输出解析器负责将模型model的输出（通常是 `AIMessage`）转换为更易于处理的格式（如纯文本、JSON 等）。
+
+### 6.1 字符串解析器 (StrOutputParser)
+
+`StrOutputParser` 是 LangChain 内置的最简单的解析器，用于将模型返回的消息对象提取为**纯字符串**。
+
+- **核心功能**：
+    - 将 `AIMessage` 类型转换为基础字符串。
+    - 作为 `Runnable` 接口的子类，可以无缝集成到 LCEL 链中。
+
+- **代码示例**：
+  ```python
+  from langchain_core.output_parsers import StrOutputParser
+  
+  parser = StrOutputParser()
+  
+  # 在链中使用
+  chain = prompt | model | parser
+  res = chain.invoke({"var": "value"})
+  # 此时 res 是 str 类型，而不是 AIMessage
+  ```
+
+### 6.2 为什么需要 Parser？
+
+在复杂的 LCEL 链中，Parser 起到了“类型桥梁”的作用：
+
+1. **类型转换**：模型默认返回 `AIMessage` 对象，包含元数据。如果你只需要文本内容，`StrOutputParser` 可以帮你提取。
+2. **链式衔接**：如果你想**将一个模型的输出作为另一个模型的输入**，通常需要先通过 Parser 将其转换为字符串。
+    - **示例：多模型级联**
+      ```python
+      # 模型1的输出经过 parser 变成字符串，才能作为模型2的输入
+      chain = prompt | model | parser | model | parser
+      ```
+    - **注意**：模型返回结果是 `AIMessage` 类型，不能直接调用 `invoke`（在某些链式逻辑中），所以需要 parser。
+

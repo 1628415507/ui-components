@@ -1,6 +1,6 @@
 ---
 name: langchain-syntax-curator
-description: 从 LangChain 相关的 Python 文件中梳理出常用的组件用法和链式逻辑，并更新到 docs/LangChain.md。当用户提到“梳理 LangChain 语法”、“更新 LangChain 文档”或分析 LangChain 代码模式时使用。
+description: 从 LangChain 相关的 Python 文件中和图片中梳理出常用的组件用法和链式逻辑，并更新到 docs/LangChain.md。当用户提到“梳理 LangChain 语法”、“更新 LangChain 文档”或分析 LangChain 代码模式时使用。
 ---
 
 # LangChain 语法梳理技能 (LangChain Syntax Curator)
