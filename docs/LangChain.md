@@ -109,7 +109,7 @@ print(res)
 ```
 
 ### 3.2 流式输出 (stream)
-**实时获取**模型生成的文本块。
+**实时获取**模型生成的文本块，逐段流式输出。
 
 - **LLM 模式**：直接迭代 chunk。
   ```python
@@ -134,6 +134,9 @@ print(res)
 ```python
 from dotenv import load_dotenv
 load_dotenv() # 自动读取当前目录下的 .env 文件
+# 使用环境变量
+import os
+model = ChatTongyi(model=os.getenv("TONGYI_CHAT_MODEL_NAME"))
 ```
 
 ---
@@ -178,6 +181,15 @@ prompt_template = PromptTemplate.from_template("我的邻居姓{lastname}, 刚�
   # 注意：此时 invoke 的输入是字典，而非字符串！
   res = chain.invoke(input={"lastname": "张", "gender": "女儿"})
   ```
+### 5.3.1 核心对比：为什么推荐方式 2？
+
+| 维度 | 方式 1 (Manual) | 方式 2 (LCEL Chain) |
+| :--- | :--- | :--- |
+| **操作符** | 使用 `.format()` 方法 | 使用 `|` 管道操作符 |
+| **invoke 输入** | 必须传入**字符串** (String) | 必须传入**变量字典** (Dict) |
+| **代码量** | 较多 (需手动管理中间变量) | 极简 (一行构建链) |
+| **可扩展性** | 难。若增加 Parser 需手动嵌套 | 易。可继续拼接 `\| parser` |
+| **推荐场景** | 仅用于调试或简单的提示词生成 | **生产环境、复杂逻辑链条** |
 
 ### 5.4 少样本提示词模板 (FewShotPromptTemplate)
 适用于通过**提供少量示例**来引导模型生成特定格式或逻辑的回复。
@@ -230,16 +242,47 @@ prompt_template = PromptTemplate.from_template("我的邻居姓{lastname}, 刚�
     ```
 - **to_messages()**：
   - **功能**：将提示词对象转换为消息列表（List of BaseMessage）。
-  - **使用场景**：当使用 `ChatPromptTemplate` 且需要将结果传给聊天模型（ChatModel）时使用。
+  - **使用场景**：当使用 `ChatPromptTemplate`且需要将结果传给聊天模型（ChatModel）时使用。
+
+### 5.6 [LCEL 底层原理：Python 或运算符重写](https://www.bilibili.com/video/BV1yjz5BLEoY?spm_id_from=333.788.player.switch&vd_source=9d75580d0b23d1137d56e03a996ac726&p=32)
+
+LCEL 的 `|` 管道语法之所以能工作，是因为 LangChain 的组件（如 PromptTemplate, Model, OutputParser）都继承自 `Runnable` 类，并重写了 Python 的魔术方法 `__or__`。
+
+- **原理**：在 Python 中，`a | b` 实际上会触发 `a.__or__(b)`。
+- **实现逻辑**：当调用 `a | b` 时，它并不立即执行，而是返回一个新的 `RunnableSequence` 对象，该对象记录了执行顺序。
+
+**简化版实现示例**：
+```python
+class Test:
+    def __init__(self, name):
+        self.name = name
+
+    def __or__(self, other):
+        # 当执行 a | b 时，返回一个包含两者的序列对象，self 表示a（发起者），other表示b
+        return MySequence(self, other)
+    # 原__str__方法的输出的是内存地址，重写__str__使其输出原值
+    def __str__(self): 
+        return self.name
+
+class MySequence:
+    def __init__(self, *args):
+        self.sequence = list(args)
+
+    def __or__(self, other):
+        # 支持链式拼接：(a | b) | c
+        self.sequence.append(other) #将 | 后的数值追加到sequence数组中
+        return self
+
+    def run(self):
+        # 模拟链式执行
+        for item in self.sequence:
+            print(f"执行组件: {item.name}")
+
+# 实战：
+a, b, c = Test('Prompt'), Test('Model'), Test('Parser')
+chain = a | b | c  # 触发 __or__
+chain.run()
+```
 
 ---
 
-## 6. 核心对比：为什么推荐方式 2？
-
-| 维度 | 方式 1 (Manual) | 方式 2 (LCEL Chain) |
-| :--- | :--- | :--- |
-| **操作符** | 使用 `.format()` 方法 | 使用 `|` 管道操作符 |
-| **invoke 输入** | 必须传入**字符串** (String) | 必须传入**变量字典** (Dict) |
-| **代码量** | 较多 (需手动管理中间变量) | 极简 (一行构建链) |
-| **可扩展性** | 难。若增加 Parser 需手动嵌套 | 易。可继续拼接 `\| parser` |
-| **推荐场景** | 仅用于调试或简单的提示词生成 | **生产环境、复杂逻辑链条** |
