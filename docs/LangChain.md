@@ -392,3 +392,85 @@ chain.run()
   ```
 
 ---
+
+## 7. 临时会话记忆 (Memory & Context)
+
+在多轮对话中，模型本身不会记住之前的上下文，需要借助**消息历史**机制，在每次调用时将过往对话注入提示词。
+
+### 7.1 ChatPromptTemplate + MessagesPlaceholder
+
+聊天场景的提示词应使用 `ChatPromptTemplate`，并通过 `MessagesPlaceholder` 预留历史消息的插入位置。
+
+```python
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+
+prompt = ChatPromptTemplate.from_messages([
+    ("system", "你需要根据会话历史回应用户问题。对话历史："),
+    MessagesPlaceholder("chat_history"),   # 历史消息占位符，运行时由 RunnableWithMessageHistory 自动填充
+    ("human", "请回答如下问题：{input}")
+])
+```
+
+- **MessagesPlaceholder**：声明一个变量名（如 `chat_history`），运行时会被替换为实际的消息列表（`HumanMessage`、`AIMessage` 等）。
+- **与 PromptTemplate 的区别**：`ChatPromptTemplate` 面向聊天模型，输出为消息序列；`PromptTemplate` 输出为纯文本字符串。
+
+### 7.2 RunnableWithMessageHistory
+
+`RunnableWithMessageHistory` 是 `Runnable` 接口的实现，用于给已有 LCEL 链**自动附加历史消息**能力：每次调用前读取历史、调用后将本轮问答写回存储。
+
+```python
+from langchain_core.runnables.history import RunnableWithMessageHistory
+from langchain_core.chat_history import InMemoryChatMessageHistory
+
+store = {}  # key: session_id, value: InMemoryChatMessageHistory 实例
+
+def get_history(session_id):
+    if session_id not in store:
+        store[session_id] = InMemoryChatMessageHistory()
+    return store[session_id]
+
+base_chain = prompt | model | str_parser
+
+conversation_chain = RunnableWithMessageHistory(
+    base_chain,
+    get_history,                        # 根据 session_id 获取/创建消息历史对象
+    input_messages_key="input",         # 对应模板中用户输入的占位符变量名
+    history_messages_key="chat_history" # 对应 MessagesPlaceholder 的变量名
+)
+```
+
+- **get_history**：工厂函数，接收 `session_id`，返回 `BaseChatMessageHistory` 的具体实现（示例中使用 `InMemoryChatMessageHistory`，数据存在内存中）。
+- **input_messages_key / history_messages_key**：分别映射用户当前输入与历史消息在模板中的变量名，两者必须与 `ChatPromptTemplate` 中的占位符一致。
+
+### 7.3 按 session_id 隔离会话
+
+调用带历史的链时，需通过 `config` 传入 `session_id`，不同 id 对应独立的历史记录。
+
+```python
+session_config = {
+    "configurable": {
+        "session_id": "user_001"
+    }
+}
+
+res = conversation_chain.invoke({"input": "小明有2个猫"}, session_config)
+res = conversation_chain.invoke({"input": "小刚有1只狗"}, session_config)
+res = conversation_chain.invoke({"input": "总共有几个宠物"}, session_config)  # 可引用前两轮上下文
+```
+
+### 7.4 链内调试：打印 Prompt 的透传函数
+
+若需在链执行过程中打印最终 Prompt（`.invoke()` 或 `.stream()` 时），可在链中插入自定义函数，**打印后原封不动返回输入**，避免破坏后续组件的数据流。
+
+```python
+def print_prompt(full_prompt):
+    print("=" * 20, full_prompt.to_string(), "-" * 20)
+    return full_prompt  # 必须原样返回，不可修改
+
+base_chain = prompt | print_prompt | model | str_parser
+```
+
+- 该函数会被自动包装为 `RunnableLambda`，遵循 `Runnable` 接口。
+- `full_prompt` 为 `PromptValue` 对象，调用 `.to_string()` 可查看完整提示词文本。
+
+---
