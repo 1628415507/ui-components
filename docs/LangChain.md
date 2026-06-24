@@ -568,3 +568,71 @@ def get_history(session_id):
 | **切换方式** | 仅替换 `get_history` 的返回值 | 仅替换 `get_history` 的返回值 |
 
 ---
+
+## 8. 文档加载器 (Document Loaders)
+
+LangChain 内置多种文档加载器，用于将外部数据源（CSV、PDF、网页等）读入为统一的 `Document` 对象，供后续分块、向量化或检索使用。
+
+### 8.1 通用特性 (BaseLoader)
+
+所有文档加载器均继承自 `BaseLoader`，返回类型为 `Document`（含 `page_content` 与 `metadata`）。不同加载器的初始化参数各异，但加载接口统一：
+
+| 方法 | 返回值 | 适用场景 |
+| :--- | :--- | :--- |
+| **`load()`** | `list[Document]`，一次性全部载入内存 | 小文件、需一次性处理全部文档 |
+| **`lazy_load()`** | 生成器，逐条 `yield Document` | 大文件，避免一次性加载导致 OOM |
+
+```python
+# 批量加载
+documents = loader.load()  # [Document, Document, ...]
+
+# 懒加载（推荐用于大文件）
+for document in loader.lazy_load():
+    print(document)
+```
+
+### 8.2 CSVLoader
+
+`CSVLoader` 用于加载 CSV 文件，底层通过 Python 标准库 `csv.DictReader` 解析，每行 CSV 对应一个 `Document`。
+
+```python
+from pathlib import Path
+from langchain_community.document_loaders import CSVLoader
+
+DATA_DIR = Path(__file__).resolve().parent / "data"
+
+loader = CSVLoader(
+    file_path=str(DATA_DIR / "stu.csv"),
+    csv_args={
+        "delimiter": ",",       # 列分隔符
+        "quotechar": '"',       # 含分隔符字段的引号字符
+        # 仅当 CSV 无表头时使用 fieldnames；有表头时勿设，否则首行会被当作数据
+        # "fieldnames": ["name", "age", "gender", "hobby"],
+    },
+    encoding="utf-8"            # 文件编码
+)
+
+documents = loader.load()
+```
+
+#### 8.2.1 初始化参数
+
+- **`file_path`**：CSV 文件路径（字符串或 `Path`）。
+- **`csv_args`**：传给 `csv.DictReader` 的字典，常用键：
+  - **`delimiter`**：列分隔符，默认 `","`。
+  - **`quotechar`**：字段引号字符，默认 `'"'`。
+  - **`fieldnames`**：列名列表；**仅用于无表头的 CSV**。若文件已有表头行，设置此项会把表头当作第一条数据。
+- **`encoding`**：文件编码，中文场景常用 `"utf-8"`。
+
+#### 8.2.2 load() 与 lazy_load() 的选择
+
+- **`load()`**：适合行数较少、可全部放入内存的场景；返回 `Document` 列表，便于批量处理。
+- **`lazy_load()`**：适合超大 CSV；用 `for` 循环逐行消费，内存占用恒定。
+
+```python
+# 调试：查看单个 Document 的类型与内容
+for document in loader.lazy_load():
+    print(type(document), document)
+```
+
+---

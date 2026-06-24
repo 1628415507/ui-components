@@ -1,4 +1,5 @@
 import os, json
+from pathlib import Path
 from typing import Sequence
 
 from langchain_community.chat_models import ChatTongyi
@@ -88,8 +89,10 @@ def print_prompt(full_prompt):
 
 base_chain = prompt | print_prompt | model | str_parser
 
+CHAT_HISTORY_DIR = Path(__file__).resolve().parent / "chat_history"
+
 def get_history(session_id):
-    return FileChatMessageHistory(session_id, "./chat_history") # 存储路径文件夹chat_history
+    return FileChatMessageHistory(session_id, str(CHAT_HISTORY_DIR))
 
 # 创建一个新的链，对原有链增强功能：自动附加历史消息
 conversation_chain = RunnableWithMessageHistory(
