@@ -635,4 +635,74 @@ for document in loader.lazy_load():
     print(type(document), document)
 ```
 
+### 8.3 JSONLoader
+
+`JSONLoader` 用于加载 JSON 数据并封装为 `Document`。底层依赖跨平台 JSON 解析库 **`jq`**，需先安装：
+
+```bash
+pip install jq
+```
+
+信息抽取通过 **`jq_schema`**（jq 语法字符串）指定；`load()` / `lazy_load()` 用法同 [8.1 通用特性](#81-通用特性-baseloader)。
+
+#### 8.3.1 jq_schema 常用语法
+
+| 语法 | 含义 | 示例 JSON | 抽取结果 |
+| :--- | :--- | :--- | :--- |
+| `.` | 根节点（整个 JSON 对象） | `{"name": "周杰伦", ...}` | 整个对象 |
+| `.name` | 根对象的 `name` 字段 | 同上 | `"周杰伦"` |
+| `.hobby` | 数组字段 | `"hobby": ["唱", "跳", "RAP"]` | `["唱", "跳", "RAP"]` |
+| `.hobby[1]` | 数组下标元素 | 同上 | `"跳"` |
+| `.other.addr` | 嵌套字段 | `"other": {"addr": "深圳"}` | `"深圳"` |
+| `.[]` | 数组中每个对象 | `[{...}, {...}]` | 多个独立对象 |
+| `.[].name` | 数组中每个对象的 `name` | 学生数组 | 多个姓名字符串 |
+
+#### 8.3.2 初始化参数
+
+- **`file_path`**：JSON 文件路径（必填）。
+- **`jq_schema`**：jq 抽取语法（必填）。
+- **`text_content`**：抽取结果是否为字符串，默认 `True`。抽取对象、数组等非字符串时需设为 `False`。
+- **`json_lines`**：是否为 JSONLines 格式（每行一个独立 JSON 对象），默认 `False`。
+
+#### 8.3.3 三种常见场景
+
+**单个 JSON 对象**（如 `stu.json`）：用 `.` 取整对象，需 `text_content=False`。
+
+```python
+from pathlib import Path
+from langchain_community.document_loaders import JSONLoader
+
+DATA_DIR = Path(__file__).resolve().parent / "data"
+
+loader = JSONLoader(
+    file_path=str(DATA_DIR / "stu.json"),
+    jq_schema=".",           # 获取 JSON 对象本身
+    text_content=False,      # 抽取内容不是字符串
+)
+documents = loader.load()
+```
+
+**JSON 数组**（如 `stus.json`）：`.[]` 取每个元素，`.[].name` 取每个元素的 `name` 字段。
+
+```python
+loader = JSONLoader(
+    file_path=str(DATA_DIR / "stus.json"),
+    jq_schema=".[].name",    # 获取数组中每个对象的 name
+    text_content=False,
+)
+documents = loader.load()
+```
+
+**JSONLines 文件**（如 `stu_json_lines.json`，每行一个 JSON 对象）：需 `json_lines=True`。
+
+```python
+loader = JSONLoader(
+    file_path=str(DATA_DIR / "stu_json_lines.json"),
+    jq_schema=".name",
+    text_content=False,
+    json_lines=True,         # 每行是独立的 JSON 对象
+)
+documents = loader.load()
+```
+
 ---
