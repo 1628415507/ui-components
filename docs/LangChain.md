@@ -393,11 +393,15 @@ chain.run()
 
 ---
 
-## 7. 临时会话记忆 (Memory & Context)
+## 7. 会话记忆 (Memory & Context)
 
-在多轮对话中，模型本身不会记住之前的上下文，需要借助**消息历史**机制，在每次调用时将过往对话注入提示词。
+在多轮对话中，模型本身不会记住之前的上下文，需要借助**消息历史**机制，在每次调用时将过往对话注入提示词。实现方式分为两类：**临时记忆**（内存存储，进程结束即丢失）与**长期记忆**（文件持久化，跨重启保留）。两者共享同一套提示词模板与链式封装逻辑，仅在 `get_history` 返回的历史存储实现上不同。
 
-### 7.1 ChatPromptTemplate + MessagesPlaceholder
+### 7.1 公共知识点
+
+以下配置对临时记忆与长期记忆**完全通用**，切换存储方式时无需修改。
+
+#### 7.1.1 ChatPromptTemplate + MessagesPlaceholder
 
 聊天场景的提示词应使用 `ChatPromptTemplate`，并通过 `MessagesPlaceholder` 预留历史消息的插入位置。
 
@@ -414,35 +418,27 @@ prompt = ChatPromptTemplate.from_messages([
 - **MessagesPlaceholder**：声明一个变量名（如 `chat_history`），运行时会被替换为实际的消息列表（`HumanMessage`、`AIMessage` 等）。
 - **与 PromptTemplate 的区别**：`ChatPromptTemplate` 面向聊天模型，输出为消息序列；`PromptTemplate` 输出为纯文本字符串。
 
-### 7.2 RunnableWithMessageHistory
+#### 7.1.2 RunnableWithMessageHistory
 
 `RunnableWithMessageHistory` 是 `Runnable` 接口的实现，用于给已有 LCEL 链**自动附加历史消息**能力：每次调用前读取历史、调用后将本轮问答写回存储。
 
 ```python
 from langchain_core.runnables.history import RunnableWithMessageHistory
-from langchain_core.chat_history import InMemoryChatMessageHistory
-
-store = {}  # key: session_id, value: InMemoryChatMessageHistory 实例
-
-def get_history(session_id):
-    if session_id not in store:
-        store[session_id] = InMemoryChatMessageHistory()
-    return store[session_id]
 
 base_chain = prompt | model | str_parser
 
 conversation_chain = RunnableWithMessageHistory(
     base_chain,
-    get_history,                        # 根据 session_id 获取/创建消息历史对象
+    get_history,                        # 工厂函数：根据 session_id 返回 BaseChatMessageHistory 实例
     input_messages_key="input",         # 对应模板中用户输入的占位符变量名
     history_messages_key="chat_history" # 对应 MessagesPlaceholder 的变量名
 )
 ```
 
-- **get_history**：工厂函数，接收 `session_id`，返回 `BaseChatMessageHistory` 的具体实现（示例中使用 `InMemoryChatMessageHistory`，数据存在内存中）。
+- **get_history**：工厂函数，接收 `session_id`，返回 `BaseChatMessageHistory` 的具体实现（临时记忆用 `InMemoryChatMessageHistory`，长期记忆用自定义 `FileChatMessageHistory`，见下文）。
 - **input_messages_key / history_messages_key**：分别映射用户当前输入与历史消息在模板中的变量名，两者必须与 `ChatPromptTemplate` 中的占位符一致。
 
-### 7.3 按 session_id 隔离会话
+#### 7.1.3 按 session_id 隔离会话
 
 调用带历史的链时，需通过 `config` 传入 `session_id`，不同 id 对应独立的历史记录。
 
@@ -458,7 +454,7 @@ res = conversation_chain.invoke({"input": "小刚有1只狗"}, session_config)
 res = conversation_chain.invoke({"input": "总共有几个宠物"}, session_config)  # 可引用前两轮上下文
 ```
 
-### 7.4 链内调试：打印 Prompt 的透传函数
+#### 7.1.4 链内调试：打印 Prompt 的透传函数
 
 若需在链执行过程中打印最终 Prompt（`.invoke()` 或 `.stream()` 时），可在链中插入自定义函数，**打印后原封不动返回输入**，避免破坏后续组件的数据流。
 
@@ -472,5 +468,103 @@ base_chain = prompt | print_prompt | model | str_parser
 
 - 该函数会被自动包装为 `RunnableLambda`，遵循 `Runnable` 接口。
 - `full_prompt` 为 `PromptValue` 对象，调用 `.to_string()` 可查看完整提示词文本。
+
+### 7.2 临时会话记忆 (InMemoryChatMessageHistory)
+
+数据保存在进程内存中，**程序重启后历史丢失**，适合开发调试与单次运行。
+
+```python
+from langchain_core.chat_history import InMemoryChatMessageHistory
+
+store = {}  # key: session_id, value: InMemoryChatMessageHistory 实例
+
+def get_history(session_id):
+    if session_id not in store:
+        store[session_id] = InMemoryChatMessageHistory()
+    return store[session_id]
+```
+
+- **InMemoryChatMessageHistory**：LangChain 内置实现，开箱即用，无需自定义序列化逻辑。
+- **store 字典**：以 `session_id` 为 key 缓存历史对象，实现多用户会话隔离。
+
+### 7.3 长期会话记忆 (FileChatMessageHistory)
+
+数据序列化后写入本地 JSON 文件，**程序重启后历史保留**，适合生产环境与多用户持久会话。除 `get_history` 的实现外，其余链式配置（`base_chain`、`input_messages_key`、`history_messages_key`、`session_config`）与临时记忆完全一致。
+
+#### 7.3.1 消息序列化工具
+
+`BaseMessage` 对象无法直接用 `json` 写入文件，需借助官方转换函数：
+
+| 函数 | 作用 |
+| :--- | :--- |
+| `message_to_dict(message)` | 单个 `BaseMessage` 实例 → 字典 |
+| `messages_from_dict(data)` | `[字典, ...]` → `[BaseMessage, ...]` |
+
+`AIMessage`、`HumanMessage`、`SystemMessage` 均为 `BaseMessage` 的子类，均可被上述函数处理。
+
+```python
+from langchain_core.messages import message_to_dict, messages_from_dict, BaseMessage
+```
+
+#### 7.3.2 自定义 FileChatMessageHistory
+
+继承 `BaseChatMessageHistory` 后，需实现三个核心成员：
+
+- **`add_messages(messages)`**：读取已有历史，合并新消息，序列化后写回文件。
+- **`messages`（property）**：从文件读取 JSON，反序列化为消息列表；文件不存在时返回 `[]`。
+- **`clear()`**：清空历史（写入空列表）。
+
+```python
+import os, json
+from typing import Sequence
+from langchain_core.chat_history import BaseChatMessageHistory
+from langchain_core.messages import message_to_dict, messages_from_dict, BaseMessage
+
+class FileChatMessageHistory(BaseChatMessageHistory):
+    def __init__(self, session_id, storage_path):
+        self.session_id = session_id
+        self.storage_path = storage_path
+        self.file_path = os.path.join(self.storage_path, self.session_id)
+        os.makedirs(os.path.dirname(self.file_path), exist_ok=True)
+
+    def add_messages(self, messages: Sequence[BaseMessage]) -> None:
+        all_messages = list(self.messages)
+        all_messages.extend(messages)
+        new_messages = [message_to_dict(message) for message in all_messages]
+        with open(self.file_path, "w", encoding="utf-8") as f:
+            json.dump(new_messages, f)
+
+    @property
+    def messages(self) -> list[BaseMessage]:
+        try:
+            with open(self.file_path, "r", encoding="utf-8") as f:
+                messages_data = json.load(f)
+                return messages_from_dict(messages_data)
+        except FileNotFoundError:
+            return []
+
+    def clear(self) -> None:
+        with open(self.file_path, "w", encoding="utf-8") as f:
+            json.dump([], f)
+```
+
+#### 7.3.3 get_history 接入
+
+每个 `session_id` 对应 `storage_path` 下的一个独立文件。
+
+```python
+def get_history(session_id):
+    return FileChatMessageHistory(session_id, "./chat_history")
+```
+
+### 7.4 临时 vs 长期记忆对比
+
+| 维度 | 临时记忆 (InMemoryChatMessageHistory) | 长期记忆 (FileChatMessageHistory) |
+| :--- | :--- | :--- |
+| **存储位置** | 内存（`dict` 缓存） | 本地文件（JSON） |
+| **程序重启** | 历史丢失 | 历史保留 |
+| **实现成本** | 开箱即用 | 需继承 `BaseChatMessageHistory` 自定义 |
+| **适用场景** | 开发调试、单次运行 | 生产环境、多用户持久会话 |
+| **切换方式** | 仅替换 `get_history` 的返回值 | 仅替换 `get_history` 的返回值 |
 
 ---
