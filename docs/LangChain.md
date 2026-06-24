@@ -733,6 +733,48 @@ docs = loader.load()            # [Document]，整份文件对应列表中的 1 
 - **`load()`** 返回 `list[Document]`，但**整份文本文件只对应 1 个 `Document`**（`page_content` 为全文，`metadata` 通常含 `source` 路径）。
 - 若需将长文本切分为多个小块供向量化或检索，需在加载后配合 [文本分割器](#91-recursivecharactertextsplitter) 使用。
 
+### 8.5 PyPDFLoader
+
+`PyPDFLoader` 用于加载 **PDF 文件**并封装为 `Document`；`load()` / `lazy_load()` 用法同 [8.1 通用特性](#81-通用特性-baseloader)。
+
+```python
+from pathlib import Path
+from langchain_community.document_loaders import PyPDFLoader
+
+DATA_DIR = Path(__file__).resolve().parent / "data"
+
+loader = PyPDFLoader(
+    file_path=str(DATA_DIR / "pdf2.pdf"),
+    mode="single",          # 见下方 mode 说明
+    password="itheima"      # 加密 PDF 的打开密码
+)
+
+for doc in loader.lazy_load():
+    print(doc)
+```
+
+#### 8.5.1 初始化参数
+
+- **`file_path`**：PDF 文件路径（字符串或 `Path`）。
+- **`mode`**：控制多页 PDF 如何映射为 `Document`，默认 `"page"`。
+  - **`"page"`**（默认）：每一页生成 **1 个** `Document`。
+  - **`"single"`**：无论多少页，**合并为 1 个** `Document`（`page_content` 为全文）。
+- **`password`**：PDF 有密码保护时传入打开密码；无加密时可省略。
+
+#### 8.5.2 load() 与 lazy_load() 的选择
+
+- **`load()`**：页数较少、可全部放入内存时使用；返回 `list[Document]`。
+- **`lazy_load()`**：页数较多时使用；生成器逐页（或按 `mode` 逐条）`yield Document`，内存占用更可控。
+
+```python
+# 一次性加载
+documents = loader.load()
+
+# 懒加载（示例中的用法）
+for document in loader.lazy_load():
+    print(document)
+```
+
 ---
 
 ## 9. 文本分割器 (Text Splitters)
