@@ -11,6 +11,7 @@ import blogsJavaScript from './sidebar/blogsJavaScript'  // 左侧菜单
 import blogsFramework from './sidebar/blogsFramework'  // 左侧菜单
 import blogsNetwork from './sidebar/blogsNetwork' // 左侧菜单
 
+import blogsComputer from './sidebar/blogsComputer' // 左侧菜单
 // 左侧菜单
 export const sidebar = {
   // 指南
@@ -22,5 +23,6 @@ export const sidebar = {
   '/blogs/javaScript': blogsJavaScript, //javaScript
   '/blogs/network': blogsNetwork, //浏览器
   '/blogs/business': blogsBusiness, //应用场景
-  '/blogs/framework': blogsFramework //应用场景
+  '/blogs/framework': blogsFramework, //应用场景
+  '/blogs/computer': blogsComputer // 电脑实用技巧
 }
