@@ -10,7 +10,7 @@
 适用于简单的文本补全。
 
 - **通义千问 (Tongyi)**：
-LangChain 通过 `langchain_community` 提供了对通义千问的支持。
+  LangChain 通过 `langchain_community` 提供了对通义千问的支持。
   ```python
   from langchain_community.llms.tongyi import Tongyi
   model = Tongyi(model="qwen-max")
@@ -20,7 +20,6 @@ LangChain 通过 `langchain_community` 提供了对通义千问的支持。
   from langchain_ollama import OllamaLLM
   model = OllamaLLM(model="qwen3:4b")
   ```
-- **方法**：使用 `invoke` 或 `stream`。
 
 ### 1.2 聊天模型 (Chat Model)
 适用于**多轮对话**（支持 System/Human/AI 消息序列）。
@@ -35,7 +34,6 @@ LangChain 通过 `langchain_community` 提供了对通义千问的支持。
   from langchain_ollama import ChatOllama
   model = ChatOllama(model="qwen3:4b")
   ```
-- **方法**：使用 `invoke` 或 `stream`。
 
 ### 1.3 嵌入模型 (Embeddings)
 用于**将文本转化为向量**，常用于**向量搜索**。
@@ -61,6 +59,31 @@ LangChain 通过 `langchain_community` 提供了对通义千问的支持。
 vector = model.embed_query("我喜欢你")
 vectors = model.embed_documents(["我喜欢你", "我稀饭你"])
 ```
+
+### 1.4 调用方式 (Invocation)
+
+#### 1.4.1 同步调用 (invoke)
+**一次性**获取完整结果。
+```python
+res = model.invoke(input="你是谁？")
+print(res)
+```
+
+#### 1.4.2 流式输出 (stream)
+**实时获取**模型生成的文本块，逐段流式输出。
+
+- **LLM 模式**：直接迭代 chunk。
+  ```python
+  res = model.stream(input="你是谁？")
+  for chunk in res:
+      print(chunk, end="", flush=True)
+  ```
+- **Chat 模式**：需要通过 `.content` 获取文本内容。
+  ```python
+  res = model.stream(input=messages)
+  for chunk in res:
+      print(chunk.content, end="", flush=True)
+  ```
 
 ---
 
@@ -99,37 +122,10 @@ messages = [
 
 ---
 
-## 3. 模型调用方式 (Invocation)
+## 3. 环境配置
+### 3.1 方式1 在系统环境变量中配置
 
-### 3.1 同步调用 (invoke)
-**一次性**获取完整结果。
-```python
-res = model.invoke(input="你是谁？")
-print(res)
-```
-
-### 3.2 流式输出 (stream)
-**实时获取**模型生成的文本块，逐段流式输出。
-
-- **LLM 模式**：直接迭代 chunk。
-  ```python
-  res = model.stream(input="你是谁？")
-  for chunk in res:
-      print(chunk, end="", flush=True)
-  ```
-- **Chat 模式**：需要通过 `.content` 获取文本内容。
-  ```python
-  res = model.stream(input=messages)
-  for chunk in res:
-      print(chunk.content, end="", flush=True)
-  ```
-
----
-
-## 4. 环境配置
-### 4.1 方式1 在系统环境变量中配置
-
-### 4.2 方式2 env文件配置
+### 3.2 方式2 env文件配置
 通常使用 `.env` 文件管理 API Key，并通过 `dotenv` 加载。
 ```python
 from dotenv import load_dotenv
@@ -141,11 +137,11 @@ model = ChatTongyi(model=os.getenv("TONGYI_CHAT_MODEL_NAME"))
 
 ---
 
-## 5. 提示词模板 (Prompts)
+## 4. 提示词模板 (Prompts)
 
 在 LangChain 中，将变量注入提示词并调用模型主要有两种常见模式。
 
-### 5.1 定义提示词模板 (PromptTemplate)
+### 4.1 定义提示词模板 (PromptTemplate)
 首先，我们需要定义一个包含变量（用 `{}` 包裹）的模板。
 
 ```python
@@ -155,8 +151,44 @@ from langchain_core.prompts import PromptTemplate
 prompt_template = PromptTemplate.from_template("我的邻居姓{lastname}, 刚生了{gender}")
 ```
 
-### 5.2 方式 1：手动格式化 (Manual Format)
-**流程**：手动调用 `.format()` 生成最终字符串，再将其传给模型。
+#### 4.1.1 模板方法：format vs invoke
+
+`PromptTemplate` 继承 `Runnable`，注入变量有两种常用方式：
+
+| 方法 | 返回值 | 典型用途 |
+| :--- | :--- | :--- |
+| **`.format(**kwargs)`** | `str` | 手动生成最终字符串，再传给 `model.invoke(input=prompt_text)` |
+| **`.invoke(input=dict)`** | `PromptValue`（如 `StringPromptValue`） | 作为 Runnable 调用；需字符串时配合 [4.1.2](#412-promptvalue-转换) 的 `.to_string()`，或接入 [§5 LCEL](#5-lcel-chains--composition) 链 |
+
+```python
+template = PromptTemplate.from_template("我的邻居是：{lastname}，最喜欢：{hobby}")
+
+res = template.format(lastname="张大明", hobby="钓鱼")
+print(res, type(res))  # str
+
+res2 = template.invoke({"lastname": "周杰轮", "hobby": "唱歌"})
+print(res2, type(res2))  # PromptValue（如 StringPromptValue）
+```
+
+#### 4.1.2 PromptValue 转换
+
+对模板调用 `.invoke()` 后得到 `PromptValue` 对象，可进一步转换为字符串或消息列表：
+
+- **to_string()**：
+  - **功能**：将提示词对象转换为纯文本字符串。
+  - **使用场景**：查看最终提示词内容，或手动将提示词传给 `model.invoke(input=prompt_text)`。
+  - **示例**：
+    ```python
+    text = prompt_template.invoke({"var": "value"}).to_string()
+    print(text)
+    ```
+- **to_messages()**：
+  - **功能**：将提示词对象转换为消息列表（List of BaseMessage）。
+  - **使用场景**：配合 [§4.4 ChatPromptTemplate](#44-聊天提示词模板-chatprompttemplate) 将结果传给聊天模型（ChatModel）时。
+
+### 4.2 方式 1：手动格式化 (Manual Format)
+
+**流程**：通过 `.format()` 生成最终字符串，再将其传给模型。
 
 - **代码示例**：
   ```python
@@ -168,30 +200,9 @@ prompt_template = PromptTemplate.from_template("我的邻居姓{lastname}, 刚�
   ```
 - **特点**：逻辑解耦，你可以先打印 `prompt_text` 检查内容是否正确再进行模型调用。
 
-### 5.3 方式 2：构建 LCEL 执行链 (Chain)
-- LCEL (LangChain Expression Language) 是 LangChain 推荐的构建复杂链条的方式。
-- **流程**：使用 `|` 管道操作符将模板和模型物理“连接”在一起，形成一个整体。
-- A|B : **上一个组件A的输出**作为**下一个组件B的输入**
-- **代码示例**：
-  ```python
-  # 1. 定义执行链 (模板 | 模型)
-  chain = prompt_template | model # 链：上一个组件（prompt_template）的输出作为下一个组件（model）的输入
-  
-  # 2. 调用链：直接传入变量字典 (自动完成注入与调用)
-  # 注意：此时 invoke 的输入是字典，而非字符串！
-  res = chain.invoke(input={"lastname": "张", "gender": "女儿"})
-  ```
-### 5.3.1 核心对比：为什么推荐方式 2？
+> 方式 2（LCEL 执行链）见 [§5 LCEL](#5-lcel-chains--composition)。
 
-| 维度 | 方式 1 (Manual) | 方式 2 (LCEL Chain) |
-| :--- | :--- | :--- |
-| **操作符** | 使用 `.format()` 方法 | 使用 `|` 管道操作符 |
-| **invoke 输入** | 必须传入**字符串** (String) | 必须传入**变量字典** (Dict) |
-| **代码量** | 较多 (需手动管理中间变量) | 极简 (一行构建链) |
-| **可扩展性** | 难。若增加 Parser 需手动嵌套 | 易。可继续拼接 `\| parser` |
-| **推荐场景** | 仅用于调试或简单的提示词生成 | **生产环境、复杂逻辑链条** |
-
-### 5.4 少样本提示词模板 (FewShotPromptTemplate)
+### 4.3 少样本提示词模板 (FewShotPromptTemplate)
 适用于通过**提供少量示例**来引导模型生成特定格式或逻辑的回复。
 
 - **核心组件**：
@@ -228,21 +239,126 @@ prompt_template = PromptTemplate.from_template("我的邻居姓{lastname}, 刚�
   res = model.invoke(input=prompt_text)
   ```
 
-### 5.5 提示词值转换 (PromptValue Methods)
-当对提示词模板调用 `.invoke()` 时，返回的不是单纯的字符串，而是一个 `PromptValue` 对象（如 `StringPromptValue`）。为了将其传递给需要字符串输入的组件（如某些 LLM 或打印调试），可以使用以下方法：
+### 4.4 聊天提示词模板 (ChatPromptTemplate)
 
-- **to_string()**：
-  - **功能**：将提示词对象转换为纯文本字符串。
-  - **使用场景**：当你需要查看生成的最终提示词内容，或者需要手动将提示词传给 `model.invoke(input=prompt_text)` 时使用。
-  - **示例**：
-    ```python
-    # 转换为字符串
-    text = prompt_template.invoke({"var": "value"}).to_string()
-    print(text)
-    ```
-- **to_messages()**：
-  - **功能**：将提示词对象转换为消息列表（List of BaseMessage）。
-  - **使用场景**：当使用 `ChatPromptTemplate`且需要将结果传给聊天模型（ChatModel）时使用。
+面向**聊天模型**的提示词模板，通过 `from_messages` 组装消息序列；输出为消息列表，而非 `PromptTemplate` 的纯文本字符串。
+
+```python
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+from langchain_community.chat_models.tongyi import ChatTongyi
+
+chat_prompt_template = ChatPromptTemplate.from_messages(
+    [
+        ("system", "你是一个边塞诗人，可以作诗。"),
+        MessagesPlaceholder("history"), # 声明参数history
+        ("human", "请再来一首唐诗"),
+    ]
+)
+
+history_data = [
+    ("human", "你来写一个唐诗"),
+    ("ai", "床前明月光，疑是地上霜，举头望明月，低头思故乡"),
+    ("human", "好诗再来一个"),
+    ("ai", "锄禾日当午，汗滴禾下锄，谁知盘中餐，粒粒皆辛苦"),
+]
+
+# StringPromptValue    to_string()
+prompt_text = chat_prompt_template.invoke({"history": history_data}).to_string()# 传入参数history
+
+model = ChatTongyi(model="qwen-max")
+res = model.invoke(prompt_text)
+print(res.content, type(res))
+```
+
+- **MessagesPlaceholder**：在模板中声明占位变量（如 `"history"`），调用 `.invoke()` 时传入对应消息列表（元组或 `BaseMessage` 均可）。
+- **与 PromptTemplate 的区别**：`ChatPromptTemplate` 面向 Chat Model，输出消息序列；`PromptTemplate` 输出纯文本，见 [§4.1](#41-定义提示词模板-prompttemplate)。
+
+---
+
+## 5. LCEL (Chains & Composition)
+
+LCEL (LangChain Expression Language) 是 LangChain 推荐的构建复杂链条的方式，通过 `|` 管道将 Prompt、Model、Parser 等 Runnable 组件串联为可执行链。
+
+### 5.1 管道语法 (`|`)
+
+- **流程**：使用 `|` 管道操作符将组件连接为一个整体；`A | B` 表示 **A 的输出**作为 **B 的输入**。
+- **代码示例**（以提示词模板 + 模型为例）：
+  ```python
+  # 1. 定义执行链 (模板 | 模型)
+  chain = prompt_template | model
+  
+  # 2. 调用链：直接传入变量字典 (自动完成注入与调用)
+  # 注意：此时 invoke 的输入是字典，而非字符串！
+  res = chain.invoke(input={"lastname": "张", "gender": "女儿"})
+  ```
+
+### 5.2 Manual vs LCEL 对比
+
+| 维度 | 方式 1 (Manual) | 方式 2 (LCEL Chain) |
+| :--- | :--- | :--- |
+| **操作符** | 使用 `.format()` 方法 | 使用 `|` 管道操作符 |
+| **invoke 输入** | 必须传入**字符串** (String) | 必须传入**变量字典** (Dict) |
+| **代码量** | 较多 (需手动管理中间变量) | 极简 (一行构建链) |
+| **可扩展性** | 难。若增加 Parser 需手动嵌套 | 易。可继续拼接 `\| parser` |
+| **推荐场景** | 仅用于调试或简单的提示词生成 | **生产环境、复杂逻辑链条** |
+
+### 5.3 链式逻辑与兼容性 (LCEL Compatibility)
+
+在构建 LCEL 链时，必须确保前后组件的**输入和输出类型兼容**。
+
+| 组件 | 输入要求 | 输出类型 |
+| :--- | :--- | :--- |
+| **提示词模板 (PromptTemplate)** | 字典 (`dict`) | `PromptValue` 对象 |
+| **模型 (Model)** | `PromptValue` / 字符串 / 消息序列 (`BaseMessage`, `list`, `tuple`, `str`, `dict`) | `AIMessage` |
+| **StrOutputParser** | `AIMessage` | 字符串 (`str`) |
+| **JsonOutputParser** | `AIMessage` | 字典 (`dict`) |
+
+**核心原则**：上一个组件的**输出**必须符合下一个组件的**输入要求**。
+
+### 5.4 自定义逻辑 (RunnableLambda)
+
+如果你需要在 LCEL 链中加入自定义的 Python 函数逻辑，可以使用 `RunnableLambda`。
+
+- **核心用法**：
+    - **手动封装**：使用 `RunnableLambda(your_function)` 将函数封装为 Runnable 对象。
+    - **自动转换（推荐）**：在 `|` 管道中直接使用函数或 `lambda` 表达式，LangChain 会自动将其转换为 `RunnableLambda`。
+    - **无缝集成**：封装后的函数遵循 `Runnable` 接口，支持 `invoke`, `stream`, `batch` 等方法，并能完美融入 LCEL 管道。
+
+- **应用场景：类型适配桥梁**：
+  ```python
+  from langchain_core.runnables import RunnableLambda
+  
+  # 定义一个简单的 lambda 函数，将 AIMessage 转换为 PromptTemplate 需要的字典
+  # 输入：ai_msg (AIMessage)
+  # 输出：{"name": ai_msg.content} (dict)
+  chain = (
+      first_prompt 
+      | model 
+      | (lambda ai_msg: {"name": ai_msg.content}) # 自动转换为 RunnableLambda
+      | second_prompt 
+      | model 
+      | str_parser
+  )
+  
+  res = chain.invoke({"lastname": "曹", "gender": "女孩"})
+  ```
+
+### 5.5 多模型级联 (Multi-step Chain)
+
+若需**将一个模型的输出作为另一个模型的输入**，通常须先通过 Output Parser 将其转换为字符串或字典（各 Parser 用法见 [§6 输出解析器](#6-输出解析器-output-parsers)）。
+
+```python
+# 1. 第一个模型生成 JSON 格式的名字
+# 2. JsonOutputParser 将其转换为字典 {"name": "..."}
+# 3. 第二个提示词模板接收该字典作为输入变量 {name}
+# 4. 第二个模型解析名字含义
+chain = first_prompt | model | json_parser | second_prompt | model | str_parser
+
+for chunk in chain.stream({"lastname": "张", "gender": "女儿"}):
+    print(chunk, end="", flush=True)
+```
+
+> 各组件输入/输出类型须匹配，详见 [5.3 链式逻辑与兼容性](#53-链式逻辑与兼容性-lcel-compatibility)。
 
 ### 5.6 [LCEL 底层原理：Python 或运算符重写](https://www.bilibili.com/video/BV1yjz5BLEoY?spm_id_from=333.788.player.switch&vd_source=9d75580d0b23d1137d56e03a996ac726&p=32)
 
@@ -288,15 +404,13 @@ chain.run()
 
 ## 6. 输出解析器 (Output Parsers)
 
-输出解析器负责将模型model的输出（通常是 `AIMessage`）转换为更易于处理的格式（如纯文本、JSON 等）。
+输出解析器将模型输出的 `AIMessage` 转换为更易处理的纯文本或结构化数据。
+
+> 链式拼接与类型兼容见 [§5 LCEL](#5-lcel-chains--composition)。
 
 ### 6.1 字符串解析器 (StrOutputParser)
 
-`StrOutputParser` 是 LangChain 内置的最简单的解析器，用于将模型返回的消息对象提取为**纯字符串**。
-
-- **核心功能**：
-    - 将 `AIMessage` 类型转换为基础字符串。
-    - 作为 `Runnable` 接口的子类，可以无缝集成到 LCEL 链中。
+输入 `AIMessage`，输出 `str`。
 
 - **代码示例**：
   ```python
@@ -312,11 +426,7 @@ chain.run()
 
 ### 6.2 JsonOutputParser 解析器
 
-`JsonOutputParser` 用于将模型返回的 JSON 字符串解析为 Python 的**字典 (Dict)** 格式。
-
-- **核心功能**：
-    - 将 `AIMessage` 中的 JSON 文本提取并转换为 `dict`。
-    - 配合提示词中的格式说明，可以实现结构化数据的提取。
+输入 `AIMessage`，输出 `dict`。
 
 - **代码示例**：
   ```python
@@ -328,67 +438,6 @@ chain.run()
   chain = prompt | model | json_parser
   res = chain.invoke({"lastname": "张", "gender": "女儿"})
   # 此时 res 是 dict 类型，例如: {"name": "张若曦"}
-  ```
-
-### 6.3 为什么需要 Parser？
-
-在复杂的 LCEL 链中，Parser 起到了“类型桥梁”的作用：
-
-1. **类型转换**：模型默认返回 `AIMessage` 对象，包含元数据。如果你只需要文本内容或结构化数据，Parser 可以帮你提取。
-2. **链式衔接**：如果你想**将一个模型的输出作为另一个模型的输入**，通常需要先通过 Parser 将其转换为字符串或字典。
-    - **示例：多模型级联 (Multi-step Chain)**
-      ```python
-      # 1. 第一个模型生成 JSON 格式的名字
-      # 2. JsonOutputParser 将其转换为字典 {"name": "..."}
-      # 3. 第二个提示词模板接收该字典作为输入变量 {name}
-      # 4. 第二个模型解析名字含义
-      chain = first_prompt | model | json_parser | second_prompt | model | str_parser
-      
-      for chunk in chain.stream({"lastname": "张", "gender": "女儿"}):
-          print(chunk, end="", flush=True)
-      ```
-    - **注意**：模型返回结果是 `AIMessage` 类型，而提示词模板通常需要 `dict` 作为输入。因此，`JsonOutputParser` 在这种级联场景中至关重要。
-
-
-### 6.4 链式逻辑与兼容性 (LCEL Compatibility)
-
-在构建 LCEL 链时，必须确保前后组件的**输入和输出类型兼容**。
-
-| 组件 | 输入要求 | 输出类型 |
-| :--- | :--- | :--- |
-| **提示词模板 (PromptTemplate)** | 字典 (`dict`) | `PromptValue` 对象 |
-| **模型 (Model)** | `PromptValue` / 字符串 / 消息序列 (`BaseMessage`, `list`, `tuple`, `str`, `dict`) | `AIMessage` |
-| **StrOutputParser** | `AIMessage` | 字符串 (`str`) |
-| **JsonOutputParser** | `AIMessage` | 字典 (`dict`) |
-
-**核心原则**：上一个组件的**输出**必须符合下一个组件的**输入要求**。例如，如果下一个组件是 `PromptTemplate`，上一个组件必须输出 `dict`。
-
-### 6.5 自定义逻辑 (RunnableLambda)
-
-如果你需要在 LCEL 链中加入自定义的 Python 函数逻辑，可以使用 `RunnableLambda`。
-
-- **核心用法**：
-    - **手动封装**：使用 `RunnableLambda(your_function)` 将函数封装为 Runnable 对象。
-    - **自动转换（推荐）**：在 `|` 管道中直接使用函数或 `lambda` 表达式，LangChain 会自动将其转换为 `RunnableLambda`。
-    - **无缝集成**：封装后的函数遵循 `Runnable` 接口，支持 `invoke`, `stream`, `batch` 等方法，并能完美融入 LCEL 管道。
-
-- **应用场景：类型适配桥梁**：
-  ```python
-  from langchain_core.runnables import RunnableLambda
-  
-  # 定义一个简单的 lambda 函数，将 AIMessage 转换为 PromptTemplate 需要的字典
-  # 输入：ai_msg (AIMessage)
-  # 输出：{"name": ai_msg.content} (dict)
-  chain = (
-      first_prompt 
-      | model 
-      | (lambda ai_msg: {"name": ai_msg.content}) # 自动转换为 RunnableLambda
-      | second_prompt 
-      | model 
-      | str_parser
-  )
-  
-  res = chain.invoke({"lastname": "曹", "gender": "女孩"})
   ```
 
 ---
@@ -403,7 +452,9 @@ chain.run()
 
 #### 7.1.1 ChatPromptTemplate + MessagesPlaceholder
 
-聊天场景的提示词应使用 `ChatPromptTemplate`，并通过 `MessagesPlaceholder` 预留历史消息的插入位置。
+> `ChatPromptTemplate` 基础用法见 [§4.4 ChatPromptTemplate](#44-聊天提示词模板-chatprompttemplate)；运行时填充的历史消息类型见 [§2 消息类型](#2-消息类型-messages)。
+
+Memory 场景下，在模板中通过 `MessagesPlaceholder` 预留历史位置，由 `RunnableWithMessageHistory` 自动读写：
 
 ```python
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
@@ -415,8 +466,7 @@ prompt = ChatPromptTemplate.from_messages([
 ])
 ```
 
-- **MessagesPlaceholder**：声明一个变量名（如 `chat_history`），运行时会被替换为实际的消息列表（`HumanMessage`、`AIMessage` 等）。
-- **与 PromptTemplate 的区别**：`ChatPromptTemplate` 面向聊天模型，输出为消息序列；`PromptTemplate` 输出为纯文本字符串。
+- **MessagesPlaceholder**：声明变量名（如 `chat_history`），运行时替换为实际消息列表。
 
 #### 7.1.2 RunnableWithMessageHistory
 
@@ -436,7 +486,7 @@ conversation_chain = RunnableWithMessageHistory(
 ```
 
 - **get_history**：工厂函数，接收 `session_id`，返回 `BaseChatMessageHistory` 的具体实现（临时记忆用 `InMemoryChatMessageHistory`，长期记忆用自定义 `FileChatMessageHistory`，见下文）。
-- **input_messages_key / history_messages_key**：分别映射用户当前输入与历史消息在模板中的变量名，两者必须与 `ChatPromptTemplate` 中的占位符一致。
+- **input_messages_key / history_messages_key**：分别映射用户当前输入与历史消息在模板中的变量名，两者必须与 `ChatPromptTemplate` 中的占位符一致（模板定义见 [§4.4](#44-聊天提示词模板-chatprompttemplate)）。
 
 #### 7.1.3 按 session_id 隔离会话
 
@@ -466,8 +516,8 @@ def print_prompt(full_prompt):
 base_chain = prompt | print_prompt | model | str_parser
 ```
 
-- 该函数会被自动包装为 `RunnableLambda`，遵循 `Runnable` 接口。
-- `full_prompt` 为 `PromptValue` 对象，调用 `.to_string()` 可查看完整提示词文本。
+> 透传函数会被自动包装为 `RunnableLambda`，遵循 `Runnable` 接口。（见 [5.4 自定义逻辑](#54-自定义逻辑-runnablelambda)）。
+> `full_prompt` 为 `PromptValue` 对象，调用 `.to_string()` 可查看完整提示词文本。（见 [4.1.2 PromptValue 转换](#412-promptvalue-转换)）。
 
 ### 7.2 临时会话记忆 (InMemoryChatMessageHistory)
 
@@ -500,7 +550,7 @@ def get_history(session_id):
 | `message_to_dict(message)` | 单个 `BaseMessage` 实例 → 字典 |
 | `messages_from_dict(data)` | `[字典, ...]` → `[BaseMessage, ...]` |
 
-`AIMessage`、`HumanMessage`、`SystemMessage` 均为 `BaseMessage` 的子类，均可被上述函数处理。
+`AIMessage`、`HumanMessage`、`SystemMessage` 均为 `BaseMessage` 的子类（类型说明见 [§2.1 标准类形式](#21-标准类形式)），均可被上述函数处理。
 
 ```python
 from langchain_core.messages import message_to_dict, messages_from_dict, BaseMessage
@@ -591,6 +641,13 @@ for document in loader.lazy_load():
     print(document)
 ```
 
+#### 8.1.1 通用初始化参数
+
+多个加载器共用的初始化参数：
+
+- **`file_path`**：源文件路径（字符串或 `Path`）。
+- **`encoding`**：文件编码；中文场景常用 `"utf-8"`，避免乱码。
+
 ### 8.2 CSVLoader
 
 `CSVLoader` 用于加载 CSV 文件，底层通过 Python 标准库 `csv.DictReader` 解析，每行 CSV 对应一个 `Document`。
@@ -617,23 +674,12 @@ documents = loader.load()
 
 #### 8.2.1 初始化参数
 
-- **`file_path`**：CSV 文件路径（字符串或 `Path`）。
+> `file_path`、`encoding` 见 [8.1.1 通用初始化参数](#811-通用初始化参数)。
+
 - **`csv_args`**：传给 `csv.DictReader` 的字典，常用键：
   - **`delimiter`**：列分隔符，默认 `","`。
   - **`quotechar`**：字段引号字符，默认 `'"'`。
   - **`fieldnames`**：列名列表；**仅用于无表头的 CSV**。若文件已有表头行，设置此项会把表头当作第一条数据。
-- **`encoding`**：文件编码，中文场景常用 `"utf-8"`。
-
-#### 8.2.2 load() 与 lazy_load() 的选择
-
-- **`load()`**：适合行数较少、可全部放入内存的场景；返回 `Document` 列表，便于批量处理。
-- **`lazy_load()`**：适合超大 CSV；用 `for` 循环逐行消费，内存占用恒定。
-
-```python
-# 调试：查看单个 Document 的类型与内容
-for document in loader.lazy_load():
-    print(type(document), document)
-```
 
 ### 8.3 JSONLoader
 
@@ -643,7 +689,8 @@ for document in loader.lazy_load():
 pip install jq
 ```
 
-信息抽取通过 **`jq_schema`**（jq 语法字符串）指定；`load()` / `lazy_load()` 用法同 [8.1 通用特性](#81-通用特性-baseloader)。
+信息抽取通过 **`jq_schema`**（jq 语法字符串）指定。
+> `load()` / `lazy_load()` 用法同 [8.1 通用特性](#81-通用特性-baseloader)。
 
 #### 8.3.1 jq_schema 常用语法
 
@@ -659,7 +706,8 @@ pip install jq
 
 #### 8.3.2 初始化参数
 
-- **`file_path`**：JSON 文件路径（必填）。
+> `file_path` 见 [8.1.1 通用初始化参数](#811-通用初始化参数)。
+
 - **`jq_schema`**：jq 抽取语法（必填）。
 - **`text_content`**：抽取结果是否为字符串，默认 `True`。抽取对象、数组等非字符串时需设为 `False`。
 - **`json_lines`**：是否为 JSONLines 格式（每行一个独立 JSON 对象），默认 `False`。
@@ -706,7 +754,6 @@ documents = loader.load()
 ```
 
 ### 8.4 TextLoader
-- 安装：`pip install langchain_text_splitters`
 `TextLoader` 用于加载**纯文本文件**（如 `.txt`），是最简单的文档加载器之一。
 
 ```python
@@ -723,19 +770,17 @@ loader = TextLoader(
 docs = loader.load()            # [Document]，整份文件对应列表中的 1 个 Document
 ```
 
-#### 8.4.1 初始化参数
-
-- **`file_path`**：文本文件路径（字符串或 `Path`）。
-- **`encoding`**：文件编码，中文文本需显式指定 `"utf-8"`，避免乱码。
-
-#### 8.4.2 返回值特点
+#### 8.4.1 返回值特点
 
 - **`load()`** 返回 `list[Document]`，但**整份文本文件只对应 1 个 `Document`**（`page_content` 为全文，`metadata` 通常含 `source` 路径）。
-- 若需将长文本切分为多个小块供向量化或检索，需在加载后配合 [文本分割器](#91-recursivecharactertextsplitter) 使用。
+
+> 若需将长文本切分为多个小块供向量化或检索，加载后配合 [§9.1 RecursiveCharacterTextSplitter](#91-recursivecharactertextsplitter) 使用。
 
 ### 8.5 PyPDFLoader
 
-`PyPDFLoader` 用于加载 **PDF 文件**并封装为 `Document`；`load()` / `lazy_load()` 用法同 [8.1 通用特性](#81-通用特性-baseloader)。
+`PyPDFLoader` 用于加载 **PDF 文件**并封装为 `Document`。
+
+> `load()` / `lazy_load()` 用法同 [8.1 通用特性](#81-通用特性-baseloader)。
 
 ```python
 from pathlib import Path
@@ -755,25 +800,12 @@ for doc in loader.lazy_load():
 
 #### 8.5.1 初始化参数
 
-- **`file_path`**：PDF 文件路径（字符串或 `Path`）。
+> `file_path` 见 [8.1.1 通用初始化参数](#811-通用初始化参数)。
+
 - **`mode`**：控制多页 PDF 如何映射为 `Document`，默认 `"page"`。
   - **`"page"`**（默认）：每一页生成 **1 个** `Document`。
   - **`"single"`**：无论多少页，**合并为 1 个** `Document`（`page_content` 为全文）。
 - **`password`**：PDF 有密码保护时传入打开密码；无加密时可省略。
-
-#### 8.5.2 load() 与 lazy_load() 的选择
-
-- **`load()`**：页数较少、可全部放入内存时使用；返回 `list[Document]`。
-- **`lazy_load()`**：页数较多时使用；生成器逐页（或按 `mode` 逐条）`yield Document`，内存占用更可控。
-
-```python
-# 一次性加载
-documents = loader.load()
-
-# 懒加载（示例中的用法）
-for document in loader.lazy_load():
-    print(document)
-```
 
 ---
 
