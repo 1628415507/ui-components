@@ -705,4 +705,86 @@ loader = JSONLoader(
 documents = loader.load()
 ```
 
+### 8.4 TextLoader
+- 安装：`pip install langchain_text_splitters`
+`TextLoader` 用于加载**纯文本文件**（如 `.txt`），是最简单的文档加载器之一。
+
+```python
+from pathlib import Path
+from langchain_community.document_loaders import TextLoader
+
+DATA_DIR = Path(__file__).resolve().parent / "data"
+
+loader = TextLoader(
+    str(DATA_DIR / "Python基础语法.txt"),
+    encoding="utf-8"            # 中文场景常用 UTF-8
+)
+
+docs = loader.load()            # [Document]，整份文件对应列表中的 1 个 Document
+```
+
+#### 8.4.1 初始化参数
+
+- **`file_path`**：文本文件路径（字符串或 `Path`）。
+- **`encoding`**：文件编码，中文文本需显式指定 `"utf-8"`，避免乱码。
+
+#### 8.4.2 返回值特点
+
+- **`load()`** 返回 `list[Document]`，但**整份文本文件只对应 1 个 `Document`**（`page_content` 为全文，`metadata` 通常含 `source` 路径）。
+- 若需将长文本切分为多个小块供向量化或检索，需在加载后配合 [文本分割器](#91-recursivecharactertextsplitter) 使用。
+
+---
+
+## 9. 文本分割器 (Text Splitters)
+
+RAG 流程中，加载器读入的 `Document` 往往过长，需先**分块 (Chunking)** 再嵌入或检索。LangChain 提供多种文本分割器；其中 **`RecursiveCharacterTextSplitter`** 是官方文档推荐的默认字符分割器，能按自然段落递归切分，在**保持上下文完整**与**控制片段大小**之间取得较好平衡，开箱即用。
+
+依赖包（与 `langchain_community` 分离）：
+
+```bash
+pip install langchain_text_splitters
+```
+
+### 9.1 RecursiveCharacterTextSplitter
+
+按 `separators` 列表**优先级递归**尝试切分：优先在 `\n\n`（段落）处分割，仍超长则尝试 `\n`、句号、问号等，最后才按空格或单字符硬切。
+
+```python
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+
+splitter = RecursiveCharacterTextSplitter(
+    chunk_size=500,         # 每段最大字符数
+    chunk_overlap=50,       # 相邻段之间的重叠字符数，保留上下文衔接
+    separators=["\n\n", "\n", "。", "！", "？", ".", "!", "?", " ", ""],
+    length_function=len,    # 统计长度的函数，默认 len（按字符数）
+)
+
+split_docs = splitter.split_documents(docs)   # docs 来自 TextLoader 等加载器
+print(len(split_docs))
+```
+
+#### 9.1.1 初始化参数
+
+| 参数 | 作用 |
+| :--- | :--- |
+| **`chunk_size`** | 每个分块允许的最大长度（由 `length_function` 计量）。 |
+| **`chunk_overlap`** | 相邻分块重叠的字符数，避免语义在边界处被截断。 |
+| **`separators`** | 分割符列表，**按顺序**尝试；列表末尾的 `""` 表示必要时按单字符硬切。 |
+| **`length_function`** | 计算文本长度的函数，默认 `len`；可换为按 token 计数的函数。 |
+
+#### 9.1.2 常用方法
+
+- **`split_documents(documents)`**：输入 `list[Document]`，输出切分后的 `list[Document]`，**保留原 `metadata`**（如 `source`）。
+- **`split_text(text)`**：直接对纯字符串分块，返回 `list[str]`（不涉及 `Document` 封装）。
+
+#### 9.1.3 典型链路
+
+```text
+TextLoader.load()  →  [Document]（1 个，全文）
+        ↓
+RecursiveCharacterTextSplitter.split_documents()
+        ↓
+[list[Document]]（多个小块）→ Embeddings / 向量库
+```
+
 ---
