@@ -1,3 +1,9 @@
+import os
+from dotenv import load_dotenv
+
+# 加载 .env 文件
+load_dotenv()
+
 # 配置文件
  
 md5_path = "04-RAG项目案例/md5.text"
@@ -17,7 +23,7 @@ max_split_char_number = 1000        # 文本分割的阈值
 #
 similarity_threshold = 1            # 检索返回匹配的文档数量
 
-embedding_model_name = "text-embedding-v4"
+embedding_model_name = os.getenv("MODEL_EMBEDDING", "text-embedding-v4")
 chat_model_name = "qwen3-max"
 
 session_config = {

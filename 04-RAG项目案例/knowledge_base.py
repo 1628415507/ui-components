@@ -5,7 +5,7 @@ import os
 import config_data as config  # 配置文件
 import hashlib
 from langchain_chroma import Chroma
-from langchain_community.embeddings import DashScopeEmbeddings
+from langchain_community.embeddings import DashScopeEmbeddings #嵌入模型-转向量
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from datetime import datetime
 
@@ -48,13 +48,14 @@ def get_string_md5(input_str: str, encoding='utf-8'):
 
 
 class KnowledgeBaseService(object):
-    def __init__(self):
+    # __init__构造方法
+    def __init__(self): 
         # 如果文件夹不存在则创建，如果存在则跳过
         os.makedirs(config.persist_directory, exist_ok=True)
 
         self.chroma = Chroma(
             collection_name=config.collection_name,     # 数据库的表名
-            embedding_function=DashScopeEmbeddings(model="text-embedding-v4"),
+            embedding_function=DashScopeEmbeddings(model=config.embedding_model_name),
             persist_directory=config.persist_directory,     # 数据库本地存储文件夹
         )     # 向量存储的实例 Chroma向量库对象
 

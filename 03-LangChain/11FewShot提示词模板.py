@@ -25,6 +25,6 @@ few_shot_template = FewShotPromptTemplate(
 prompt_text = few_shot_template.invoke(input={"input_word": "左"}).to_string()
 print(prompt_text)
 
-model = Tongyi(model=os.getenv("TONGYI_LLM_MODEL_NAME"))
+model = Tongyi(model=os.getenv("MODEL_LLM"))
 
 print(model.invoke(input=prompt_text))

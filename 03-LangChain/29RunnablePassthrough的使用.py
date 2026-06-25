@@ -21,7 +21,7 @@ def print_prompt(prompt):
     return prompt
 
 
-model = ChatTongyi(model=os.getenv("TONGYI_CHAT_MODEL_NAME"))
+model = ChatTongyi(model=os.getenv("MODEL_CHAT"))
 prompt = ChatPromptTemplate.from_messages(
     [
         ("system", "以我提供的已知参考资料为主，简洁和专业的回答用户问题。参考资料:{context}。"),

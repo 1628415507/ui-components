@@ -23,7 +23,7 @@ history_data = [
 # StringPromptValue    to_string()
 prompt_text = chat_prompt_template.invoke({"history": history_data}).to_string()# 传入参数history
 
-model = ChatTongyi(model=os.getenv("TONGYI_CHAT_MODEL_NAME"))
+model = ChatTongyi(model=os.getenv("MODEL_CHAT"))
 
 res = model.invoke(prompt_text)
 

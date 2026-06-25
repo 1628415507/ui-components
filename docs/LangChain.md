@@ -132,7 +132,7 @@ from dotenv import load_dotenv
 load_dotenv() # 自动读取当前目录下的 .env 文件
 # 使用环境变量
 import os
-model = ChatTongyi(model=os.getenv("TONGYI_CHAT_MODEL_NAME"))
+model = ChatTongyi(model=os.getenv("MODEL_CHAT"))
 ```
 
 ---

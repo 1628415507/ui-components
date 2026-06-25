@@ -11,7 +11,7 @@ str_parser = StrOutputParser()
 json_parser = JsonOutputParser()
 
 # 模型创建
-model = ChatTongyi(model=os.getenv("TONGYI_CHAT_MODEL_NAME"))
+model = ChatTongyi(model=os.getenv("MODEL_CHAT"))
 
 # 第一个提示词模板
 first_prompt = PromptTemplate.from_template(

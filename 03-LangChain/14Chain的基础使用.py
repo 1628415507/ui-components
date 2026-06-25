@@ -20,7 +20,7 @@ history_data = [
     ("ai", "锄禾日当午，汗滴禾下锄，谁知盘中餐，粒粒皆辛苦"),
 ]
 
-model = ChatTongyi(model=os.getenv("TONGYI_CHAT_MODEL_NAME"))
+model = ChatTongyi(model=os.getenv("MODEL_CHAT"))
 
 # 组成链，要求每一个组件都是Runnable接口的子类
 chain = chat_prompt_template | model

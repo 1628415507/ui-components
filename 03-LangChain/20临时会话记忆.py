@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-model = ChatTongyi(model=os.getenv("TONGYI_CHAT_MODEL_NAME"))
+model = ChatTongyi(model=os.getenv("MODEL_CHAT"))
 # prompt = PromptTemplate.from_template(
 #     "你需要根据会话历史回应用户问题。对话历史：{chat_history}，用户提问：{input}，请回答"
 # )

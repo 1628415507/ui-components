@@ -7,7 +7,7 @@ from langchain_community.chat_models.tongyi import ChatTongyi
 load_dotenv()
 
 parser = StrOutputParser() 
-model = ChatTongyi(model=os.getenv("TONGYI_CHAT_MODEL_NAME"))
+model = ChatTongyi(model=os.getenv("MODEL_CHAT"))
 prompt = PromptTemplate.from_template(
     "我邻居姓：{lastname}，刚生了{gender}，请起名，仅告知我名字无需其它内容。"
 )

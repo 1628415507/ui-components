@@ -7,7 +7,7 @@ from langchain_community.chat_models.tongyi import ChatTongyi
 
 load_dotenv()
 
-model = ChatTongyi(model=os.getenv("TONGYI_CHAT_MODEL_NAME"))
+model = ChatTongyi(model=os.getenv("MODEL_CHAT"))
 str_parser = StrOutputParser()
 
 first_prompt = PromptTemplate.from_template(

@@ -34,7 +34,7 @@ from dotenv import load_dotenv
 import os
 
 load_dotenv()  # 将 .env 中的键值对注入到 os.environ
-model_name = os.getenv("TONGYI_CHAT_MODEL_NAME")  # 按名称读取；未设置时返回 None
+model_name = os.getenv("MODEL_CHAT")  # 按名称读取；未设置时返回 None
 ```
 
 典型用途：切换不同环境的模型配置，避免把密钥硬编码进源码。
