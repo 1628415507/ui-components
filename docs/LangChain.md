@@ -41,8 +41,8 @@
 - **阿里云 (DashScope)**：
   ```python
   from langchain_community.embeddings import DashScopeEmbeddings
-  # 默认模型为 text-embeddings-v1
-  model = DashScopeEmbeddings() 
+  # 默认模型为 text-embeddings-v1，实战推荐使用 v4
+  model = DashScopeEmbeddings(model="text-embedding-v4") 
   ```
 - **Ollama (本地)**：
   ```python
@@ -923,20 +923,14 @@ LangChain 中常用的向量存储实现：
 | **`add_documents`** | 将文档写入向量存储（内部自动嵌入） | `documents`：`list[Document]`；`ids`：可选，每条文档的唯一字符串 ID | 写入的 ID 列表 |
 | **`add_texts`** | 快速写入纯文本字符串（内部自动嵌入并封装为 `Document`） | `texts`：`list[str]`；`ids`、`metadatas`：可选 | 写入的 ID 列表 |
 | **`delete`** | 按 ID 删除已存储的向量 | `ids`：`list[str]` | — |
-| **`similarity_search`** | 按查询文本做相似性检索，返回最相关的文档 | 第 1 个参数：查询字符串；第 2 个参数：`k`，返回条数；`Chroma` 另支持 `filter` 按 metadata 过滤（见下方 [similarity_search 扩展参数](#similarity_search-扩展参数)） | `list[Document]` |
+| **`similarity_search`** | 按查询文本做相似性检索，返回最相关的文档 | 第 1 个参数：查询字符串； <br/>第 2 个参数：`k`，返回条数；<br/>`Chroma` 另支持[`filter` 按 metadata](#10.1.2 similarity_search 扩展参数) 过滤 | `list[Document]` |
 | **`as_retriever`** | 将向量存储封装为 Runnable 检索器，可接入 LCEL 链| `search_kwargs`：如 `{"k": 2}`，传给底层 [`similarity_search`](#101-通用-api) | `BaseRetriever`（Runnable 子类） |
 
 > 向量存储实例（如 `InMemoryVectorStore`）**本身不是 Runnable**，不能直接用 `|` 入链；须通过 [`as_retriever`](#101-通用-api) 转为检索器后再拼接。
 
-#### similarity_search 扩展参数
-
-| 参数 | 作用 |
-| :--- | :--- |
-| **`filter`** | 按 `Document.metadata` 字段过滤结果，如 `filter={"source": "黑马程序员"}` 仅返回 `metadata["source"]` 匹配的记录。 |
-
 #### 10.1.1 add_texts 快速写入
 
-[`add_texts(list[str])`](#101-通用-api) 无需事先构造 `Document`，直接传入字符串列表：
+[`add_texts(list[str])`](#101-通用-api) 无需事先构造 `Document`，直接传入字符串列表；支持通过 `metadatas` 为每段文本注入元数据（如来源、时间）。
 
 ```python
 from langchain_core.vectorstores import InMemoryVectorStore
@@ -946,6 +940,12 @@ vector_store = InMemoryVectorStore(embedding=DashScopeEmbeddings())
 # add_texts 传入一个 list[str]
 vector_store.add_texts(["示例文本 A", "示例文本 B"])
 ```
+
+#### 10.1.2 similarity_search 扩展参数
+
+| 参数         | 作用                                                         |
+| :----------- | :----------------------------------------------------------- |
+| **`filter`** | 按 `Document.metadata` 字段过滤结果，如 `filter={"source": "黑马程序员"}` 仅返回 `metadata["source"]` 匹配的记录。 |
 
 ### 10.2 InMemoryVectorStore（临时存储）
 
@@ -1147,5 +1147,109 @@ print(res)
 | **`prompt`** | 变量字典 | `PromptValue` |
 
 链内 [`print_prompt`](#714-链内调试打印-prompt-的透传函数) 用于透传打印最终提示词；[`StrOutputParser`](#61-字符串解析器-stroutputparser) 将模型输出转为字符串。若已按 [§11.3](#113-检索与参考资料拼接命令式) 得到 `reference_text`，也可省略并行分支，直接 `chain.invoke({"input": input_text, "context": reference_text})`。
+
+---
+
+## 11.5 RAG 实战优化
+
+在实际 RAG 项目中，为了提高知识库质量和管理效率，通常需要引入**去重校验**与**元数据注入**。
+
+#### 11.5.1 MD5 去重校验
+**解决问题**：避免同一份文件或相同内容被重复灌入向量库，造成冗余检索。
+
+```python
+# 示例取自 04-RAG项目案例/knowledge_base.py
+import hashlib
+
+def get_string_md5(input_str: str, encoding='utf-8'):
+    """将传入的字符串转换为md5字符串"""
+    str_bytes = input_str.encode(encoding=encoding)
+    md5_obj = hashlib.md5()
+    md5_obj.update(str_bytes)
+    return md5_obj.hexdigest()
+
+# 在 upload 前校验
+md5_hex = get_string_md5(data)
+if check_md5(md5_hex): # check_md5 为自定义持久化校验逻辑
+    return "[跳过]内容已经存在知识库中"
+```
+
+#### 11.5.2 结构化元数据 (Metadata)
+**解决问题**：为检索结果提供溯源信息（如文件名、创建时间、操作人），便于前端展示或后续过滤。
+
+```python
+# 示例取自 04-RAG项目案例/knowledge_base.py
+metadata = {
+    "source": filename,
+    "create_time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+    "operator": "小曹",
+}
+
+# 写入时绑定元数据
+self.chroma.add_texts(
+    knowledge_chunks,
+    metadatas=[metadata for _ in knowledge_chunks],
+)
+```
+> 元数据过滤用法见 [§10.1.2 similarity_search 扩展参数](#1012-similarity_search-扩展参数)。
+
+---
+
+## 12. Web 集成 (Streamlit-UI框架)
+
+在实战中，常使用 Streamlit 快速构建 LangChain 的 Web 交互界面。
+
+### 12.1 基础特性与运行
+
+- **核心机制**：Streamlit 采用“脚本式”运行逻辑，当页面元素发生任何变化时，整个 Python 代码会**从头到尾重新执行一遍**。
+- **安装**：
+  ```bash
+  pip install streamlit
+  ```
+- **启动服务**：
+  ```bash
+  # 在当前文件所在的目录下运行
+  streamlit run app_file_uploader.py
+  # 若上述命令报错，可尝试
+  python -m streamlit run app_file_uploader.py
+  ```
+
+### 12.2 状态持久化与资源缓存
+
+由于 Streamlit 的重新执行机制，对于模型实例、数据库连接等重型资源，必须进行持久化或缓存，避免重复初始化。
+
+#### 12.2.1 资源缓存 (`@st.cache_resource`)
+**推荐用法**：用于全局共享的资源（如 LangChain 服务类、模型实例）。
+
+```python
+# 示例取自 04-RAG项目案例/app_file_uploader.py
+@st.cache_resource
+def get_kb_service():
+    return KnowledgeBaseService()
+
+service = get_kb_service() # 仅在首次运行时初始化，后续重跑直接取缓存
+```
+
+#### 12.2.2 会话状态 (`st.session_state`)
+用于存储与单个用户会话相关的临时数据（如对话历史、用户输入）。
+
+### 12.3 文件上传与交互反馈
+
+通过 Web 界面上传文件并将其内容同步到知识库，配合 `spinner` 提供良好的交互体验。
+
+```python
+# 示例取自 04-RAG项目案例/app_file_uploader.py
+uploader_file = st.file_uploader("请上传 TXT 知识文档", type=['txt'])
+
+if uploader_file is not None:
+    # 提取文件内容
+    text_content = uploader_file.getvalue().decode("utf-8")
+    
+    # 执行上传并显示进度
+    if st.button("确认导入知识库"):
+        with st.spinner("正在处理并导入向量库..."):
+            result = service.upload_by_str(text_content, uploader_file.name)
+            st.success(result) # 使用 st.success/st.warning/st.error 提供彩色反馈
+```
 
 ---
