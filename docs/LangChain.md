@@ -155,10 +155,10 @@ prompt_template = PromptTemplate.from_template("我的邻居姓{lastname}, 刚�
 
 `PromptTemplate` 继承 `Runnable`，注入变量有两种常用方式：
 
-| 方法 | 返回值 | 典型用途 |
-| :--- | :--- | :--- |
-| **`.format(**kwargs)`** | `str` | 手动生成最终字符串，再传给 `model.invoke(input=prompt_text)` |
-| **`.invoke(input=dict)`** | `PromptValue`（如 `StringPromptValue`） | 作为 Runnable 调用；需字符串时配合 [4.1.2](#412-promptvalue-转换) 的 `.to_string()`，或接入 [§5 LCEL](#5-lcel-chains--composition) 链 |
+| 方法 | 输入值类型 | 返回值类型 | 典型用途 |
+| :--- | :--- | :--- | :--- |
+| **`.format(**kwargs)      | `str`          | `str` | 手动生成最终字符串，再传给 `model.invoke(input=prompt_text)` |
+| **`.invoke(input=dict)`** | 字典（`dict`） | `PromptValue`（如 `StringPromptValue`） | 作为 Runnable 调用；需字符串时配合 [4.1.2](#412-promptvalue-转换) 的 `.to_string()`，或接入 [§5 LCEL](#5-lcel-chains--composition) 链 |
 
 ```python
 template = PromptTemplate.from_template("我的邻居是：{lastname}，最喜欢：{hobby}")
@@ -312,6 +312,8 @@ LCEL (LangChain Expression Language) 是 LangChain 推荐的构建复杂链条�
 | **模型 (Model)** | `PromptValue` / 字符串 / 消息序列 (`BaseMessage`, `list`, `tuple`, `str`, `dict`) | `AIMessage` |
 | **StrOutputParser** | `AIMessage` | 字符串 (`str`) |
 | **JsonOutputParser** | `AIMessage` | 字典 (`dict`) |
+| **Retriever（[`as_retriever`](#101-通用-api)）** | 查询字符串 (`str`) | `list[Document]` |
+| **并行 dict（`RunnableParallel`）** | 与链 `invoke` 输入相同 | 字典（各分支输出按键合并） |
 
 **核心原则**：上一个组件的**输出**必须符合下一个组件的**输入要求**。
 
@@ -360,7 +362,35 @@ for chunk in chain.stream({"lastname": "张", "gender": "女儿"}):
 
 > 各组件输入/输出类型须匹配，详见 [5.3 链式逻辑与兼容性](#53-链式逻辑与兼容性-lcel-compatibility)。
 
-### 5.6 [LCEL 底层原理：Python 或运算符重写](https://www.bilibili.com/video/BV1yjz5BLEoY?spm_id_from=333.788.player.switch&vd_source=9d75580d0b23d1137d56e03a996ac726&p=32)
+### 5.6 RunnablePassthrough（并行分支透传）
+
+LCEL 中字典 `{key: runnable, ...}` 表示**并行分支**（`RunnableParallel`）：链的 `invoke` 输入流入各分支，各分支输出按键合并为字典，供下游 [`ChatPromptTemplate`](#44-聊天提示词模板-chatprompttemplate) 等组件使用。
+
+| 组件 | 作用 | 输入 | 输出 |
+| :--- | :--- | :--- | :--- |
+| **`RunnablePassthrough()`** | 占位透传：原样返回链的 `invoke` 输入 | 与链 `invoke` 输入相同 | 与输入相同 |
+
+**典型场景**：并行分支中一路做检索/变换（如 RAG 的 `{context}`），另一路仍须保留原始用户输入（`{input}`）。若无 `RunnablePassthrough()`，`invoke` 的字符串输入往往只进入检索分支，模板变量 `{input}` 无法自动填充。
+
+```python
+from langchain_core.runnables import RunnablePassthrough
+
+# 如果没有RunnablePassthrough：input_text只传给retriever
+# RunnablePassthrough：作用：占位符，自动拿到链条的invoke输入值input_text
+# 这样RunnablePassthrough和retriever就都能获取到invoke输入值input_text
+chain = (
+    {"input": RunnablePassthrough(), "context": retriever | format_func}
+    | prompt
+    | model
+    | StrOutputParser()
+)
+
+res = chain.invoke(input_text)  # 直接传入 str，无需手动构造 dict
+```
+
+> RAG 完整链路见 [§11.4](#114-提示词模板与-lcel-链)；向量存储须先经 [`as_retriever`](#101-通用-api) 封装为 Runnable 检索器后再入链。
+
+### 5.7 [LCEL 底层原理：Python 或运算符重写](https://www.bilibili.com/video/BV1yjz5BLEoY?spm_id_from=333.788.player.switch&vd_source=9d75580d0b23d1137d56e03a996ac726&p=32)
 
 LCEL 的 `|` 管道语法之所以能工作，是因为 LangChain 的组件（如 PromptTemplate, Model, OutputParser）都继承自 `Runnable` 类，并重写了 Python 的魔术方法 `__or__`。
 
@@ -893,7 +923,16 @@ LangChain 中常用的向量存储实现：
 | **`add_documents`** | 将文档写入向量存储（内部自动嵌入） | `documents`：`list[Document]`；`ids`：可选，每条文档的唯一字符串 ID | 写入的 ID 列表 |
 | **`add_texts`** | 快速写入纯文本字符串（内部自动嵌入并封装为 `Document`） | `texts`：`list[str]`；`ids`、`metadatas`：可选 | 写入的 ID 列表 |
 | **`delete`** | 按 ID 删除已存储的向量 | `ids`：`list[str]` | — |
-| **`similarity_search`** | 按查询文本做相似性检索，返回最相关的文档 | 第 1 个参数：查询字符串；第 2 个参数：`k`，返回条数；`Chroma` 另支持 `filter` 按 metadata 过滤（见 [§10.3.2](#1032-similarity_search-扩展参数)） | `list[Document]` |
+| **`similarity_search`** | 按查询文本做相似性检索，返回最相关的文档 | 第 1 个参数：查询字符串；第 2 个参数：`k`，返回条数；`Chroma` 另支持 `filter` 按 metadata 过滤（见下方 [similarity_search 扩展参数](#similarity_search-扩展参数)） | `list[Document]` |
+| **`as_retriever`** | 将向量存储封装为 Runnable 检索器，可接入 LCEL 链| `search_kwargs`：如 `{"k": 2}`，传给底层 [`similarity_search`](#101-通用-api) | `BaseRetriever`（Runnable 子类） |
+
+> 向量存储实例（如 `InMemoryVectorStore`）**本身不是 Runnable**，不能直接用 `|` 入链；须通过 [`as_retriever`](#101-通用-api) 转为检索器后再拼接。
+
+#### similarity_search 扩展参数
+
+| 参数 | 作用 |
+| :--- | :--- |
+| **`filter`** | 按 `Document.metadata` 字段过滤结果，如 `filter={"source": "黑马程序员"}` 仅返回 `metadata["source"]` 匹配的记录。 |
 
 #### 10.1.1 add_texts 快速写入
 
@@ -1016,12 +1055,6 @@ print(result)
 
 > 首次写入后，后续运行可直接加载同一 `persist_directory` 做检索，无需重复导入文档。
 
-#### 10.3.2 similarity_search 扩展参数
-
-| 参数 | 作用 |
-| :--- | :--- |
-| **`filter`** | 按 `Document.metadata` 字段过滤结果，如 `filter={"source": "黑马程序员"}` 仅返回 `metadata["source"]` 匹配的记录。 |
-
 ---
 
 ## 11. 向量检索构建提示词 (RAG Prompt)
@@ -1033,8 +1066,8 @@ print(result)
 | 步骤 | 动作 |
 | :--- | :--- |
 | **1. 写入资料** | [`add_texts(list[str])`](#1011-add_texts-快速写入) 或 [`add_documents`](#101-通用-api) 向向量库添加参考文本 |
-| **2. 检索匹配** | [`similarity_search(查询文本, k)`](#101-通用-api) 取与问题最相关的文档 |
-| **3. 封装提示词** | 将各 `Document.page_content` 拼接为 `{context}`，与用户 `{input}` 注入 [`ChatPromptTemplate`](#44-聊天提示词模板-chatprompttemplate) 后，经 [LCEL 链](#5-lcel-chains--composition) 调用模型 |
+| **2. 检索匹配** | 命令式：[`similarity_search(查询文本, k)`](#101-通用-api)；链式：[`as_retriever(search_kwargs={"k": n})`](#101-通用-api) 封装为 Runnable 后入链 |
+| **3. 封装提示词** | 将各 `Document.page_content` 拼接为 `{context}`，与用户 `{input}` 注入 [`ChatPromptTemplate`](#44-聊天提示词模板-chatprompttemplate)；链式场景用 [`RunnablePassthrough()`](#56-runnablepassthrough并行分支透传) 透传 `{input}`，经 [LCEL 链](#5-lcel-chains--composition) 调用模型 |
 
 ### 11.2 RAG 语料写入
 
@@ -1046,9 +1079,9 @@ vector_store.add_texts(
     ["减肥就是要少吃多练", "在减脂期间吃东西很重要,清淡少油控制卡路里摄入并运动起来", "跑步是很好的运动哦"])
 ```
 
-### 11.3 检索与参考资料拼接
+### 11.3 检索与参考资料拼接（命令式）
 
-以用户提问同时作为相似性检索的查询文本，再将返回文档的 `page_content` 拼成 `{context}` 注入值。
+以用户提问同时作为相似性检索的查询文本，再将返回文档的 `page_content` 拼成 `{context}` 注入值。LCEL 链式写法见 [§11.4](#114-提示词模板与-lcel-链)。
 
 ```python
 input_text = "怎么减肥？"
@@ -1070,40 +1103,49 @@ reference_text += "]"
 
 ### 11.4 提示词模板与 LCEL 链
 
+通过 [`as_retriever`](#101-通用-api) 与 [`RunnablePassthrough()`](#56-runnablepassthrough并行分支透传) 将检索、参考资料拼接与提示词注入合并为一条链；[`add_texts`](#112-rag-语料写入) 写入语料后可直接 `invoke(input_text)`，无需像 [§11.3](#113-检索与参考资料拼接命令式) 那样手动构造变量字典。
+
 ```python
-import os
-from dotenv import load_dotenv
-from langchain_community.chat_models import ChatTongyi
-from langchain_core.vectorstores import InMemoryVectorStore
-from langchain_community.embeddings import DashScopeEmbeddings
-from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.output_parsers import StrOutputParser
+from langchain_core.documents import Document
+from langchain_core.runnables import RunnablePassthrough
 
-load_dotenv()
+# InMemoryVectorStore不是Runnable对象，不能入链
+vector_store = InMemoryVectorStore(embedding=DashScopeEmbeddings(model="text-embedding-v4"))
+# ... add_texts
 
-# 打印提示词
-def print_prompt(prompt):
-    print(prompt.to_string())
-    print("=" * 20)
-    return prompt
+input_text = "怎么减肥？"
 
-model = ChatTongyi(model=os.getenv("TONGYI_CHAT_MODEL_NAME"))
-prompt = ChatPromptTemplate.from_messages(
-    [
-        ("system", "以我提供的已知参考资料为主，简洁和专业的回答用户问题。参考资料:{context}。"),
-        ("user", "用户提问：{input}")
-    ]
+# langchain中向量存储对象，有一个方法：as_retriever，可以返回一个Runnable接口的子类实例对象
+retriever = vector_store.as_retriever(search_kwargs={"k": 2})
+
+def format_func(docs: list[Document]):
+    if not docs:
+        return "无相关参考资料"
+    formatted_str = "["
+    for doc in docs:
+        formatted_str += doc.page_content
+    formatted_str += "]"
+    return formatted_str
+
+chain = (
+    {"input": RunnablePassthrough(), "context": retriever | format_func}
+    | prompt
+    | print_prompt
+    | model
+    | StrOutputParser()
 )
 
-vector_store = InMemoryVectorStore(embedding=DashScopeEmbeddings(model="text-embedding-v4"))
-# ... add_texts 与 similarity_search 见 [§11.2](#112-rag-语料写入)、[§11.3](#113-检索与参考资料拼接) ...
-
-chain = prompt | print_prompt | model | StrOutputParser()
-
-res = chain.invoke({"input": input_text, "context": reference_text})
+res = chain.invoke(input_text)
 print(res)
 ```
 
-链内 [`print_prompt`](#714-链内调试打印-prompt-的透传函数) 用于透传打印最终提示词；[`StrOutputParser`](#61-字符串解析器-stroutputparser) 将模型输出转为字符串。
+| 环节 | 输入 | 输出 |
+| :--- | :--- | :--- |
+| **`retriever`** | 用户提问 `str` | 向量库检索结果 `list[Document]` |
+| **`format_func`** | `list[Document]` | 拼接后的参考资料 `str`（对应 `{context}`） |
+| **并行 dict** | `input_text` | `{"input": str, "context": str}` |
+| **`prompt`** | 变量字典 | `PromptValue` |
+
+链内 [`print_prompt`](#714-链内调试打印-prompt-的透传函数) 用于透传打印最终提示词；[`StrOutputParser`](#61-字符串解析器-stroutputparser) 将模型输出转为字符串。若已按 [§11.3](#113-检索与参考资料拼接命令式) 得到 `reference_text`，也可省略并行分支，直接 `chain.invoke({"input": input_text, "context": reference_text})`。
 
 ---

@@ -24,7 +24,7 @@ documents = loader.load()
 # 向量存储的 新增、删除、检索
 vector_store.add_documents(
     documents=documents,        # 被添加的文档，类型：list[Document]
-    ids=["id"+str(i) for i in range(1, len(documents)+1)] # 给添加的文档提供id（字符串）  list[str]
+    ids=["id"+str(i) for i in range(1, len(documents)+1)] # 给添加的文档提供id（字符串）  list[str]，如["id1", "id2",...]用来根据id删除
 )
 
 # 删除  传入[id, id...]
