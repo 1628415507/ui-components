@@ -450,9 +450,9 @@ chain.run()
 
 以下配置对临时记忆与长期记忆**完全通用**，切换存储方式时无需修改。
 
-#### 7.1.1 ChatPromptTemplate + MessagesPlaceholder
+#### 7.1.1 [ChatPromptTemplate](#44-聊天提示词模板-chatprompttemplate)+ MessagesPlaceholder
 
-> `ChatPromptTemplate` 基础用法见 [§4.4 ChatPromptTemplate](#44-聊天提示词模板-chatprompttemplate)；运行时填充的历史消息类型见 [§2 消息类型](#2-消息类型-messages)。
+> 运行时填充的历史消息类型见 [§2 消息类型](#2-消息类型-messages)。
 
 Memory 场景下，在模板中通过 `MessagesPlaceholder` 预留历史位置，由 `RunnableWithMessageHistory` 自动读写：
 
@@ -516,7 +516,7 @@ def print_prompt(full_prompt):
 base_chain = prompt | print_prompt | model | str_parser
 ```
 
-> 透传函数会被自动包装为 `RunnableLambda`，遵循 `Runnable` 接口。（见 [5.4 自定义逻辑](#54-自定义逻辑-runnablelambda)）。
+> 透传函数会被自动包装为 [`RunnableLambda`](#54-自定义逻辑-runnablelambda)，遵循 `Runnable` 接口。
 > `full_prompt` 为 `PromptValue` 对象，调用 `.to_string()` 可查看完整提示词文本。（见 [4.1.2 PromptValue 转换](#412-promptvalue-转换)）。
 
 ### 7.2 临时会话记忆 (InMemoryChatMessageHistory)
@@ -785,8 +785,6 @@ docs = loader.load()            # [Document]，整份文件对应列表中的 1 
 
 `PyPDFLoader` 用于加载 **PDF 文件**并封装为 `Document`。
 
-> `load()` / `lazy_load()` 用法同 [8.1 通用特性](#81-通用特性-baseloader)。
-
 ```python
 from pathlib import Path
 from langchain_community.document_loaders import PyPDFLoader
@@ -870,7 +868,7 @@ RecursiveCharacterTextSplitter.split_documents()
 
 ## 10. 向量存储 (Vector Stores)
 
-向量存储用于**持久化嵌入向量**并执行**相似性检索**，是 RAG 流程的核心环节之一。
+向量存储用于**存储嵌入向量**并执行**相似性检索**，是 RAG 流程的核心环节之一；具体实现分**内存临时**（如 `InMemoryVectorStore`）与**磁盘持久化**（如 `Chroma`）两类，见下表。
 
 **典型 RAG 两阶段流程**：
 
@@ -893,8 +891,22 @@ LangChain 中常用的向量存储实现：
 | 方法 | 作用 | 主要参数 | 返回值 |
 | :--- | :--- | :--- | :--- |
 | **`add_documents`** | 将文档写入向量存储（内部自动嵌入） | `documents`：`list[Document]`；`ids`：可选，每条文档的唯一字符串 ID | 写入的 ID 列表 |
+| **`add_texts`** | 快速写入纯文本字符串（内部自动嵌入并封装为 `Document`） | `texts`：`list[str]`；`ids`、`metadatas`：可选 | 写入的 ID 列表 |
 | **`delete`** | 按 ID 删除已存储的向量 | `ids`：`list[str]` | — |
 | **`similarity_search`** | 按查询文本做相似性检索，返回最相关的文档 | 第 1 个参数：查询字符串；第 2 个参数：`k`，返回条数；`Chroma` 另支持 `filter` 按 metadata 过滤（见 [§10.3.2](#1032-similarity_search-扩展参数)） | `list[Document]` |
+
+#### 10.1.1 add_texts 快速写入
+
+[`add_texts(list[str])`](#101-通用-api) 无需事先构造 `Document`，直接传入字符串列表：
+
+```python
+from langchain_core.vectorstores import InMemoryVectorStore
+from langchain_community.embeddings import DashScopeEmbeddings
+
+vector_store = InMemoryVectorStore(embedding=DashScopeEmbeddings())
+# add_texts 传入一个 list[str]
+vector_store.add_texts(["示例文本 A", "示例文本 B"])
+```
 
 ### 10.2 InMemoryVectorStore（临时存储）
 
@@ -1000,12 +1012,98 @@ print(result)
 | **`embedding_function`** | 嵌入模型实例（Chroma 使用此参数名；`InMemoryVectorStore` 对应参数为 `embedding`）。 |
 | **`persist_directory`** | 向量数据持久化目录；首次写入后会在该路径下生成数据库文件。 |
 
-> `add_documents` / `delete` 用法同 [§10.2 InMemoryVectorStore](#102-inmemoryvectorstore临时存储) 示例；首次写入后，后续运行可直接加载同一 `persist_directory` 做检索，无需重复导入文档。
+[`add_documents`](#101-通用-api) / [`delete`](#101-通用-api) 用法同 [§10.2 InMemoryVectorStore](#10.2 InMemoryVectorStore（临时存储）) 示例。
+
+> 首次写入后，后续运行可直接加载同一 `persist_directory` 做检索，无需重复导入文档。
 
 #### 10.3.2 similarity_search 扩展参数
 
 | 参数 | 作用 |
 | :--- | :--- |
 | **`filter`** | 按 `Document.metadata` 字段过滤结果，如 `filter={"source": "黑马程序员"}` 仅返回 `metadata["source"]` 匹配的记录。 |
+
+---
+
+## 11. 向量检索构建提示词 (RAG Prompt)
+
+**提示词 = 用户的提问 + 向量库中检索到的参考资料。** 在 [§10 向量存储](#10-向量存储-vector-stores) 完成索引与检索后，将 Top-k 结果拼入 [`ChatPromptTemplate`](#44-聊天提示词模板-chatprompttemplate)，再通过 [LCEL 链](#5-lcel-chains--composition) 调用模型，即构成完整的 RAG 生成环节。
+
+### 11.1 流程概览
+
+| 步骤 | 动作 |
+| :--- | :--- |
+| **1. 写入资料** | [`add_texts(list[str])`](#1011-add_texts-快速写入) 或 [`add_documents`](#101-通用-api) 向向量库添加参考文本 |
+| **2. 检索匹配** | [`similarity_search(查询文本, k)`](#101-通用-api) 取与问题最相关的文档 |
+| **3. 封装提示词** | 将各 `Document.page_content` 拼接为 `{context}`，与用户 `{input}` 注入 [`ChatPromptTemplate`](#44-聊天提示词模板-chatprompttemplate) 后，经 [LCEL 链](#5-lcel-chains--composition) 调用模型 |
+
+### 11.2 RAG 语料写入
+
+[`add_texts(list[str])`](#1011-add_texts-快速写入) 完整用法见 [§10.1.1](#1011-add_texts-快速写入)；RAG 场景灌入的参考语料示例如下：
+
+```python
+# 准备一下资料（向量库的数据）
+vector_store.add_texts(
+    ["减肥就是要少吃多练", "在减脂期间吃东西很重要,清淡少油控制卡路里摄入并运动起来", "跑步是很好的运动哦"])
+```
+
+### 11.3 检索与参考资料拼接
+
+以用户提问同时作为相似性检索的查询文本，再将返回文档的 `page_content` 拼成 `{context}` 注入值。
+
+```python
+input_text = "怎么减肥？"
+
+# 检索向量库
+result = vector_store.similarity_search(input_text, 2)  # input_text:查询字段
+# 拼接参考资料
+reference_text = "["
+for doc in result:
+    reference_text += doc.page_content
+reference_text += "]"
+```
+
+| 键 / 参数 | 含义 |
+| :--- | :--- |
+| **`input_text`** | 用户提问；同时作为 [`similarity_search`](#101-通用-api) 的查询字符串 |
+| **第 2 个参数 `k`** | 返回最相关文档的条数 |
+| **`reference_text`** | 拼接后的参考资料，对应模板变量 `{context}` |
+
+### 11.4 提示词模板与 LCEL 链
+
+```python
+import os
+from dotenv import load_dotenv
+from langchain_community.chat_models import ChatTongyi
+from langchain_core.vectorstores import InMemoryVectorStore
+from langchain_community.embeddings import DashScopeEmbeddings
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.output_parsers import StrOutputParser
+
+load_dotenv()
+
+# 打印提示词
+def print_prompt(prompt):
+    print(prompt.to_string())
+    print("=" * 20)
+    return prompt
+
+model = ChatTongyi(model=os.getenv("TONGYI_CHAT_MODEL_NAME"))
+prompt = ChatPromptTemplate.from_messages(
+    [
+        ("system", "以我提供的已知参考资料为主，简洁和专业的回答用户问题。参考资料:{context}。"),
+        ("user", "用户提问：{input}")
+    ]
+)
+
+vector_store = InMemoryVectorStore(embedding=DashScopeEmbeddings(model="text-embedding-v4"))
+# ... add_texts 与 similarity_search 见 [§11.2](#112-rag-语料写入)、[§11.3](#113-检索与参考资料拼接) ...
+
+chain = prompt | print_prompt | model | StrOutputParser()
+
+res = chain.invoke({"input": input_text, "context": reference_text})
+print(res)
+```
+
+链内 [`print_prompt`](#714-链内调试打印-prompt-的透传函数) 用于透传打印最终提示词；[`StrOutputParser`](#61-字符串解析器-stroutputparser) 将模型输出转为字符串。
 
 ---

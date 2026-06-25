@@ -23,7 +23,21 @@ Python 通过 `import` 关键字来使用外部库或内置功能。
 import os              # 导入 os 模块（用于操作环境变量等）
 import json            # 导入 json 模块（用于处理 JSON 数据）
 from openai import OpenAI  # 从 openai 库中只导入 OpenAI 这个类
+from dotenv import load_dotenv  # 从 .env 文件加载环境变量（AI 项目常用）
 ```
+
+### 2.1 环境变量 (.env)
+AI 项目通常把 API Key、模型名等敏感配置放在项目根目录的 `.env` 文件中，代码里用 `load_dotenv()` 加载后再读取。
+
+```python
+from dotenv import load_dotenv
+import os
+
+load_dotenv()  # 将 .env 中的键值对注入到 os.environ
+model_name = os.getenv("TONGYI_CHAT_MODEL_NAME")  # 按名称读取；未设置时返回 None
+```
+
+典型用途：切换不同环境的模型配置，避免把密钥硬编码进源码。
 
 ## 3. 变量与赋值 (Variables)
 Python 是动态类型语言，**不需要声明类型**。
@@ -48,6 +62,14 @@ count = 10             # 整数
   ```python
   print("=" * 20) # 输出 20 个等号
   ```
+- **循环拼接 (`+=`)**：在循环中逐段追加字符串，适合把多个片段拼成一段文本。
+  ```python
+  reference_text = "["
+  for doc in result:
+      reference_text += doc.page_content
+  reference_text += "]"
+  ```
+  典型用途：RAG 场景下，将向量检索返回的多个 `Document.page_content` 合并为提示词里的 `{context}` 参考资料。
 
 ### 4.2 列表 (List)
 类似于数组，使用方括号 `[]`。
@@ -111,6 +133,15 @@ def calculate_something(a, b):
 # 调用函数
 result = calculate_something(10, 20)
 ```
+
+- **副作用 + 原样返回**：函数可以先做打印等调试操作，再把入参返回，供后续步骤继续使用。
+  ```python
+  def print_prompt(prompt):
+      print(prompt.to_string())
+      print("=" * 20)
+      return prompt  # 不改变数据，只「看一眼」后继续往下传
+  ```
+  典型用途：在 LangChain LCEL 管道（`A | B | C`）中插入调试步骤，打印中间提示词而不中断链路。
 
 ### 6.1 常用内置函数与技巧
 - **print("内容", end="", flush=True)**：
