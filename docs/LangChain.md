@@ -1,7 +1,7 @@
 # LangChain 常用语法梳理
 
 - 这份文档基于 当前项目目录 下的实战代码，为你梳理了 LangChain 的核心组件用法。
-- 使用前需先配置环境变量： `OPENAI_API_KEY`和`DASHSCOPE_API_KEY`（电脑需重启）
+- 使用前需先配置电脑的环境变量： `OPENAI_API_KEY`和`DASHSCOPE_API_KEY`（电脑需重启）
 ---
 
 ## 1. 模型接入 (Models)
@@ -676,10 +676,14 @@ documents = loader.load()
 
 > `file_path`、`encoding` 见 [8.1.1 通用初始化参数](#811-通用初始化参数)。
 
-- **`csv_args`**：传给 `csv.DictReader` 的字典，常用键：
-  - **`delimiter`**：列分隔符，默认 `","`。
-  - **`quotechar`**：字段引号字符，默认 `'"'`。
-  - **`fieldnames`**：列名列表；**仅用于无表头的 CSV**。若文件已有表头行，设置此项会把表头当作第一条数据。
+- **`csv_args`**：传给 `csv.DictReader` 的字典，常用键如下：
+
+| 键 | 作用 |
+| :--- | :--- |
+| **`delimiter`** | 列分隔符，默认 `","`。 |
+| **`quotechar`** | 字段引号字符，默认 `'"'`。 |
+| **`fieldnames`** | 列名列表；**仅用于无表头的 CSV**。若文件已有表头行，设置此项会把表头当作第一条数据。 |
+| **`source_column`** | 指定 CSV 中哪一列作为 `Document.metadata["source"]`（数据来源标识），便于检索结果溯源。 |
 
 ### 8.3 JSONLoader
 
@@ -706,11 +710,12 @@ pip install jq
 
 #### 8.3.2 初始化参数
 
-> `file_path` 见 [8.1.1 通用初始化参数](#811-通用初始化参数)。
-
-- **`jq_schema`**：jq 抽取语法（必填）。
-- **`text_content`**：抽取结果是否为字符串，默认 `True`。抽取对象、数组等非字符串时需设为 `False`。
-- **`json_lines`**：是否为 JSONLines 格式（每行一个独立 JSON 对象），默认 `False`。
+| 参数 | 作用 |
+| :--- | :--- |
+| **`file_path`** | 见 [8.1.1 通用初始化参数](#811-通用初始化参数) |
+| **`jq_schema`** | jq 抽取语法（必填）。 |
+| **`text_content`** | 抽取结果是否为字符串，默认 `True`。抽取对象、数组等非字符串时需设为 `False`。 |
+| **`json_lines`** | 是否为 JSONLines 格式（每行一个独立 JSON 对象），默认 `False`。 |
 
 #### 8.3.3 三种常见场景
 
@@ -858,7 +863,149 @@ TextLoader.load()  →  [Document]（1 个，全文）
         ↓
 RecursiveCharacterTextSplitter.split_documents()
         ↓
-[list[Document]]（多个小块）→ Embeddings / 向量库
+[list[Document]]（多个小块）→ [§10 向量存储](#10-向量存储-vector-stores)
 ```
+
+---
+
+## 10. 向量存储 (Vector Stores)
+
+向量存储用于**持久化嵌入向量**并执行**相似性检索**，是 RAG 流程的核心环节之一。
+
+**典型 RAG 两阶段流程**：
+
+| 阶段 | 流程 |
+| :--- | :--- |
+| **索引（存储）** | `Document` → 嵌入模型 → 嵌入向量 → 写入向量存储 |
+| **查询（检索）** | 查询文本 → 嵌入模型 → 查询向量 → 相似性搜索 → Top-k 结果 |
+
+> 嵌入模型初始化见 [§1.3 嵌入模型](#13-嵌入模型-embeddings)；文档加载见 [§8 文档加载器](#8-文档加载器-document-loaders)。
+
+LangChain 中常用的向量存储实现：
+
+| 实现 | 导入 | 特点 |
+| :--- | :--- | :--- |
+| **`InMemoryVectorStore`** | `langchain_core.vectorstores` | 内存存储（**临时的**），进程退出后数据不保留，适合调试 |
+| **`Chroma`** | `langchain_chroma` | 轻量级外部向量数据库，数据**持久化**到磁盘 |
+
+### 10.1 通用 API
+
+| 方法 | 作用 | 主要参数 | 返回值 |
+| :--- | :--- | :--- | :--- |
+| **`add_documents`** | 将文档写入向量存储（内部自动嵌入） | `documents`：`list[Document]`；`ids`：可选，每条文档的唯一字符串 ID | 写入的 ID 列表 |
+| **`delete`** | 按 ID 删除已存储的向量 | `ids`：`list[str]` | — |
+| **`similarity_search`** | 按查询文本做相似性检索，返回最相关的文档 | 第 1 个参数：查询字符串；第 2 个参数：`k`，返回条数；`Chroma` 另支持 `filter` 按 metadata 过滤（见 [§10.3.2](#1032-similarity_search-扩展参数)） | `list[Document]` |
+
+### 10.2 InMemoryVectorStore（临时存储）
+
+`InMemoryVectorStore` 将向量保存在**进程内存**中，适合本地调试与临时场景；进程退出后数据不保留。
+
+```python
+from pathlib import Path
+from langchain_core.vectorstores import InMemoryVectorStore
+from langchain_community.embeddings import DashScopeEmbeddings
+from langchain_community.document_loaders import CSVLoader
+
+DATA_DIR = Path(__file__).resolve().parent / "data"
+# 创建vector_store：向量存储对象
+# InMemoryVectorStore：内存存储，临时的
+vector_store = InMemoryVectorStore(
+    embedding=DashScopeEmbeddings() #模型对象
+)
+
+loader = CSVLoader(
+    file_path=str(DATA_DIR / "info.csv"),
+    encoding="utf-8",
+    source_column="source",     # 指定本条数据的来源是哪里
+)
+
+documents = loader.load()
+# print(documents[0])
+
+# id1 id2 id3 id4 ...
+# 向量存储的 新增、删除、检索
+vector_store.add_documents(
+    documents=documents,        # 被添加的文档，类型：list[Document]
+    ids=["id"+str(i) for i in range(1, len(documents)+1)] # 给添加的文档提供id（字符串）  list[str]
+)
+
+# 删除  传入[id, id...]
+vector_store.delete(["id1", "id2"])
+
+# 检索 返回类型list[Document]
+result = vector_store.similarity_search(
+    "Python是不是简单易学",
+    # "瑞达法",
+    3       # 检索的结果要几个
+)
+
+print(result)
+```
+
+#### 10.2.1 初始化参数
+
+| 参数 | 作用 |
+| :--- | :--- |
+| **`embedding`** | 嵌入模型实例；索引与检索时均用它将文本转为向量，须与业务侧使用的模型一致。 |
+
+#### 10.2.2 典型链路
+
+```text
+CSVLoader.load()  →  list[Document]
+        ↓
+InMemoryVectorStore.add_documents(documents, ids)
+        ↓
+similarity_search(query, k)  →  list[Document]（Top-k 相关片段）
+```
+
+### 10.3 Chroma（持久化存储）
+
+`Chroma` 是轻量级外部向量数据库，向量数据写入 `persist_directory` 指定目录，重启后仍可检索。
+
+依赖包（需提前安装）：
+
+```bash
+pip install langchain-chroma chromadb
+```
+
+```python
+from pathlib import Path
+from langchain_chroma import Chroma
+from langchain_community.embeddings import DashScopeEmbeddings
+
+CHROMA_DIR = Path(__file__).resolve().parent / "chroma_db"
+
+# Chroma 向量数据库（轻量级的）
+vector_store = Chroma(
+    collection_name="test",     # 当前向量存储起个名字，类似数据库的表名称
+    embedding_function=DashScopeEmbeddings(),       # 嵌入模型
+    persist_directory=str(CHROMA_DIR)     # 指定数据存放的文件夹
+)
+
+# 检索 返回类型list[Document]
+result = vector_store.similarity_search(
+    "Python是不是简单易学呀",
+    3,        # 检索的结果要几个
+    filter={"source": "黑马程序员"} # 根据source的值过滤
+)
+
+print(result)
+```
+
+#### 10.3.1 初始化参数
+
+| 参数 | 作用 |
+| :--- | :--- |
+| **`collection_name`** | 集合名称，类似数据库中的**表名**；同一目录下可区分多个集合。 |
+| **`embedding_function`** | 嵌入模型实例（Chroma 使用此参数名；`InMemoryVectorStore` 对应参数为 `embedding`）。 |
+| **`persist_directory`** | 向量数据持久化目录；首次写入后会在该路径下生成数据库文件。 |
+
+> `add_documents` / `delete` 用法同 [§10.2 InMemoryVectorStore](#102-inmemoryvectorstore临时存储) 示例；首次写入后，后续运行可直接加载同一 `persist_directory` 做检索，无需重复导入文档。
+
+#### 10.3.2 similarity_search 扩展参数
+
+| 参数 | 作用 |
+| :--- | :--- |
+| **`filter`** | 按 `Document.metadata` 字段过滤结果，如 `filter={"source": "黑马程序员"}` 仅返回 `metadata["source"]` 匹配的记录。 |
 
 ---
