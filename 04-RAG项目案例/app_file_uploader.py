@@ -22,7 +22,7 @@ uploader_file = st.file_uploader(
     accept_multiple_files=False,    # False表示仅接受一个文件的上传
 )
 
-# session_state就是一个字典
+# session_state就是一个字典，用来保存数据状态，#避免WEB页面元素发生变化时的数据清空
 if "service" not in st.session_state:
     st.session_state["service"] = KnowledgeBaseService()
 
@@ -44,7 +44,4 @@ if uploader_file is not None:
     with st.spinner("载入知识库中。。。"):       # 在spinner内的代码执行过程中，会有一个转圈动画
         result = st.session_state["service"].upload_by_str(text, file_name)
         st.write(result)
-
-
-
 

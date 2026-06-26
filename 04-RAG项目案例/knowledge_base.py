@@ -7,7 +7,7 @@ import hashlib
 from langchain_chroma import Chroma
 from langchain_community.embeddings import DashScopeEmbeddings #嵌入模型-转向量
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from datetime import datetime
+from datetime import datetime #时间模块
 
 # 作用:检查传入的md5字符串是否已经被处理过了
 def check_md5(md5_str: str):
@@ -52,13 +52,13 @@ class KnowledgeBaseService(object):
     def __init__(self): 
         # 如果文件夹不存在则创建，如果存在则跳过
         os.makedirs(config.persist_directory, exist_ok=True)
-
+        # 注册 Chroma（持久化存储）
         self.chroma = Chroma(
             collection_name=config.collection_name,     # 数据库的表名
             embedding_function=DashScopeEmbeddings(model=config.embedding_model_name),
             persist_directory=config.persist_directory,     # 数据库本地存储文件夹
         )     # 向量存储的实例 Chroma向量库对象
-
+        
         self.spliter = RecursiveCharacterTextSplitter(
             chunk_size=config.chunk_size,       # 分割后的文本段最大长度
             chunk_overlap=config.chunk_overlap,     # 连续文本段之间的字符重叠数量
@@ -70,10 +70,10 @@ class KnowledgeBaseService(object):
         """将传入的字符串，进行向量化，存入向量数据库中"""
         # 先得到传入字符串的md5值
         md5_hex = get_string_md5(data)
-
+        # 检查向量是否存在
         if check_md5(md5_hex):
             return "[跳过]内容已经存在知识库中"
-
+        # 超长分割文本
         if len(data) > config.max_split_char_number:
             knowledge_chunks: list[str] = self.spliter.split_text(data)
         else:
@@ -95,7 +95,7 @@ class KnowledgeBaseService(object):
         #
         save_md5(md5_hex)
 
-        return "[成功]内容已经成功载入向量库"
+        return "[成功]，"+ data +"已经成功载入向量库"
 
 # 运行当前文件
 if __name__ == '__main__':
@@ -107,6 +107,6 @@ if __name__ == '__main__':
     r = service.upload_by_str("周杰轮222", "testfile")
     print(r)
     
-    # 检查文件是否存在
+    # 检查向量是否存在
     print(check_md5('35cac2e947520817f9f09795b2bdd857')) #周杰轮222
     
