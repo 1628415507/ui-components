@@ -2,6 +2,8 @@
 知识库
 """
 import os
+import sys
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import config_data as config  # 配置文件
 import hashlib
 from langchain_chroma import Chroma

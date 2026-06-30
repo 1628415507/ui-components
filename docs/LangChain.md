@@ -924,7 +924,7 @@ LangChain 中常用的向量存储实现：
 | **`add_texts`** | 快速写入纯文本字符串（内部自动嵌入并封装为 `Document`） | `texts`：`list[str]`；`ids`、`metadatas`：可选 | 写入的 ID 列表 |
 | **`delete`** | 按 ID 删除已存储的向量 | `ids`：`list[str]` | — |
 | **`similarity_search`** | 按查询文本做相似性检索，返回最相关的文档 | 第 1 个参数：查询字符串； <br/>第 2 个参数：`k`，返回条数；<br/>`Chroma` 另支持[`filter` 按 metadata](#10.1.2 similarity_search 扩展参数) 过滤 | `list[Document]` |
-| **`as_retriever`** | 将向量存储封装为 Runnable 检索器，可接入 LCEL 链| `search_kwargs`：如 `{"k": 2}`，传给底层 [`similarity_search`](#101-通用-api) | `BaseRetriever`（Runnable 子类） |
+| **`as_retriever`** | 将向量存储封装为 Runnable 检索器，可接入 LCEL 链| `search_kwargs`：如 `{"k": 2}`， 表示每次检索应该返回k个结果，传给底层 [`similarity_search`](#101-通用-api) | `BaseRetriever`（Runnable 子类） |
 
 > 向量存储实例（如 `InMemoryVectorStore`）**本身不是 Runnable**，不能直接用 `|` 入链；须通过 [`as_retriever`](#101-通用-api) 转为检索器后再拼接。
 
@@ -1235,7 +1235,7 @@ service = get_kb_service() # 仅在首次运行时初始化，后续重跑直接
 
 ### 12.3 文件上传与交互反馈
 
-通过 Web 界面上传文件并将其内容同步到知识库，配合 `spinner` 提供良好的交互体验。
+通过 Web 界面上传文件并将其内容同步到知识库，配合 `spinner` （加载状态）提供良好的交互体验。
 
 ```python
 # 示例取自 04-RAG项目案例/app_file_uploader.py
