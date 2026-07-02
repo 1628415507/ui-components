@@ -43,3 +43,42 @@
 | 字符类型 | [`char`](#基本数据类型四类八种) | 用单引号引起，**内容只能有一个** | '男', 'A', '0' |
 | 布尔类型 | [`boolean`](#基本数据类型四类八种) | 布尔值，表示真假 | true, false |
 | 空类型 | - | 一个特殊的值，空值 | null |
+
+# 常用 API
+
+## Scanner (键盘录入)
+
+`Scanner` 类用于获取用户的键盘输入。
+
+### 使用步骤
+1. **导包**：`import java.util.Scanner;`（必须放在类定义的上面）
+2. **创建对象**：`Scanner sc = new Scanner(System.in);`
+3. **接收数据**：根据需要调用对应的方法。
+
+### 常用方法
+| 方法名 | 作用 | 示例 |
+| :--- | :--- | :--- |
+| `nextInt()` | 接收键盘录入的一个[整数](#基本数据类型四类八种) | `int i = sc.nextInt();` |
+| `nextDouble()` | 接收键盘录入的一个[小数](#基本数据类型四类八种) | `double d = sc.nextDouble();` |
+
+### 实战示例
+
+```14:20:JavaStudy/src/com/itheima/variable/VariableDemo7.java
+        // 1.找到Scanner这个打工人
+        Scanner sc = new Scanner(System.in); // 获取键盘对象
+
+        // 2.让Scanner干活
+        System.out.println("请键盘录入第一个整数:");
+        int num1 = sc.nextInt(); // 获取键盘输入的值
+        System.out.println(num1);
+```
+
+```12:18:JavaStudy/src/com/itheima/variable/VariableDemo8.java
+        Scanner sc = new Scanner(System.in);
+        System.out.println("请输入您的体重：");
+        double weight = sc.nextDouble();
+
+        // 2. 键盘录入身高 M
+        System.out.println("请输入您的身高：");
+        double height = sc.nextDouble();
+```
