@@ -7,16 +7,14 @@ public class VariableDemo8 {
 
         // BMI = 体重 / 身高的平方
 
-
-        // 1. 键盘录入体重 KG  69.3
+        // 1. 键盘录入体重 KG 69.3
         Scanner sc = new Scanner(System.in);
 
-         // 整数
+        // 整数
         // // 2.让Scanner干活
         // System.out.println("请键盘录入第一个整数:");
         // int num1 = sc.nextInt(); // 获取键盘输入的值
         // System.out.println(num1);
-
 
         // // 3. 让Scanner再次接收第二个整数
         // System.out.println("请键盘录入第二个整数");
@@ -38,9 +36,6 @@ public class VariableDemo8 {
         // 3. 计算BMI
         double bmi = weight / (height * height);
         System.out.println(bmi);
-
-       
-
 
     }
 }

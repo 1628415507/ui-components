@@ -12,6 +12,10 @@
 | 关键字 | 作用 | 示例 |
 | :--- | :--- | :--- |
 | package | 表示当前的类定义在哪个包下 | `package com.deepinsights.ilp.system.utils;` |
+| public | 访问权限修饰符，表示公开的 | `public class MethodDemo1 { ... }` |
+| static | 静态修饰符，表示类级别的 | `public static void main(String[] args) { ... }` |
+| void | 表示方法没有返回值 | `public static void printArr(int[] arr) { ... }` |
+| return | 用于结束方法，并将结果返回给调用处 | `return sum;` |
 | public static void main | 表示Java程序的主入口，当程序开始运行的时候，会从主入口开始逐行往下执行 | `public static void main(String[] args) { ... }` |
 
 # 三、数据类型
@@ -106,7 +110,7 @@
 **格式**：`目标数据类型 变量名 = (目标数据类型) 被强转的数据;`
 > **风险**：可能会导致精度丢失 or 数据溢出。
 
-```11:25:JavaStudy/src/com/itheima/operator/OperatorDemo4.java
+```java 11:25:JavaStudy/src/com/itheima/operator/OperatorDemo4.java
         // 请说出下面代码在计算的时候，类型转换的情况
         /*
         *   1. b + s
@@ -167,7 +171,7 @@
 **格式**：`关系表达式 ? 表达式1 : 表达式2;`
 - **执行流程**：计算关系表达式，若为 `true` 则取 `表达式1` 的值，若为 `false` 则取 `表达式2` 的值。
 
-```12:15:JavaStudy/src/com/itheima/operator/OperatorDemo14.java
+```java 12:15:JavaStudy/src/com/itheima/operator/OperatorDemo14.java
         // 2.利用三元运算符，求两个整数的较大值
         // 格式： 关系表达式 ? 表达式1 ： 表达式2；
         int max = a > b ?  a : b;
@@ -176,7 +180,7 @@
 
 ### 6.7.1 实战示例
 
-```14:20:JavaStudy/src/com/itheima/variable/VariableDemo7.java
+```java 14:20:JavaStudy/src/com/itheima/variable/VariableDemo7.java
         // 1.找到Scanner这个打工人
         Scanner sc = new Scanner(System.in); // 获取键盘对象
 
@@ -186,7 +190,7 @@
         System.out.println(num1);
 ```
 
-```12:18:JavaStudy/src/com/itheima/variable/VariableDemo8.java
+```java 12:18:JavaStudy/src/com/itheima/variable/VariableDemo8.java
         Scanner sc = new Scanner(System.in);
         System.out.println("请输入您的体重：");
         double weight = sc.nextDouble();
@@ -294,7 +298,7 @@
 ### 8.2.2 双指针去重 (有序数组)
 利用快慢指针在原地修改数组以去除重复项。
 
-```9:21:JavaStudy/src/com/itheima/array/Test6.java
+```java 9:21:JavaStudy/src/com/itheima/array/Test6.java
 /**
  * 有序数组去重（双指针）
  * @author majf
@@ -312,3 +316,70 @@ while (fast < arr.length){
     fast++;
 }
 ```
+
+# 九、方法
+
+## 9.1 方法的定义与调用
+
+方法是具有独立功能的代码块，通过将其封装可以提高代码的复用性。
+
+### 9.1.1 定义格式
+
+| 组成部分 | 说明 | 示例 |
+| :--- | :--- | :--- |
+| **修饰符** | 目前固定写法 `public static` | `public static` |
+| **返回值类型** | 方法运行结果的数据类型，若无结果则用 [`void`](#关键字) | `int`, `double`, `void` |
+| **方法名** | 遵循小驼峰命名法，见名知意 | `getSum`, `printArr` |
+| **参数列表** | 方法执行所需的外部数据（形参） | `(int a, int b)` |
+| **方法体** | 具体业务逻辑代码 | `{ int sum = a + b; ... }` |
+| **return** | 结束方法并返回结果给调用处 | `return sum;` |
+
+```java
+public static 返回值类型 方法名(参数1, 参数2...) {
+        方法体
+        return 返回值;
+}
+```
+### 9.1.2 调用方式
+
+1. **直接调用**：仅执行方法，不处理结果。`方法名(实参);`
+2. **赋值调用**：将结果存入变量。`数据类型 变量名 = 方法名(实参);`
+3. **输出调用**：直接打印结果。`System.out.println(方法名(实参));`
+
+## 9.2 方法重载 (Overload)
+
+在同一个类中，定义了多个**同名**的方法，但其**参数列表不同**，这些方法构成了重载关系。
+
+### 9.2.1 判定标准
+
+| 维度 | 要求 | 示例 |
+| :--- | :--- | :--- |
+| **类** | 必须在同一个类中 | - |
+| **方法名** | 必须完全相同 | `getSum` |
+| **参数列表** | 必须不同（个数、类型、顺序） | `(int a)` vs `(int a, int b)` |
+| **返回值** | **无关** | `void getSum(int a)` 与 `int getSum(int a)` 不构成重载 |
+- 示例代码
+```java 12:27:JavaStudy/src/com/itheima/method/MethodDemo6.java
+    public static double getSum(int a, int b) {
+        return a + b;
+    }
+
+   public static double getSum(int a, double b) {
+        return a + b;
+    }
+
+    public static double getSum(double a, int b) {
+        return a + b;
+    }
+
+    public static double getSum(double a, double b) {
+        return a + b;
+    }
+```
+
+## 9.3 注意事项
+
+1. **平级关系**：方法与方法之间是平级关系，**不能嵌套定义**。
+2. **被动执行**：方法不会自动运行，必须被调用。
+3. **参数匹配**：调用时实参的个数与类型必须与形参一一对应。
+4. **返回值处理**：如果方法有返回值，必须通过 `return` 关键字返回；如果是 `void`，则不能返回具体值。
