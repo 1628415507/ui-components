@@ -1,8 +1,6 @@
 package com.itheima.enumtest;
 
 
-import com.itheima.finaltest.Student;
-
 public class EnumTest2 {
     public static void main(String[] args) {
         /*
@@ -34,9 +32,4 @@ public class EnumTest2 {
 
     }
 
-
-    public void printStu(Student stu){
-        System.out.println(stu.getName());
-        System.out.println(stu.getAge());
-    }
 }
