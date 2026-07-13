@@ -15,6 +15,7 @@
 | public | 访问权限修饰符，表示公开的 | `public class MethodDemo1 { ... }` |
 | static | 静态修饰符，表示类级别的，被类所有对象共享 | `static String teacherName;` |
 | final | 表示最终，不可变。可修饰类、方法、变量 | `final int NUMBER = 100;` |
+| [abstract](#1010-抽象类与抽象方法-abstract-class--method) | 抽象修饰符，用于声明抽象类和抽象方法 | `public abstract class Animal { ... }` |
 | void | 表示方法没有返回值 | `public static void printArr(int[] arr) { ... }` |
 | return | 用于结束方法，并将结果返回给调用处 | `return sum;` |
 | public static void main | 表示Java程序的主入口，当程序开始运行的时候，会从主入口开始逐行往下执行 | `public static void main(String[] args) { ... }` |
@@ -905,6 +906,145 @@ public class PolymorphismDemo {
         } else if (p instanceof Teacher t) {
             t.teach(); // 调用 Teacher 特有方法
         }
+    }
+}
+```
+
+## 10.10 抽象类与抽象方法 (Abstract Class & Method)
+
+### 10.10.1 什么是抽象类和抽象方法
+
+在面向对象的设计中，当多个子类拥有共同的行为，但每个子类的具体实现逻辑完全不同时，我们可以在父类中声明该行为，但无法确定具体的方法体。这种**没有方法体的方法**就是**抽象方法**，而**包含抽象方法的类**必须声明为**抽象类**。
+
+* **设计初衷**：
+  * **统一规范**：强制子类必须按照父类定义的格式进行[方法重写](#1084-继承中成员方法的访问特点与方法重写)，起到规范和约束的作用。
+  * **代码复用**：将共性声明抽取到父类中，提高系统的可扩展性与可维护性。
+
+---
+
+### 10.10.2 抽象类与抽象方法的定义格式与特点
+
+#### 1. 核心概念对比表格
+
+| 概念 | 定义格式 | 核心特点与限制 | 作用/设计初衷 |
+| :--- | :--- | :--- | :--- |
+| **抽象方法** | `public abstract 返回值类型 方法名(参数列表);` | 1. 只有方法签名，**没有方法体** `{}`，以分号 `;` 结尾。<br>2. 强制子类按照该格式进行[重写](#1084-继承中成员方法的访问特点与方法重写)。 | 当多个子类有共性行为，但每个子类的具体实现不同时，在父类中无法确定具体方法体，故定义为抽象方法。 |
+| **抽象类** | `public abstract class 类名 { ... }` | 1. **不能被实例化**（无法创建对象）。<br>2. 拥有抽象方法的类**必须**声明为抽象类。<br>3. 抽象类中不一定有抽象方法。<br>4. 可以拥有[构造方法](#106-构造方法-constructor)。 | 1. 作为子类的通用模板，约束子类的行为。<br>2. 抽象类中不写抽象方法时，纯粹是为了不让外界创建该类的对象。 |
+
+#### 2. 深入理解核心注意事项
+
+* **为什么抽象类不能实例化？**
+  * *原因*：如果允许创建抽象类的对象，那么用该对象调用一个没有方法体的抽象方法是没有任何实际意义的。
+* **抽象类中为什么可以有构造方法？**
+  * *原因*：抽象类虽然不能直接实例化，但它的子类在创建对象时，仍需要通过 `super()` 调用父类的[构造方法](#106-构造方法-constructor)来完成父类成员变量的初始化（赋值）。
+* **抽象类中不写抽象方法有什么作用？**
+  * *原因*：当一个类中没有任何抽象方法，但被声明为 `abstract` 时，其唯一目的就是**禁止外界创建该类的对象**，通常用于纯工具类或基类设计。
+
+---
+
+### 10.10.3 继承抽象类时的子类选择
+
+当一个具体类继承抽象类时，子类面临以下两种选择：
+
+| 子类类型 | 处理方式 | 核心机制与后续影响 | 实用性与建议 |
+| :--- | :--- | :--- | :--- |
+| **具体子类** | **重写**父类中的**所有**抽象方法。 | 子类重写了所有抽象方法后，成为普通类，**可以被实例化**。 | **最常用、最推荐**。这是面向对象[多态](#109-多态-polymorphism)与模板设计模式的核心实现方式。 |
+| **抽象子类** | 子类本身也声明为 **`abstract`**。 | 子类不需要重写父类的抽象方法，但该子类也**无法被实例化**。 | **较少使用**。后续仍需要一个具体的“孙子类”去继承该子类并重写所有抽象方法，外界才能创建孙子类对象。 |
+
+---
+
+### 10.10.4 实战示例
+
+下面以经典的 `Animal` 体系为例，展示抽象类、抽象方法、构造方法初始化以及子类重写的完整实现：
+
+```java
+// 抽象父类
+public abstract class Animal {
+    private String name;
+    private int age;
+
+    // 抽象类中可以有构造方法，作用是给成员变量赋值
+    public Animal() {
+    }
+
+    public Animal(String name, int age) {
+        this.name = name;
+        this.age = age;
+    }
+
+    // 抽象方法：只有方法签名，没有方法体，强制子类重写
+    public abstract void eat();
+
+    // 抽象类中也可以有普通方法，供子类继承
+    public void drink() {
+        System.out.println("动物在喝水");
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public int getAge() {
+        return age;
+    }
+
+    public void setAge(int age) {
+        this.age = age;
+    }
+}
+
+// 具体子类：必须重写父类的所有抽象方法
+public class Dog extends Animal {
+    public Dog() {
+    }
+
+    public Dog(String name, int age) {
+        super(name, age); // 调用父类构造方法初始化成员变量
+    }
+
+    @Override
+    public void eat() {
+        System.out.println("狗吃骨头");
+    }
+}
+
+// 具体子类：必须重写父类的所有抽象方法
+public class Frog extends Animal {
+    public Frog() {
+    }
+
+    public Frog(String name, int age) {
+        super(name, age);
+    }
+
+    @Override
+    public void eat() {
+        System.out.println("青蛙吃害虫");
+    }
+}
+
+// 测试类
+public class Test {
+    public static void main(String[] args) {
+        // Animal a = new Animal(); // 编译报错：抽象类不能实例化
+
+        // 通过多态创建子类对象
+        Animal dog = new Dog("旺财", 3);
+        Animal frog = new Frog("呱呱", 1);
+
+        System.out.println(dog.getName() + "今年" + dog.getAge() + "岁了：");
+        dog.eat();
+        dog.drink();
+
+        System.out.println("--------------------");
+
+        System.out.println(frog.getName() + "今年" + frog.getAge() + "岁了：");
+        frog.eat();
+        frog.drink();
     }
 }
 ```
