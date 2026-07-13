@@ -18,6 +18,7 @@
 | void | 表示方法没有返回值 | `public static void printArr(int[] arr) { ... }` |
 | return | 用于结束方法，并将结果返回给调用处 | `return sum;` |
 | public static void main | 表示Java程序的主入口，当程序开始运行的时候，会从主入口开始逐行往下执行 | `public static void main(String[] args) { ... }` |
+| [enum](#107-枚举-enum) | 用于定义枚举类，表示一种特殊的、包含固定常量的类 | `public enum OrderState { ... }` |
 
 # 三、数据类型
 
@@ -204,7 +205,7 @@
 # 七、流程控制语句
 ## 7.1 判断语句——if
 ## 7.2 选择语句——switch
-1. 表达式：结果（字符/整数byte short int/枚举/字符串）--- 跳转表，索引不支持小数，也不支持大的整数long
+1. 表达式：结果（字符/整数byte short int/[枚举](#107-枚举-enum)/字符串）--- 跳转表，索引不支持小数，也不支持大的整数long
 2. case：被匹配的值，只能是真实的数据 --- 不能写变量的
 3. case：值不允许重复
 4. break：表示中断，结束的意思，结束switch语句 --- break关键字，作用结束switch语句,在我们写代码的时候，如果break没有写，此时就会触发case穿透现象
@@ -591,5 +592,80 @@ public class Student {
         this.age = age;
     }
 }
+```
+
+## 10.7 枚举 (Enum)
+
+枚举（Enum）是一种特殊的类，用于表示一组固定的常量。
+
+### 10.7.1 核心特点与注意事项
+
+| 特点 | 说明 | 示例 / 细节 |
+| :--- | :--- | :--- |
+| **定义方式** | 使用 `enum` 关键字代替 `class` | `public enum OrderState { ... }` |
+| **枚举项对象** | 每一个枚举项都是该枚举类的对象 | `PAYMENT_PENDING` 是 `OrderState` 类型的对象 |
+| **底层实现** | 枚举项在底层是常量，默认用 [`public static final`](#102-final-关键字) 修饰 | 随着类的加载而加载，全局唯一 |
+| **首行声明** | 枚举类的第一行**必须**是枚举项，多个枚举项用逗号隔开，分号结尾 | `PAYMENT_PENDING, PROCESSING;`（有后续成员时分号不可省略） |
+| **构造方法** | 默认且**必须**使用 [`private`](#1041-private-关键字) 修饰，禁止外部创建对象 | `private OrderState(String name) { ... }`（不写时默认也是 `private`） |
+| **编译器方法** | 编译器会自动为枚举类添加 `values()` 和 `valueOf()` 默认方法 | 详见 [10.7.3 常用编译器方法](#1073-常用编译器方法) |
+
+### 10.7.2 实战定义与成员声明
+
+枚举类中可以定义成员变量、构造方法和成员方法。
+
+```java 3:26:JavaStudy/src/com/itheima/enumtest/OrderState.java
+public enum OrderState {
+    // 在枚举类的第一行，把所有的对象都罗列出来了
+    PAYMENT_PENDING("待支付"),
+    PROCESSING("处理中"),
+    SHIPPED("已发货"),
+    OUT_FOR_DELIVERY("配送中"),
+    DELIVERED("已送达"),
+    CANCELLED("已取消"); // 最后一个对象后面必须加分号，一个分号代表一行代码
+
+
+    private String name;
+
+
+    // 枚举类的构造方法默认使用private修饰，就算不写，虚拟机也会加上private
+     OrderState(String name) {
+        System.out.println("看看我执行了吗？" + name);
+        this.name = name;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+}
+```
+
+### 10.7.3 常用编译器方法
+
+编译器会为所有枚举类自动新增以下两个默认方法：
+
+| 方法名 | 作用 | 示例 |
+| :--- | :--- | :--- |
+| `values()` | 获取该枚举类中所有枚举项的数组 | `OrderState[] arr = OrderState.values();` |
+| `valueOf(String name)` | 根据传入的字符串（**必须与枚举项名称完全一致**，例如 `"SHIPPED"`，传入属性值 `"已发货"` 会抛出异常）获取对应的枚举项 | `OrderState shipped = OrderState.valueOf("SHIPPED");` |
+
+#### 方法与 [switch](#72-选择语句switch) 应用示例
+
+```java 16:30:JavaStudy/src/com/itheima/enumtest/EnumTest1.java
+        // 获取枚举类的对象
+        // 细节：
+        //     所有的枚举项，默认使用public static final修饰的
+        OrderState o1 = OrderState.PAYMENT_PENDING;
+        System.out.println(o1.getName());
+
+        // 匹配
+        switch (o1){
+            case PAYMENT_PENDING -> System.out.println("待支付状态");
+            case PROCESSING -> System.out.println("处理中");
+            case SHIPPED -> System.out.println("已发货");
+            case OUT_FOR_DELIVERY -> System.out.println("配送中");
+            case DELIVERED -> System.out.println("已送达");
+            case CANCELLED -> System.out.println("已取消");
+        }
 ```
 
