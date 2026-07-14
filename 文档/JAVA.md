@@ -20,6 +20,8 @@
 | return | 用于结束方法，并将结果返回给调用处 | `return sum;` |
 | public static void main | 表示Java程序的主入口，当程序开始运行的时候，会从主入口开始逐行往下执行 | `public static void main(String[] args) { ... }` |
 | [enum](#107-枚举-enum) | 用于定义枚举类，表示一种特殊的、包含固定常量的类 | `public enum OrderState { ... }` |
+| [interface](#1011-接口-interface) | 声明接口的关键字 | `public interface MyInter { ... }` |
+| [implements](#1011-接口-interface) | 用于类实现接口的关键字 | `public class MyInterImpl implements MyInter { ... }` |
 
 # 三、数据类型
 
@@ -824,7 +826,7 @@ public class Student {
 
 | 前提条件 | 状态 | 详细说明 |
 | :--- | :--- | :--- |
-| **有继承/实现关系** | **必须** | 子类继承父类（`extends`）或实现类实现接口（`implements`）。 |
+| **有继承/实现关系** | **必须** | 子类继承父类（`extends`）或实现类[实现接口](#1011-接口-interface)（`implements`）。 |
 | **父类引用指向子类对象** | **必须** | 如 `Fu f = new Zi();` 或 `Person p = new Student();`。 |
 | **有方法重写** | *可选（强烈推荐）* | 子类重写父类的方法。如果子类不重写方法，多态下的调用将直接执行父类逻辑，多态也将失去实际的业务意义。 |
 
@@ -1045,6 +1047,211 @@ public class Test {
         System.out.println(frog.getName() + "今年" + frog.getAge() + "岁了：");
         frog.eat();
         frog.drink();
+    }
+}
+```
+
+## 10.11 接口 (Interface)
+
+### 10.11.1 什么是接口与定义格式
+
+- **概念**：接口就是一个**规则**，而且是**独立于继承体系以外的规则**（可以理解为“干爹”）。当一个类需要遵守某种规则，或者需要拥有某些**非继承链条上的行为**时，可以实现该接口。
+- **定义格式**：使用 `interface` 关键字来定义。
+  ```java
+  public interface 接口名 {
+      // 属性和方法声明
+  }
+  ```
+- **使用（实现）格式**：使用 `implements` 关键字表示类和接口之间的实现关系。
+  ```java
+  public class 类名 implements 接口名 {
+      // 重写接口中的抽象方法
+  }
+  ```
+
+---
+
+### 10.11.2 接口中成员的特点
+
+接口中定义的成员有其独特的默认修饰符和限制：
+
+| 成员类型 | 是否拥有 / 特点 | 默认修饰符 | 核心细节与版本特性 |
+| :--- | :--- | :--- | :--- |
+| **成员变量** | **只能是常量** | `public static final` | 即使不写，系统也会默认加上。必须在声明时赋值，不可再次修改。 |
+| **构造方法** | **没有** | - | 接口不能实例化，且没有成员变量需要通过构造方法初始化，因此没有构造方法。 |
+| **成员方法** | **主要是抽象方法** | `public abstract` | 随着 JDK 版本演进，新增了具有方法体的方法类型：<br>• **JDK 7 以前**：接口中只能定义抽象方法。<br>• **JDK 8 新特性**：允许定义**有方法体的方法**（**默认方法**和**静态方法**）。<br>• **JDK 9 新特性**：允许定义**私有方法**（`private`）。 |
+
+---
+
+### 10.11.3 接口的三个核心注意点
+
+1. **不能实例化**：接口无法直接通过 `new` 创建对象。
+2. **实现类要求**：接口的子类（实现类），要么**重写接口中所有的抽象方法**，要么该实现类**本身必须声明为抽象类**（`abstract`）。
+3. **多实现与多继承**：一个类可以实现多个接口，也可以在继承一个类的同时，实现多个接口。
+   ```java
+   public class 类名 implements 接口1, 接口2 { ... }
+   public class 类名 extends 父类 implements 接口1, 接口2 { ... }
+   ```
+
+---
+
+### 10.11.4 类、接口之间的关系与核心机制
+
+在 Java 中，类与类、类与接口、接口与接口之间的关系及限制如下：
+
+| 关系类型 | 涉及对象 | 关系关键字 | 数量限制 | 核心机制与细节注意点 |
+| :--- | :--- | :--- | :--- | :--- |
+| **类与类** | 类 与 类 | `extends` (继承) | **单继承** | 只能单继承，不能多继承，但是可以**多层继承**。 |
+| **类与接口** | 类 与 接口 | `implements` (实现) | **多实现** | 可以单实现，也可以多实现，还可以在**继承一个类的同时实现多个接口**。<br>**注意点**：<br>1. 如果父类是抽象类，且子类是具体类，那么子类中需要把父类的所有抽象方法以及接口中的所有抽象方法都进行重写，要么子类本身必须是抽象类。<br>2. 如果在重写的时候，父类和接口（或多个接口之间）出现了**重复的抽象方法**，此时在子类中**只要重写一次**即可。 |
+| **接口与接口** | 接口 与 接口 | `extends` (继承) | **多继承** | 可以单继承，也可以**多继承**。<br>**注意点**：<br>1. 如果一个接口 A 继承了多个接口（如 B, C），此时相当于把多个接口（B, C）中的所有抽象方法全部继承下来。<br>2. 以后任何具体的实现类在实现接口 A 时，必须重写 A 及其所有父接口（B, C）中**所有的抽象方法**。 |
+
+---
+
+### 10.11.5 接口中方法的新特性（JDK 8 & JDK 9）
+
+随着 JDK 版本的演进，接口不仅能定义 `public abstract` 的抽象方法，更可以编写具有方法体的方法，以支持**接口升级**和**接口内部的代码复用**需求。
+
+#### 1. 新增方法类型一览表
+
+| 方法类型 | 引入版本 | 格式 | 核心作用与设计初衷 | 核心限制与注意事项 |
+| :--- | :--- | :--- | :--- | :--- |
+| **默认方法** | **JDK 8** | `public default 返回值类型 方法名(参数列表) { ... }` | **为了接口升级而存在**。允许直接在已有接口中添加新功能而**不会影响**现有实现类，实现类可以直接继承或选择性重写，防止了实现类成批报错的升级灾难。 | 1. 默认方法不是抽象方法，不强制重写。<br>2. 若实现类选择重写，重写时**必须去掉 `default` 关键字**。<br>3. `public` 可以省略，`default` 不能省略。<br>4. 接口多实现时，若多个接口中存在同名默认方法（接口冲突），实现类**必须重写该方法**。 |
+| **静态方法** | **JDK 8** | `public static 返回值类型 方法名(参数列表) { ... }` | **为了接口升级而存在**。使接口具备类似工具类的辅助功能，不依赖实现类对象，属于接口本身。 | 1. **静态方法只能通过接口名调用**，绝对不能通过实现类名或实现类对象名调用。<br>2. `public` 可以省略，`static` 不能省略。 |
+| **普通私有方法** | **JDK 9** | `private 返回值类型 方法名(参数列表) { ... }` | 服务于本接口内的**默认方法**。用于抽取并复用默认方法之间的共性代码，实现隐藏细节和代码复用。 | 只能在本接口内部调用，不对外暴露。 |
+| **静态私有方法** | **JDK 9** | `private static 返回值类型 方法名(参数列表) { ... }` | 既可服务于本接口内的**静态方法**，也可服务于默认方法。用于抽取并复用静态方法之间的重复代码。 | 只能在本接口内部调用，不对外暴露。由于静态成员无法直接访问非静态成员，因此静态方法内的代码抽取必须放在静态私有方法中。 |
+
+#### 2. 实战片段：接口新特性与私有抽取
+
+```java
+public interface Inter {
+    // 抽象方法 (JDK 7以前)
+    void show();
+
+    // 默认方法 (JDK 8新特性)：实现类可直接继承或按需重写
+    public default void defaultMethod1() {
+        System.out.println("默认方法1开始执行...");
+        logTemplate(); // 抽取私有复用
+    }
+
+    public default void defaultMethod2() {
+        System.out.println("默认方法2开始执行...");
+        logTemplate(); // 抽取私有复用
+    }
+
+    // 静态方法 (JDK 8新特性)：只能通过接口名直接调用，不能通过实现类或对象调用
+    public static void staticMethod1() {
+        System.out.println("静态方法1开始执行...");
+        staticLogTemplate(); // 抽取静态私有复用
+    }
+
+    public static void staticMethod2() {
+        System.out.println("静态方法2开始执行...");
+        staticLogTemplate(); // 抽取静态私有复用
+    }
+
+    // 普通私合方法 (JDK 9新特性)：辅助默认方法
+    private void logTemplate() {
+        System.out.println("【日志记录】接口非静态辅助逻辑被触发");
+    }
+
+    // 静态私有方法 (JDK 9新特性)：辅助静态方法 (也可用于默认方法)
+    private static void staticLogTemplate() {
+        System.out.println("【日志记录】接口静态辅助逻辑被触发");
+    }
+}
+
+// 具体实现类
+public class InterImpl implements Inter {
+    @Override
+    public void show() {
+        System.out.println("实现类重写了抽象方法 show");
+    }
+    // 默认方法 defaultMethod1 / defaultMethod2 可以直接继承，无需强制重写
+}
+
+// 测试类
+public class Test {
+    public static void main(String[] args) {
+        InterImpl impl = new InterImpl();
+        impl.show();
+        impl.defaultMethod1(); // 通过对象调用继承过来的默认方法
+
+        // 静态方法的调用验证：
+        Inter.staticMethod1(); // 正确：只能通过【接口名.静态方法名】方式调用
+        // impl.staticMethod1(); // 编译报错：无法通过实现类对象调用接口中的静态方法
+        // InterImpl.staticMethod1(); // 编译报错：无法通过实现类名调用接口中的静态方法
+    }
+}
+```
+
+---
+
+### 10.11.6 实战示例：继承与实现并存
+
+以下示例接续 [10.10.4 抽象类与抽象方法实战](#10104-实战示例)，引入一个 `Swim`（游泳）接口，使部分能游泳的动物（如青蛙、狗）实现该游泳规则：
+
+```java
+// 定义游泳接口（独立于动物继承体系之外的规则）
+public interface Swim {
+    // 接口中的成员变量默认是 public static final 的常量
+    int WATER_TEMPERATURE_LIMIT = 15; // 限制游泳的最低水温
+
+    // 接口中的成员方法默认是 public abstract 的抽象方法
+    void swim();
+}
+
+// 青蛙：继承 Animal 并实现 Swim 接口
+public class Frog extends Animal implements Swim {
+    public Frog() {
+    }
+
+    public Frog(String name, int age) {
+        super(name, age);
+    }
+
+    @Override
+    public void eat() {
+        System.out.println("青蛙吃害虫");
+    }
+
+    @Override
+    public void swim() {
+        System.out.println("青蛙用蛙泳在水中畅游");
+    }
+}
+
+// 狗：继承 Animal 并实现 Swim 接口
+public class Dog extends Animal implements Swim {
+    public Dog() {
+    }
+
+    public Dog(String name, int age) {
+        super(name, age);
+    }
+
+    @Override
+    public void eat() {
+        System.out.println("狗吃骨头");
+    }
+
+    @Override
+    public void swim() {
+        System.out.println("狗在用狗刨式游泳");
+    }
+}
+
+// 测试类
+public class Test {
+    public static void main(String[] args) {
+        // 多态形式创建实现类对象
+        Swim swimmer1 = new Frog("呱呱", 1);
+        Swim swimmer2 = new Dog("旺财", 3);
+
+        // 调用接口方法
+        swimmer1.swim();
+        swimmer2.swim();
+
+        System.out.println("安全水温限制：" + Swim.WATER_TEMPERATURE_LIMIT + "℃");
     }
 }
 ```
