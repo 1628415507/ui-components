@@ -236,3 +236,150 @@ public class EmailProperties {
 
 ---
 
+# 六、 整合 MyBatis 数据库交互
+![alt text](image-1.png)
+MyBatis 是 Java 领域极其流行的优秀持久层框架。Spring Boot 通过起步依赖 `mybatis-spring-boot-starter` 与数据源的自动配置，极大简化了传统 SSM 框架中繁琐的 MyBatis 配置过程。
+
+## 6.1 整合起步依赖 (pom.xml)
+
+在项目中引入 MyBatis 依赖和 MySQL 驱动依赖，即可实现与数据库的安全、高效连接。
+
+```xml
+<dependency>
+    <groupId>org.mybatis.spring.boot</groupId>
+    <artifactId>mybatis-spring-boot-starter</artifactId>
+    <version>3.0.0</version>
+</dependency>
+```
+
+> **注意**：在实际项目中，除了 MyBatis 的 Starter 起步依赖外，通常还需要引入对应的数据库驱动依赖（如 `mysql-connector-j`）以使 Spring Boot 底层的物理数据源可以正确装配并通信。
+
+## 6.2 数据库连接配置 (application.yml)
+
+Spring Boot 能够根据数据源的前缀 `spring.datasource` 自动装配数据源连接池。
+
+根据实际开发场景，可在 `application.yml` 中进行如下基础连接配置：
+
+```yaml
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/mybatis
+    username: root  #（换成真实数据库账号和密码）
+    password: 123  #（换成真实数据库账号和密码）
+```
+
+## 6.3 三层架构设计与实现 (Controller-Service-Mapper)
+
+本节以「根据指定 ID 查询用户表数据，并响应给浏览器」为例，展示基于 Spring Boot 标准三层架构的开发规范。
+
+
+
+### 6.3.1 实体类定义 (POJO)
+定义**对应数据库表结构**的 JavaBean，使用实体类传递数据。
+
+```java 3:9:SpringBoot/springboot-quickstart/src/main/java/com/itheima/springbootmybatis/pojo/User.java
+public class User {
+    
+    private Integer id;
+    private String name;
+    private Short age;
+    private Short gender;
+    private String phone;
+```
+
+### 6.3.2 持久层接口设计 (Mapper)
+- 使用 `@Mapper` 注解标识该接口为 **MyBatis 的 Mapper 映射器**，由 Spring Boot 容器统一进行代理类生命周期的管理。
+- 在接口方法上使用注解（如 `@Select`）编写 SQL 查询。
+
+```java 7:13:SpringBoot/springboot-quickstart/src/main/java/com/itheima/springbootmybatis/mapper/UserMapper.java
+@Mapper // Mapper标识该接口为 MyBatis 的 Mapper 映射器
+public interface UserMapper {
+
+    @Select("select * from user where id = #{id}") // 编写 SQL 查询
+    public User findById(Integer id);
+
+}
+```
+
+### 6.3.3 业务逻辑层实现 (Service)
+- 定义业务接口(`interface`)并编写其实现类(`implements`)。
+- 实现类使用 `@Service` 标识为业务层组件，
+- 并利用 `@Autowired` 自动注入 Mapper 实例，执行具体业务逻辑。
+
+- **声明Service 接口**(`interface`)：
+
+```java 5:8:SpringBoot/springboot-quickstart/src/main/java/com/itheima/springbootmybatis/service/UserService.java
+// 定义业务接口
+public interface UserService {
+    public User findById(Integer id);
+}
+```
+
+- **实现Service 实现类**(`implements`)：
+```java 9:19:SpringBoot/springboot-quickstart/src/main/java/com/itheima/springbootmybatis/service/impl/UserServiceImpl.java
+@Service // 1.使用`@Service`注解标识为业务层组件
+public class UserServiceImpl implements UserService { // 2. 编写其实现类(`implements`)
+
+    @Autowired // 2.注入Mapper
+    private UserMapper userMapper;
+
+    @Override // 3. 重写接口，调用Mapper
+    public User findById(Integer id) {
+      return userMapper.findById(id);
+    }
+}
+```
+
+### 6.3.4 控制层接口开发 (Controller)
+使用 `@RestController` 标识控制器组件，**自动注入 Service**，**接收前端 HTTP 请求参数**，并响应数据给浏览器客户端。
+
+```java 9:21:SpringBoot/springboot-quickstart/src/main/java/com/itheima/springbootquickstart/controller/UserController.java
+// 1. 使用RestController注解
+@RestController
+public class UserController {
+
+    @Autowired // 2.注入Service 
+    private UserService userService; 
+
+    @RequestMapping("/findById") // 3. 定义接口
+    public User findById(Integer id){
+      return   userService.findById(id);  // 4. 调用Service 
+    }
+}
+```
+
+---
+
+## 6.4 核心原理与扫描机制最佳实践
+
+### 6.4.1 组件扫描范围与包结构避坑说明
+
+在本项目中，由于历史演进或业务划分原因，启动类与控制器的包结构并不处于同一父包路径下：
+- **启动类路径**：`com.itheima.springbootmybatis.SpringbootMybatisApplication`
+- **控制器路径**：`com.itheima.controller.UserController`
+
+根据 Spring Boot 默认的 **组件扫描机制 (Component Scan)**，`@SpringBootApplication` 底层集成的组件扫描只会扫描**启动类所在的包及其所有子包**（即 `com.itheima.springbootmybatis.*`），这会导致位于 `com.itheima.controller` 下的控制器无法被 IoC 容器识别与注册。
+
+#### 解决方案
+在启动类上显式声明 `@ComponentScan(basePackages = "com.itheima")` 注解，扩大组件扫描的物理包范围，从而完美兼容跨包组件的集成。
+
+```java 7:15:SpringBoot/springboot-quickstart/src/main/java/com/itheima/springbootmybatis/SpringbootMybatisApplication.java
+@ComponentScan(basePackages = "com.itheima")
+@SpringBootApplication
+public class SpringbootMybatisApplication {
+
+    public static void main(String[] args) {
+        SpringApplication.run(SpringbootMybatisApplication.class, args);
+    }
+
+}
+```
+
+### 6.4.2 @Mapper 代理对象生成逻辑
+
+1. **容器托管**：在接口上声明 `@Mapper` 注解后，Spring Boot 在应用启动时会扫描到该接口。
+2. **动态代理**：MyBatis-Spring 整合模块会利用 JDK 动态代理技术，在内存中动态生成该接口的代理实现类对象。
+3. **依赖注入**：将该动态代理实例作为 Bean 注册 to Spring 容器中，允许 Service 层通过 `@Autowired` 直接注入并无感使用。
+
+---
