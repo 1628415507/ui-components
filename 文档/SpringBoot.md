@@ -383,3 +383,277 @@ public class SpringbootMybatisApplication {
 3. **依赖注入**：将该动态代理实例作为 Bean 注册 to Spring 容器中，允许 Service 层通过 `@Autowired` 直接注入并无感使用。
 
 ---
+
+# 七、 控制反转 (IoC) 与 Spring IoC 容器
+
+在 Spring 框架中，控制反转（IoC，Inversion of Control）与依赖注入（DI，Dependency Injection）是其最核心的底层设计思想，而 IoC 容器则是支撑这一思想运行的物理载体。
+
+## 7.1 什么是控制反转 (IoC)
+
+控制反转是一种面向对象编程的设计原则，用以降低代码之间的耦合度。
+
+1. **传统开发模式（控制在内）**：
+   在没有 IoC 容器时，如果类 A 依赖类 B，类 A 必须在内部通过 `new B()` 的方式主动创建并装配 B 的实例。这种方式下，类 A 牢牢控制着依赖对象 B 的生命周期。一旦类 B 的构造函数发生变化，或者需要替换为类 B 的子类，类 A 的内部代码就必须进行修改，导致系统耦合度极高。
+2. **IoC 开发模式（控制反转）**：
+   在引入 IoC 容器后，类 A 不再主动创建类 B。类 A 只需要声明自己需要类 B（例如通过成员变量配合 `@Autowired` 注解），而类 B 的实例化、初始化以及与类 A 的装配工作，全部交由外部的 IoC 容器来完成。
+   对象的控制权从“类 A 内部”转移到了“外部 IoC 容器”，这种控制权的转移就是**控制反转**。
+
+## 7.2 什么是 IoC 容器 (IoC Container)
+
+IoC 容器是 Spring 框架的核心，负责管理应用中所有对象的生命周期和依赖关系。
+
+1. **容器的本质**：
+   IoC 容器在物理上可以理解为一个高级的“工厂”或“注册表”。它在系统启动时，通过读取配置元数据（在 Spring Boot 中主要是通过 `@Component`、`@Service`、`@Repository`、`@Controller`、`@Configuration` 等注解），识别出哪些类需要交给容器管理。
+2. **Bean 的概念**：
+   在 Spring 的世界中，凡是被 IoC 容器所实例化、组装并管理的对象，都称为 **Bean**。
+3. **核心接口**：
+   - `BeanFactory`：Spring 框架最底层的核心接口，提供了最基础的 IoC 容器功能，负责 Bean 的定义、加载、实例化和依赖注入，采用延迟加载（Lazy-loading）策略。
+   - `ApplicationContext`：`BeanFactory` 的子接口，是目前开发中实际使用的 IoC 容器。它在继承了 `BeanFactory` 所有功能的基础上，提供了更丰富的企业级支持，例如国际化（i18n）、事件传播、资源加载等。并且，`ApplicationContext` 默认在容器启动时就完成所有单例 Bean 的实例化与初始化（预加载策略）。
+4. **IoC 容器的底层工作流程**：
+   - **扫描与定义（Bean Definition）**：Spring Boot 启动时，通过启动类上的 `@SpringBootApplication` 隐式包含的组件扫描机制（或显式声明的 `@ComponentScan`，详见 [6.4.1 组件扫描范围与包结构避坑说明](#641-组件扫描范围与包结构避坑说明)），对指定的包路径进行扫描。当扫描到类上声明了 `@Component` 及其派生注解时，容器会解析这些类，并将其元数据（如类名、作用域、是否懒加载等）封装为 `BeanDefinition` 对象，注册到容器内部的 `BeanDefinitionRegistry` 中。
+   - **实例化与依赖注入（DI）**：容器根据注册的 `BeanDefinition` 创建 Bean 的实例。在实例化过程中，如果发现 Bean 内部标注了 `@Autowired` 等依赖注入注解，容器会自动在容器中寻找匹配的 Bean 实例，并通过反射技术将其注入到目标对象中，从而建立对象之间的依赖关系。
+   - **初始化与就绪**：在依赖注入完成后，容器会执行 Bean 的初始化方法（如执行标注了 `@PostConstruct` 的方法，或调用实现了 `InitializingBean` 接口的初始化逻辑）。此后，Bean 进入就绪状态，可以被应用程序正常调用。
+   - **销毁阶段**：当应用程序关闭、IoC 容器关闭时，容器会负责执行 Bean 的销毁逻辑（如执行标注了 `@PreDestroy` 的方法），释放占用的系统资源。
+
+## 7.3 IoC 与 依赖注入 (DI) 的关系
+
+IoC 与 DI 是同一概念在不同维度下的表述：
+- **IoC（控制反转）** 是**设计思想**。它描述了“控制权转移”的现象和目的。
+- **DI（Dependency Injection，依赖注入）** 是**具体实现手段**。它描述了容器在运行期间，动态地将依赖对象注入到目标对象中的具体动作。
+
+例如，当容器发现 `UserController` 依赖 `UserService` 时，容器会先实例化 `UserService`，然后通过反射技术，将 `UserService` 的实例注入到 `UserController` 的成员变量中。这个过程就是依赖注入。
+
+## 7.4 为什么需要 IoC 容器（核心价值）
+
+1. **极端解耦**：
+   高层模块不依赖低层模块的物理实现，双方都依赖于抽象。接口与实现彻底分离，便于在不修改调用方代码的前提下，灵活替换底层实现。
+2. **统一生命周期管理**：
+   Bean 的创建、初始化（如 `@PostConstruct`）、属性填充、代理对象生成（如 AOP 织入、MyBatis 代理）、销毁（如 `@PreDestroy`）等复杂的生命周期阶段，全部由容器标准化执行，避免了手动管理内存和连接的混乱。
+3. **极佳的可测试性**：
+   由于依赖是通过注入方式提供的，在进行单元测试时，可以非常轻松地使用 Mock 框架（如 Mockito）生成虚假依赖注入到被测类中，而不需要真正启动数据库或外部服务。
+4. **无缝集成 AOP（面向切面编程）**：
+   because 所有 Bean 都由容器创建，容器可以在返回 Bean 实例前，通过动态代理技术（JDK 动态代理或 CGLIB）为其织入事务管理、安全检查、性能监控、日志记录等横切关注点，而无需在业务代码中混杂这些非业务逻辑。
+
+---
+
+## 7.5 声明 Bean 的核心注解
+
+在 Spring Boot 项目中，要将一个类托管给 Spring IoC 容器，使其成为一个 Bean，通常在类上声明以下核心注解：
+
+### 7.5.1 自定义 Bean 注册注解（一类/衍生注解） <a id="custom-bean-annotations"></a>
+
+对于开发者自己编写的业务类，可以使用基础注解 [`@Component`](#core-annotations) 及其衍生注解进行注册。它们在功能上是完全相通的，但在应用架构中扮演不同的层级角色：
+
+* **[`@Component`](#core-annotations)**：声明 Bean 的基础/通用注解。标识一个普通的类为 Spring 容器管理的 Bean。当某个类不属于控制层、业务层、数据访问层时（例如通用组件、工具类等），使用此注解。
+* **[`@Controller`](#core-annotations)**：`@Component` 的衍生注解。声明该类是一个 Web 层的控制器组件，标注在 Spring MVC 控制器类上（在现代 RESTful 接口开发中，通常使用组合注解 `@RestController`）。
+* **[`@Service`](#core-annotations)**：`@Component` 的衍生注解。声明该类是业务逻辑层的 Service 组件，标注在 Service 业务逻辑实现类上（如项目中的 `UserServiceImpl` 类）。
+* **[`@Repository`](#core-annotations)**：`@Component` 的衍生注解。声明该类是数据访问层的 DAO 组件，标注在传统的数据库访问实现类上（由于现代 Spring Boot 与 MyBatis/MyBatis-Plus 整合中，数据访问层接口标注有独立的 [`@Mapper`](#mapper-declaration) 注解，此注解在实际开发中使用较少）。
+
+> **知识关联**：关于上述四大注解的基础作用说明、应用场景以及具体的项目实战示例，请参阅 [二、核心注解](#core-annotations) 汇总表中的对应条目。
+
+---
+
+### 7.5.2 第三方 Bean 注册注解（非自定义类注册） <a id="third-party-bean-annotations"></a>
+
+如果要注册的 Bean 对象来自于第三方类库（如外部引入的 Jar 包，并非开发者自己编写的源代码），由于无法在别人的类上直接添加 `@Component` 注解，因此无法使用上述四种一类/衍生注解。Spring Boot 提供了以下完整的解决方案来管理第三方 Bean：
+
+#### 1. 前置步骤：导入外部第三方 Jar 包（Maven 本地安装）
+当引入的 Jar 包未发布到 Maven 中央仓库时，需先将其手动安装到本地磁盘的 Maven 仓库，然后才能通过 `pom.xml` 声明并正常引入依赖。
+
+安装命令格式如下：
+```bash
+mvn install:install-file -Dfile=<jar包在本地磁盘的路径> -DgroupId=<组织名称> -DartifactId=<项目名称> -Dversion=<版本号> -Dpackaging=jar
+```
+**参数说明**：
+- `-Dfile`：指定第三方 jar 包在本地磁盘的绝对路径。
+- `-DgroupId`：指定该依赖的组/组织名称。
+- `-DartifactId`：指定该依赖的项目/模块名称。
+- `-Dversion`：指定该依赖的版本号。
+- `-Dpackaging`：打包方式，一般为 `jar`。
+
+---
+
+#### 2. @Bean 注解注册第三方对象
+* **工作机制**：标注在配置类（`@Configuration`）的方法上。Spring 会在容器启动时执行该方法，并将该方法的**返回值**作为 Bean 对象注册到 Spring IoC 容器中。
+* **默认名称**：注册的 Bean 的名称（`id`）默认是该**方法的名称**。
+* **示例说明**：
+
+```java
+@SpringBootApplication
+public class SpringbootRegisterApplication {
+
+    // 将方法的返回值交给 IoC 容器管理，成为名为 "resolver" 的 Bean 对象
+    @Bean
+    public Resolver resolver() {
+        return new Resolver();
+    }
+}
+```
+
+---
+
+#### 3. @Import 注解导入注册（高级组件加载机制）
+使用 `@Import` 标注在配置类或启动类上，用于高效加载和注册外部提供的组件、配置类或自定义导入逻辑。共有以下三种核心使用方式：
+
+##### 方式一：导入普通的类或配置类
+* **工作机制**：在注解中直接指定需要导入的配置类（带有 `@Configuration`）或普通的组件 Bean 类。
+* **应用场景**：模块化划分配置，显式引入第三方库中定义的具体配置类。
+* **示例说明**：
+
+```java
+@Import(CommonConfig.class) // 显式导入第三方提供的配置类
+@SpringBootApplication
+public class SpringbootRegistApplication {
+    // 启动方法...
+}
+```
+
+##### 方式二：导入 ImportSelector 接口实现类
+* **工作机制**：定义一个类实现 `ImportSelector` 接口并重写 `selectImports` 方法。该方法返回待导入的配置类或组件类的**全类名（含包路径）字符串数组**。然后在启动类上用 `@Import` 引入该选择器实现类，Spring Boot 就会自动加载这些类。
+* **应用场景**：常用于编写高度封装的 Starter 依赖包，实现动态、批量或可定制的对象导入。
+* **示例说明**：
+
+- **Selector 实现类定义**：
+```java
+public class CommonImportSelector implements ImportSelector {
+
+    @Override
+    public String[] selectImports(AnnotationMetadata importingClassMetadata) {
+        // 返回需要导入的配置类的全类名字符串数组
+        return new String[]{"com.itheima.config.CommonConfig"};
+    }
+}
+```
+
+- **启动类/配置类导入**：
+```java
+@Import(CommonImportSelector.class) // 导入选择器实现类，实现动态/批量配置加载
+@SpringBootApplication
+public class SpringbootRegistApplication {
+    // 启动方法...
+}
+```
+
+##### 方式三：使用自定义 @EnableXxxx 注解封装 @Import
+* **工作机制**：自定义一个业务注解（如 `@EnableCommonConfig`），并在该自定义注解上标注 `@Import(CommonImportSelector.class)` 或 `@Import(CommonConfig.class)`。使用者在启动类上只需声明该自有的 `@EnableXxxx` 注解即可。
+* **应用场景**：实现“即插即用”（Plug-and-Play）的模块化开关，是 Spring Boot 中大量 Starter（如 `@EnableCaching`, `@EnableScheduling`）的标准底层实现模式。
+* **示例说明**：
+
+- **自定义注解定义**：
+```java
+@Target(ElementType.TYPE)
+@Retention(RetentionPolicy.RUNTIME)
+@Import(CommonImportSelector.class) // 封装真正的导入逻辑
+public @interface EnableCommonConfig {
+}
+```
+
+- **启动类声明**：
+```java
+@EnableCommonConfig // 声明自定义的“启用”注解，优雅实现第三方组件一键接入
+@SpringBootApplication
+public class SpringbootRegistApplication {
+    // 启动方法...
+}
+```
+
+---
+
+## 7.6 依赖注入 (DI) 的实现与注解 <a id="di-annotations"></a>
+
+在 Spring IoC 容器中，将托管的 Bean 自动装配到需要它的其他 Bean 中，主要使用依赖注入注解：
+
+| 注解 | 作用说明 | 匹配与装配规则 | 示例（项目源码引用） |
+| :--- | :--- | :--- | :--- |
+| `@Autowired` | 自动注入依赖。Spring 会自动从 IoC 容器中寻找匹配的 Bean 并装配。 | 默认按类型（`byType`）匹配。若容器中存在多个同类型的 Bean，则会退化为按属性名（`byName`）进行匹配。如果仍无法唯一确定，可配合 `@Qualifier` 注解显式指定 Bean 的名称。 | `UserController` 中注入 `UserService` |
+
+---
+
+## 7.7 Bean 的生命周期与作用域
+
+### 7.7.1 Bean 的作用域 (Scope)
+
+在 Spring Boot 中，Bean 的作用域决定了容器如何创建和管理 Bean 的实例。最常用的两种作用域如下：
+
+1. **Singleton（单例，默认作用域）**：
+   - **特点**：在整个 Spring IoC 容器中，一个 Bean 定义只对应一个唯一的实例。所有对该 Bean 的请求都会返回同一个实例。
+   - **应用场景**：无状态的类，如控制器（`@RestController`）、服务实现类（`@Service`）、数据访问层组件（`@Mapper`）等。在 Spring Boot 中，默认所有的 Bean 都是单例的，这能极大地节约内存并提高系统性能。
+2. **Prototype（原型/多例作用域）**：
+   - **特点**：每次从容器中获取该 Bean 时，容器都会创建一个全新的 Bean 实例。
+   - **应用场景**：有状态的类，或者需要避免多线程并发安全问题的类。
+
+### 7.7.2 Bean 的生命周期 (Lifecycle)
+
+Spring IoC 容器管理 Bean 的完整生命周期，主要包括以下几个核心阶段：
+
+1. **实例化 (Instantiation)**：
+   - 容器通过反射机制，调用 Bean 的构造函数，在内存中为 Bean 分配空间并创建对象。
+2. **属性赋值 (Populate Properties / Dependency Injection)**：
+   - 容器解析 Bean 中的依赖注入注解（如 `@Autowired`），在容器中寻找匹配的依赖 Bean，并通过反射技术将其注入到当前 Bean 的成员变量或方法中。
+3. **初始化 (Initialization)**：
+   - 容器执行 Bean 的初始化逻辑。如果 Bean 实现了 `InitializingBean` 接口，会调用其 `afterPropertiesSet()` 方法；或者执行在方法上标注了 `@PostConstruct` 注解的自定义初始化方法。
+4. **生存期 (In Use)**：
+   - Bean 初始化完成，处于就绪状态，可以被应用程序正常调用，执行具体的业务逻辑。
+5. **销毁 (Destruction)**：
+   - 当应用关闭、IoC 容器关闭时，容器会负责执行 Bean 的销毁逻辑。如果 Bean 实现了 `DisposableBean` 接口，会调用其 `destroy()` 方法；或者执行在方法上标注了 `@PreDestroy` 注解的自定义销毁方法，用于释放占用的系统资源（如关闭数据库连接池、关闭线程池等）。
+
+---
+
+## 7.8 项目中的依赖注入闭环实战
+
+在本项目 `SpringBoot/springboot-quickstart` 中，控制反转（IoC）与依赖注入（DI）得到了完美的体现。以下展示了从数据访问层到控制层的完整依赖注入闭环：
+
+### 7.8.1 数据访问层 (Mapper) 声明 <a id="mapper-declaration"></a>
+使用 `@Mapper` 注解，由 MyBatis 框架动态生成代理对象并注册到 Spring IoC 容器中：
+
+```7:13:SpringBoot/springboot-quickstart/src/main/java/com/itheima/springbootmybatis/mapper/UserMapper.java
+@Mapper
+public interface UserMapper {
+
+    @Select("select * from user where id = #{id}")
+    public User findById(Integer id);
+
+}
+```
+
+### 7.8.2 业务逻辑层 (Service) 声明与注入
+使用 `@Service` 注解将业务层实现类注册为 Bean，并使用 `@Autowired` 注解自动注入数据访问层的 `UserMapper` 实例：
+
+```9:19:SpringBoot/springboot-quickstart/src/main/java/com/itheima/springbootmybatis/service/impl/UserServiceImpl.java
+@Service
+public class UserServiceImpl implements UserService {
+
+    @Autowired
+    private UserMapper userMapper;
+
+    @Override
+    public User findById(Integer id) {
+        return userMapper.findById(id);
+    }
+}
+```
+
+### 7.8.3 控制层 (Controller) 声明与注入
+使用 `@RestController` 注解将控制层类注册为 Bean，并使用 `@Autowired` 注解自动注入业务逻辑层的 `UserService` 实例：
+
+```9:21:SpringBoot/springboot-quickstart/src/main/java/com/itheima/springbootquickstart/controller/UserController.java
+@RestController
+public class UserController {
+
+    @Autowired
+    private UserService userService;
+
+
+    @RequestMapping("/findById")
+    public User findById(Integer id){
+      return   userService.findById(id);
+    }
+
+}
+```
+
+### 7.8.4 闭环总结
+通过 Spring IoC 容器：
+1. `UserMapper` 代理对象被自动装配到 `UserServiceImpl` 中。
+2. `UserServiceImpl` 实例被自动装配到 `UserController` 中。
+3. 开发者无需手动编写任何 `new` 对象的代码，各层组件之间的耦合度降到了最低，生命周期完全由容器统一托管，这正是控制反转（IoC）与依赖注入（DI）的核心价值所在。
