@@ -57,8 +57,11 @@
 | [`@Component`](#custom-bean-annotations) | 声明 Bean 的基础注解。若某个类不属于控制层、服务层或持久层，使用此注解注册到 Spring 容器中。 | 通用组件、工具类等。 | 自定义公共工具类组件 |
 | [`@Controller`](#custom-bean-annotations) | `@Component` 的衍生注解，标注在控制层类上，声明其为 Spring MVC 控制器。 | Spring MVC Web 控制器。 | `com.itheima.springbootquickstart.controller.HelloController` |
 | [`@Bean`](#third-party-bean-annotations) | 标注在配置类的方法上，将该方法的返回值作为 Bean 注册到 Spring 容器中。主要用于整合并管理第三方类库提供的类。 | 注册第三方的非自定义类对象。 | 注入外部工具库、连接池等组件 |
-| [`@Import`](#third-party-bean-annotations) | 用于在配置类上快速导入外部类. 可以导入普通的 Bean、配置类（`@Configuration`）或 `ImportSelector` 接口实现类。 | 模块化集成、快速引入第三方依赖包中的配置组件。 | `@Import({CommonConfig.class})` |
+| [`@Import`](#third-party-bean-annotations) | 用于在配置类上快速导入外部类. 可以导入普通的 Bean、配置类（`@Configuration`） or `ImportSelector` 接口实现类。 | 模块化集成、快速引入第三方依赖包中的配置组件。 | `@Import({CommonConfig.class})` |
 | [`@Repository`](#custom-bean-annotations) | `@Component` 的衍生注解，标注在数据访问层类上。由于常与 MyBatis 整合并使用 `@Mapper`，因此在现代 Spring Boot 开发中相对少用。 | 数据访问层/持久层实现组件。 | DAO 实现类 |
+| [`@ConditionalOnProperty`](#753-设置注册生效条件注解-conditional-条件装配) | 配置文件中存在指定的属性且符合特定值（或存在即可）时，才注册该 Bean。 | 根据配置文件参数动态决定是否启用某组件。 | `@ConditionalOnProperty(name = "email.auth", havingValue = "true")` |
+| [`@ConditionalOnMissingBean`](#753-设置注册生效条件注解-conditional-条件装配) | 当 Spring IoC 容器中不存在指定类型或名称的 Bean 时，才注册该 Bean。 | 框架中提供默认配置组件，并允许用户自定义覆盖（自定义优先）。 | `@ConditionalOnMissingBean(EmailProperties.class)` |
+| [`@ConditionalOnClass`](#753-设置注册生效条件注解-conditional-条件装配) | 当当前运行环境/类路径中存在指定的类时，才注册该 Bean。 | 根据是否引入了某第三方依赖决定是否装配对应核心服务。 | `@ConditionalOnClass(name = "com.alibaba.fastjson.JSON")` |
 ---
 
 # 三、 启动入口
@@ -556,6 +559,101 @@ public class SpringbootRegistApplication {
     // 启动方法...
 }
 ```
+
+---
+
+### 7.5.3 设置注册生效条件注解 @Conditional (条件装配) <a id="753-设置注册生效条件注解-conditional-条件装配"></a>
+
+在 Spring Boot 的起步依赖与自动配置底层，**条件装配（Conditional Configuration）**是一项极度核心的技术。Spring Boot 提供了一系列基于 `@Conditional` 派生的条件注解，允许开发者根据配置文件属性、容器中是否存在特定的 Bean 或运行环境/类路径中是否存在某个类，来动态、弹性地决定是否将某个 Bean 注册到 Spring IoC 容器中。
+
+以下是三种最常用且极其重要的条件注解及其语法规则：
+
+#### 1. @ConditionalOnProperty（基于配置属性装配）
+
+* **工作机制**：检查配置文件（如 `application.yml`）中是否存在指定的属性，或者其属性值是否符合期望。只有条件匹配时，标注的 Bean 或配置类才会生效并被注册。
+* **核心属性说明**：
+  - `prefix`：配置文件属性的前缀。
+  - `name` 或 `value`：属性的完整名称（若指定了前缀，则为前缀后的键名）。
+  - `havingValue`：期望的属性值。只有当配置文件中该属性的实际值与 `havingValue` **完全一致**时，才满足装配条件。
+  - `matchIfMissing`：可选属性，默认为 `false`。若设置为 `true`，当配置文件中**完全缺失**该配置项时，也会默认通过匹配并进行 Bean 注册。
+
+##### 示例说明
+只有当配置文件中配置了 `email.auth=true`（若缺失，则不匹配）时，才会向容器注册 `EmailService` 服务的 Bean：
+
+```java
+@Configuration
+public class EmailAutoConfiguration {
+
+    @Bean
+    @ConditionalOnProperty(prefix = "email", name = "auth", havingValue = "true", matchIfMissing = false)
+    public EmailService emailService() {
+        return new EmailServiceImpl();
+    }
+}
+```
+
+---
+
+#### 2. @ConditionalOnMissingBean（基于 Bean 缺失装配）
+
+* **工作机制**：检查当前 Spring IoC 容器中是否**不存**在指定类型或指定名称的 Bean。只有当容器中缺失该 Bean 时，标注的 Bean 注册方法才会执行。
+* **应用场景**：常用于高内聚框架、自定义 Starter 的设计中。为系统提供一个“默认的、保底的”Bean 实现，同时给予使用者最大的自由度——如果用户自己定义并注册了该类型的 Bean，则容器会优先使用用户自定义的 Bean，而自动忽略框架提供的默认装配（即 **“用户自定义优先”** 原则）。
+* **核心属性说明**：
+  - `value`：检查容器中是否缺失指定 Class 类型的 Bean（最常用）。
+  - `name`：检查容器中是否缺失指定名称（`id`）的 Bean。
+
+##### 示例说明
+如果用户自己没有注册 `EmailProperties` 类型的 Bean，Spring Boot 就会自动执行该方法注册默认的配置 Bean：
+
+```java
+@Configuration
+public class PropertiesConfiguration {
+
+    @Bean
+    @ConditionalOnMissingBean(EmailProperties.class)
+    public EmailProperties defaultEmailProperties() {
+        // 创建并返回默认的邮件配置对象作为保底实现
+        EmailProperties properties = new EmailProperties();
+        properties.host = "smtp.default.com";
+        return properties;
+    }
+}
+```
+
+---
+
+#### 3. @ConditionalOnClass（基于类路径存在装配）
+
+* **工作机制**：检查当前应用程序的运行环境/类路径（Classpath）中是否**存在**指定的类。只有当类路径下存在该类时（即引入了对应的第三方依赖 Jar 包），标注的配置或 Bean 注册才会生效。
+* **应用场景**：用于编写兼容性极强的通用组件或第三方 Starter。根据项目是否显式在 `pom.xml` 中引入了某个技术依赖，自动决策是否装配对应的集成服务。
+* **核心属性说明**：
+  - `value`：检查类路径中是否存在指定的 Class 类型（最常用）。
+  - `name`：通过全类名字符串检查类路径中是否存在该类（常用于避免在未引入 Jar 包时由于编译期找不到 Class 类而报错的场景）。
+
+##### 示例说明
+只有当当前项目类路径下存在 Fastjson 库中的 `com.alibaba.fastjson.JSON` 类（即项目在 `pom.xml` 中引入了 fastjson 依赖）时，才会注册自定义的 JSON 格式化转换器 Bean：
+
+```java
+@Configuration
+public class JacksonAutoConfiguration {
+
+    @Bean
+    @ConditionalOnClass(name = "com.alibaba.fastjson.JSON")
+    public FastJsonHttpMessageConverter fastJsonHttpMessageConverter() {
+        return new FastJsonHttpMessageConverter();
+    }
+}
+```
+
+---
+
+#### 4. 三大条件注解对比总结
+
+| 条件注解名称 | 判定维度 | 注册生效条件 | 核心应用场景与作用 |
+| :--- | :--- | :--- | :--- |
+| **`@ConditionalOnProperty`** | **配置文件属性** | 配置文件中存在对应属性且其值等于 `havingValue`（或设置了 `matchIfMissing=true` 且配置缺失）。 | **动态配置开关**。例如：根据配置文件中 `email.auth` 的真假一键启用或禁用邮件认证发送功能。 |
+| **`@ConditionalOnMissingBean`** | **Spring 容器环境** | 当前 Spring IoC 容器中**尚未注册**该指定类型或名称的 Bean。 | **框架默认保底与自定义覆盖（用户优先）**。例如：框架提供默认的数据加密 Bean，但若用户自行实现了加密组件，则自动退让。 |
+| **`@ConditionalOnClass`** | **JVM 类路径 (JVM Classpath)** | 当前运行环境中**存在**指定的类文件（通过引入相关依赖 Jar 包物理引入）。 | **多框架自适应整合（多路分支适配）**。例如：根据用户引入的是 MySQL 驱动还是 Oracle 驱动，自动选择装配哪种数据库方言解析器。 |
 
 ---
 
