@@ -16,7 +16,7 @@
 ```
 
 ## 1.2 起步依赖 (Starters)
-通过引入一个 Starter，即可自动引入该功能所需的所有相关依赖。
+通过引入一个 Starter，即可**自动引入**该功能所需的所有相关依赖。
 
 | 依赖名称 | 作用 | 对应配置项 / 备注 |
 | :--- | :--- | :--- |
@@ -395,9 +395,7 @@ public class SpringbootMybatisApplication {
 
 控制反转是一种面向对象编程的设计原则，用以降低代码之间的耦合度。
 
-1. **传统开发模式（控制在内）**：
-   在没有 IoC 容器时，如果类 A 依赖类 B，类 A 必须在内部通过 `new B()` 的方式主动创建并装配 B 的实例。这种方式下，类 A 牢牢控制着依赖对象 B 的生命周期。一旦类 B 的构造函数发生变化，或者需要替换为类 B 的子类，类 A 的内部代码就必须进行修改，导致系统耦合度极高。
-2. **IoC 开发模式（控制反转）**：
+1. **IoC 开发模式（控制反转）**：
    在引入 IoC 容器后，类 A 不再主动创建类 B。类 A 只需要声明自己需要类 B（例如通过成员变量配合 `@Autowired` 注解），而类 B 的实例化、初始化以及与类 A 的装配工作，全部交由外部的 IoC 容器来完成。
    对象的控制权从“类 A 内部”转移到了“外部 IoC 容器”，这种控制权的转移就是**控制反转**。
 
@@ -406,17 +404,14 @@ public class SpringbootMybatisApplication {
 IoC 容器是 Spring 框架的核心，负责管理应用中所有对象的生命周期和依赖关系。
 
 1. **容器的本质**：
-   IoC 容器在物理上可以理解为一个高级的“工厂”或“注册表”。它在系统启动时，通过读取配置元数据（在 Spring Boot 中主要是通过 `@Component`、`@Service`、`@Repository`、`@Controller`、`@Configuration` 等注解），识别出哪些类需要交给容器管理。
+   IoC 容器在物理上可以理解为一个高级的“工厂”或“注册表”。它在系统启动时，通过读取配置元数据（在 Spring Boot 中主要是通过 `@Component`、`@Service`、`@Repository`、`@Controller`、`@Configuration` 等注解），**识别出哪些类需要交给容器管理**。
 2. **Bean 的概念**：
    在 Spring 的世界中，凡是被 IoC 容器所实例化、组装并管理的对象，都称为 **Bean**。
+   
 3. **核心接口**：
+   
    - `BeanFactory`：Spring 框架最底层的核心接口，提供了最基础的 IoC 容器功能，负责 Bean 的定义、加载、实例化和依赖注入，采用延迟加载（Lazy-loading）策略。
    - `ApplicationContext`：`BeanFactory` 的子接口，是目前开发中实际使用的 IoC 容器。它在继承了 `BeanFactory` 所有功能的基础上，提供了更丰富的企业级支持，例如国际化（i18n）、事件传播、资源加载等。并且，`ApplicationContext` 默认在容器启动时就完成所有单例 Bean 的实例化与初始化（预加载策略）。
-4. **IoC 容器的底层工作流程**：
-   - **扫描与定义（Bean Definition）**：Spring Boot 启动时，通过启动类上的 `@SpringBootApplication` 隐式包含的组件扫描机制（或显式声明的 `@ComponentScan`，详见 [6.4.1 组件扫描范围与包结构避坑说明](#641-组件扫描范围与包结构避坑说明)），对指定的包路径进行扫描。当扫描到类上声明了 `@Component` 及其派生注解时，容器会解析这些类，并将其元数据（如类名、作用域、是否懒加载等）封装为 `BeanDefinition` 对象，注册到容器内部的 `BeanDefinitionRegistry` 中。
-   - **实例化与依赖注入（DI）**：容器根据注册的 `BeanDefinition` 创建 Bean 的实例。在实例化过程中，如果发现 Bean 内部标注了 `@Autowired` 等依赖注入注解，容器会自动在容器中寻找匹配的 Bean 实例，并通过反射技术将其注入到目标对象中，从而建立对象之间的依赖关系。
-   - **初始化与就绪**：在依赖注入完成后，容器会执行 Bean 的初始化方法（如执行标注了 `@PostConstruct` 的方法，或调用实现了 `InitializingBean` 接口的初始化逻辑）。此后，Bean 进入就绪状态，可以被应用程序正常调用。
-   - **销毁阶段**：当应用程序关闭、IoC 容器关闭时，容器会负责执行 Bean 的销毁逻辑（如执行标注了 `@PreDestroy` 的方法），释放占用的系统资源。
 
 ## 7.3 IoC 与 依赖注入 (DI) 的关系
 
@@ -425,17 +420,6 @@ IoC 与 DI 是同一概念在不同维度下的表述：
 - **DI（Dependency Injection，依赖注入）** 是**具体实现手段**。它描述了容器在运行期间，动态地将依赖对象注入到目标对象中的具体动作。
 
 例如，当容器发现 `UserController` 依赖 `UserService` 时，容器会先实例化 `UserService`，然后通过反射技术，将 `UserService` 的实例注入到 `UserController` 的成员变量中。这个过程就是依赖注入。
-
-## 7.4 为什么需要 IoC 容器（核心价值）
-
-1. **极端解耦**：
-   高层模块不依赖低层模块的物理实现，双方都依赖于抽象。接口与实现彻底分离，便于在不修改调用方代码的前提下，灵活替换底层实现。
-2. **统一生命周期管理**：
-   Bean 的创建、初始化（如 `@PostConstruct`）、属性填充、代理对象生成（如 AOP 织入、MyBatis 代理）、销毁（如 `@PreDestroy`）等复杂的生命周期阶段，全部由容器标准化执行，避免了手动管理内存和连接的混乱。
-3. **极佳的可测试性**：
-   由于依赖是通过注入方式提供的，在进行单元测试时，可以非常轻松地使用 Mock 框架（如 Mockito）生成虚假依赖注入到被测类中，而不需要真正启动数据库或外部服务。
-4. **无缝集成 AOP（面向切面编程）**：
-   because 所有 Bean 都由容器创建，容器可以在返回 Bean 实例前，通过动态代理技术（JDK 动态代理或 CGLIB）为其织入事务管理、安全检查、性能监控、日志记录等横切关注点，而无需在业务代码中混杂这些非业务逻辑。
 
 ---
 
@@ -451,8 +435,6 @@ IoC 与 DI 是同一概念在不同维度下的表述：
 * **[`@Controller`](#core-annotations)**：`@Component` 的衍生注解。声明该类是一个 Web 层的控制器组件，标注在 Spring MVC 控制器类上（在现代 RESTful 接口开发中，通常使用组合注解 `@RestController`）。
 * **[`@Service`](#core-annotations)**：`@Component` 的衍生注解。声明该类是业务逻辑层的 Service 组件，标注在 Service 业务逻辑实现类上（如项目中的 `UserServiceImpl` 类）。
 * **[`@Repository`](#core-annotations)**：`@Component` 的衍生注解。声明该类是数据访问层的 DAO 组件，标注在传统的数据库访问实现类上（由于现代 Spring Boot 与 MyBatis/MyBatis-Plus 整合中，数据访问层接口标注有独立的 [`@Mapper`](#mapper-declaration) 注解，此注解在实际开发中使用较少）。
-
-> **知识关联**：关于上述四大注解的基础作用说明、应用场景以及具体的项目实战示例，请参阅 [二、核心注解](#core-annotations) 汇总表中的对应条目。
 
 ---
 
@@ -570,12 +552,15 @@ public class SpringbootRegistApplication {
 
 #### 1. @ConditionalOnProperty（基于配置属性装配）
 
-* **工作机制**：检查配置文件（如 `application.yml`）中是否存在指定的属性，或者其属性值是否符合期望。只有条件匹配时，标注的 Bean 或配置类才会生效并被注册。
+* **工作机制**：检查配置文件（如 `application.yml`）中是否存在指定的属性，或者其属性值是否符合期望。**只有条件匹配时，标注的 Bean 或配置类才会生效并被注册**。
 * **核心属性说明**：
-  - `prefix`：配置文件属性的前缀。
-  - `name` 或 `value`：属性的完整名称（若指定了前缀，则为前缀后的键名）。
-  - `havingValue`：期望的属性值。只有当配置文件中该属性的实际值与 `havingValue` **完全一致**时，才满足装配条件。
-  - `matchIfMissing`：可选属性，默认为 `false`。若设置为 `true`，当配置文件中**完全缺失**该配置项时，也会默认通过匹配并进行 Bean 注册。
+
+| 属性 | 说明 |
+| :--- | :--- |
+| `prefix` | 配置文件属性的前缀。 |
+| `name` 或 `value` | 属性的完整名称（若指定了前缀，则为前缀后的键名）。 |
+| `havingValue` | 期望的属性值。只有当配置文件中该属性的实际值与 `havingValue` **完全一致**时，才满足装配条件。 |
+| `matchIfMissing` | 可选属性，默认为 `false`。若设置为 `true`，当配置文件中**完全缺失**该配置项时，也会默认通过匹配并进行 Bean 注册。 |
 
 ##### 示例说明
 只有当配置文件中配置了 `email.auth=true`（若缺失，则不匹配）时，才会向容器注册 `EmailService` 服务的 Bean：
@@ -596,7 +581,7 @@ public class EmailAutoConfiguration {
 
 #### 2. @ConditionalOnMissingBean（基于 Bean 缺失装配）
 
-* **工作机制**：检查当前 Spring IoC 容器中是否**不存**在指定类型或指定名称的 Bean。只有当容器中缺失该 Bean 时，标注的 Bean 注册方法才会执行。
+* **工作机制**：检查当前 Spring IoC 容器中是否**不存在**指定类型或指定名称的 Bean。只有当容器中**缺失该 Bean 时，标注的 Bean 注册方法才会执行。**
 * **应用场景**：常用于高内聚框架、自定义 Starter 的设计中。为系统提供一个“默认的、保底的”Bean 实现，同时给予使用者最大的自由度——如果用户自己定义并注册了该类型的 Bean，则容器会优先使用用户自定义的 Bean，而自动忽略框架提供的默认装配（即 **“用户自定义优先”** 原则）。
 * **核心属性说明**：
   - `value`：检查容器中是否缺失指定 Class 类型的 Bean（最常用）。
@@ -755,3 +740,218 @@ public class UserController {
 1. `UserMapper` 代理对象被自动装配到 `UserServiceImpl` 中。
 2. `UserServiceImpl` 实例被自动装配到 `UserController` 中。
 3. 开发者无需手动编写任何 `new` 对象的代码，各层组件之间的耦合度降到了最低，生命周期完全由容器统一托管，这正是控制反转（IoC）与依赖注入（DI）的核心价值所在。
+
+---
+
+# 八、 自定义 Starter
+
+在 Spring Boot 中，起步依赖（Starter）是其提供的一项极其优秀的设计。它能够将某个功能模块所需的所有依赖、自动配置类、属性配置等封装在一起，实现“开箱即用”与“即插即用”。
+
+## 8.1 什么是 Starter
+
+Starter 是一个高内聚的依赖双子星模块。为了遵循单一职责原则，一个完整的 Starter 通常由两个核心模块共同组成：
+
+1. **自动配置模块 (`xxx-spring-boot-autoconfigure`)**：
+   - 包含该功能模块的所有业务代码、配置类、属性绑定类等。
+   - 负责实现具体的自动配置逻辑，并定义 Bean 的注册与装配规则。
+2. **起步依赖模块 (`xxx-spring-boot-starter`)**：
+   - 不包含任何 Java 业务代码，仅仅是一个 Maven 项目。
+   - 它的 `pom.xml` 中会引入上述的 `autoconfigure` 自动配置模块，以及该功能所需的其他第三方依赖。
+   - 使用者在项目中只需引入此起步依赖，即可一键启用该模块的全部功能。
+
+### 8.1.1 命名规范
+
+为了区分官方提供的 Starter 与第三方或个人自定义的 Starter，Spring Boot 制定了严格的命名规范：
+
+| 类别 | 命名格式 | 示例 | 备注说明 |
+| :--- | :--- | :--- | :--- |
+| **官方 Starter** | `spring-boot-starter-xxx` | `spring-boot-starter-webmvc` | 官方提供的核心起步依赖，前缀固定。 |
+| **自定义 Starter** | `xxx-spring-boot-starter` | `dmybatis-spring-boot-starter` | 第三方或个人自定义的起步依赖，前缀为技术/组织名。 |
+
+---
+
+## 8.2 自动配置核心原理回顾
+
+Spring Boot 的自动配置（Auto-Configuration）是基于 `@SpringBootApplication` 中集成的 `@EnableAutoConfiguration` 注解实现的。
+
+1. **加载机制**：
+   - 在应用启动时，Spring Boot 会通过 `AutoConfigurationImportSelector` 扫描类路径下所有 Jar 包中的 `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports` 配置文件。
+   - 该文件中配置了所有候选的自动配置类（全类名）。
+2. **条件过滤**：
+   - Spring Boot 会读取这些自动配置类上声明的各种条件注解（如 `[@ConditionalOnClass](#753-设置注册生效条件注解-conditional-条件装配)`、`[@ConditionalOnMissingBean](#753-设置注册生效条件注解-conditional-条件装配)`、`[@ConditionalOnProperty](#753-设置注册生效条件注解-conditional-条件装配)` 等），动态决定是否将这些配置类中定义的 Bean 注册到 IoC 容器中。
+
+---
+
+## 8.3 自定义 Starter 核心步骤
+
+开发一个自定义 Starter 的标准步骤如下：
+
+1. **创建 `xxx-spring-boot-autoconfigure` 模块**：
+   - 引入 `spring-boot-starter` 基础起步依赖。
+   - 编写属性配置类（使用 `[@ConfigurationProperties](#542-configurationproperties-批量绑定)` 绑定自定义配置前缀）。
+   - 编写自动配置类（使用 `[@Configuration](#core-annotations)` 声明为配置类，配合 `[@Bean](#third-party-bean-annotations)` 注册组件，并使用 `[@Conditional](#753-设置注册生效条件注解-conditional-条件装配)` 相关注解实现条件装配）。
+   - 在 `src/main/resources/` 下创建 `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports` 文件，并将自动配置类的全类名写入其中。
+2. **创建 `xxx-spring-boot-starter` 模块**：
+   - 这是一个空的 Maven 模块，无需编写任何代码。
+   - 在其 `pom.xml` 中引入 `xxx-spring-boot-autoconfigure` 模块。
+
+---
+
+## 8.4 实战案例：自定义 MyBatis Starter (dmybatis)
+
+本节以自定义一个名为 `dmybatis` 的 MyBatis 起步依赖为例，展示自定义 Starter 的完整实现过程。
+
+### 8.4.1 创建自动配置模块 dmybatis-spring-boot-autoconfigure
+
+#### 1. 声明 Maven 依赖 (pom.xml)
+在自动配置模块中，需要引入 Spring Boot 的基础起步依赖、MyBatis 核心依赖以及 Spring 整合依赖：
+
+```xml
+<dependencies>
+    <!-- Spring Boot 核心起步依赖 -->
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter</artifactId>
+    </dependency>
+    <!-- MyBatis 核心依赖 -->
+    <dependency>
+        <groupId>org.mybatis</groupId>
+        <artifactId>mybatis</artifactId>
+        <version>3.5.13</version>
+    </dependency>
+    <!-- MyBatis 与 Spring 整合依赖 -->
+    <dependency>
+        <groupId>org.mybatis</groupId>
+        <artifactId>mybatis-spring</artifactId>
+        <version>3.0.2</version>
+    </dependency>
+</dependencies>
+```
+
+#### 2. 编写属性配置类 (MybatisProperties.java)
+使用 `[@ConfigurationProperties](#542-configurationproperties-批量绑定)` 绑定配置文件中以 `dmybatis` 为前缀的属性：
+
+```java
+@ConfigurationProperties(prefix = "dmybatis")
+public class MybatisProperties {
+
+    // MyBatis 映射文件存放路径
+    private String mapperLocations;
+
+    // 实体类所在包路径
+    private String typeAliasesPackage;
+
+    public String getMapperLocations() {
+        return mapperLocations;
+    }
+
+    public void setMapperLocations(String mapperLocations) {
+        this.mapperLocations = mapperLocations;
+    }
+
+    public String getTypeAliasesPackage() {
+        return typeAliasesPackage;
+    }
+
+    public void setTypeAliasesPackage(String typeAliasesPackage) {
+        this.typeAliasesPackage = typeAliasesPackage;
+    }
+}
+```
+
+#### 3. 编写自动配置类 (MybatisAutoConfiguration.java)
+定义自动配置类，在其中注册 MyBatis 的核心组件 `SqlSessionFactory`，并使用条件注解确保弹性装配：
+
+```java
+@Configuration
+@EnableConfigurationProperties(MybatisProperties.class)
+@ConditionalOnClass(SqlSessionFactory.class)
+public class MybatisAutoConfiguration {
+
+    // 注入自定义的属性配置类
+    @Autowired
+    private MybatisProperties mybatisProperties;
+
+    // 注册 SqlSessionFactory 到 Spring 容器中
+    @Bean
+    @ConditionalOnMissingBean(SqlSessionFactory.class)
+    public SqlSessionFactory sqlSessionFactory(DataSource dataSource) throws Exception {
+        SqlSessionFactoryBean factoryBean = new SqlSessionFactoryBean();
+        // 设置数据源
+        factoryBean.setDataSource(dataSource);
+        // 设置实体类别名包路径
+        if (mybatisProperties.getTypeAliasesPackage() != null) {
+            factoryBean.setTypeAliasesPackage(mybatisProperties.getTypeAliasesPackage());
+        }
+        return factoryBean.getObject();
+    }
+}
+```
+
+#### 4. 创建自动配置文件 (AutoConfiguration.imports)
+在 `src/main/resources/` 目录下创建 `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports` 文件，并写入自动配置类的全类名：
+
+```text
+com.itheima.dmybatis.autoconfigure.MybatisAutoConfiguration
+```
+
+---
+
+### 8.4.2 创建起步依赖模块 dmybatis-spring-boot-starter
+
+这是一个空的 Maven 模块，不包含任何 Java 源码。其核心作用是作为依赖聚合器，向外部提供一键引入的能力。
+
+#### 1. 声明 Maven 依赖 (pom.xml)
+在其 `pom.xml` 中引入自动配置模块，以及数据库连接池等基础依赖：
+
+```xml
+<dependencies>
+    <!-- 引入自动配置模块 -->
+    <dependency>
+        <groupId>com.itheima</groupId>
+        <artifactId>dmybatis-spring-boot-autoconfigure</artifactId>
+        <version>1.0.0</version>
+    </dependency>
+    <!-- 引入数据库连接池起步依赖 -->
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-jdbc</artifactId>
+    </dependency>
+</dependencies>
+```
+
+---
+
+### 8.4.3 外部项目引入与测试
+
+当自定义 Starter 开发并安装到 Maven 本地仓库后，其他 Spring Boot 项目即可直接引入并使用。
+
+#### 1. 引入依赖
+在需要使用 MyBatis 的业务项目的 `pom.xml` 中引入自定义的 Starter：
+
+```xml
+<dependency>
+    <groupId>com.itheima</groupId>
+    <artifactId>dmybatis-spring-boot-starter</artifactId>
+    <version>1.0.0</version>
+</dependency>
+```
+
+#### 2. 配置属性
+在业务项目的 `application.yml` 中配置数据库连接信息以及自定义的 `dmybatis` 属性：
+
+```yaml
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/mybatis
+    username: root
+    password: 123
+
+dmybatis:
+  type-aliases-package: com.itheima.pojo
+```
+
+#### 3. 运行测试
+启动业务项目，Spring Boot 会自动加载 `dmybatis-spring-boot-starter`，进而加载 `dmybatis-spring-boot-autoconfigure` 中的 `MybatisAutoConfiguration` 配置类。由于容器中存在 `DataSource` 且类路径下有 `SqlSessionFactory` 类，系统将自动创建 `SqlSessionFactory` 实例并注入到 Spring 容器中，整个 MyBatis 环境即告搭建完成，开发者可直接编写 Mapper 接口进行数据库交互。
+
