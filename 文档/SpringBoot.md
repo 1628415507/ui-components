@@ -62,6 +62,9 @@
 | [`@ConditionalOnProperty`](#753-设置注册生效条件注解-conditional-条件装配) | 配置文件中存在指定的属性且符合特定值（或存在即可）时，才注册该 Bean。 | 根据配置文件参数动态决定是否启用某组件。 | `@ConditionalOnProperty(name = "email.auth", havingValue = "true")` |
 | [`@ConditionalOnMissingBean`](#753-设置注册生效条件注解-conditional-条件装配) | 当 Spring IoC 容器中不存在指定类型或名称的 Bean 时，才注册该 Bean。 | 框架中提供默认配置组件，并允许用户自定义覆盖（自定义优先）。 | `@ConditionalOnMissingBean(EmailProperties.class)` |
 | [`@ConditionalOnClass`](#753-设置注册生效条件注解-conditional-条件装配) | 当当前运行环境/类路径中存在指定的类时，才注册该 Bean。 | 根据是否引入了某第三方依赖决定是否装配对应核心服务。 | `@ConditionalOnClass(name = "com.alibaba.fastjson.JSON")` |
+| [`@Validated`](#93-基础校验实战简单参数校验) | 标注在类或方法参数上，开启 Spring Validation 参数校验机制，支持分组校验。 | 控制器或业务层参数校验。 | `com.itheima.controller.UserController` |
+| [`@RestControllerAdvice`](#97-全局异常统一处理-global-exception-handling) | 组合注解，集成了 `@ControllerAdvice` 和 `@ResponseBody`，用于定义全局异常处理器，将返回值直接作为 JSON 响应体返回。 | 全局异常处理与统一响应。 | `com.itheima.exception.GlobalExceptionHandler` |
+| [`@ExceptionHandler`](#97-全局异常统一处理-global-exception-handling) | 标注在全局异常处理器的方法上，指定该方法需要捕获并处理的异常类型。 | 捕获特定异常并进行定制化处理。 | `@ExceptionHandler(Exception.class)` |
 ---
 
 # 三、 启动入口
@@ -257,20 +260,38 @@ MyBatis 是 Java 领域极其流行的优秀持久层框架。Spring Boot 通过
 
 > **注意**：在实际项目中，除了 MyBatis 的 Starter 起步依赖外，通常还需要引入对应的数据库驱动依赖（如 `mysql-connector-j`）以使 Spring Boot 底层的物理数据源可以正确装配并通信。
 
-## 6.2 数据库连接配置 (application.yml)
+## 6.2 数据库与 MyBatis 配置 (application.yml)
 
-Spring Boot 能够根据数据源的前缀 `spring.datasource` 自动装配数据源连接池。
+在 Spring Boot 项目中，通常在 `application.yml` 中配置数据库连接信息以及 MyBatis 框架的核心行为。
 
-根据实际开发场景，可在 `application.yml` 中进行如下基础连接配置：
+### 6.2.1 配置示例
 
-```yaml
+```yaml 1:15:SpringBoot/big-event/src/main/resources/application.yml
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/mybatis
-    username: root  #（换成真实数据库账号和密码）
-    password: 123  #（换成真实数据库账号和密码）
+    url: jdbc:mysql://localhost:3306/big_event
+    username: root
+    password: 1234
+
+mybatis:
+  configuration:
+    map-underscore-to-camel-case: true #开启驼峰命名和下划线命名的自动转换
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
 ```
+
+> **注意**：示例中的数据库连接信息（如 `url`、`username`、`password`）需根据实际开发环境进行替换。
+
+### 6.2.2 核心配置项解析
+
+| 配置项 | 作用 | 应用场景 | 示例值 |
+| :--- | :--- | :--- | :--- |
+| `spring.datasource.driver-class-name` | 指定数据库驱动类名 | 建立数据库物理连接时使用 | `com.mysql.cj.jdbc.Driver` |
+| `spring.datasource.url` | 指定数据库连接 URL | 指定数据库地址、端口、库名及连接参数 | `jdbc:mysql://localhost:3306/big_event` |
+| `spring.datasource.username` | 数据库登录用户名 | 数据库安全认证 | `root` |
+| `spring.datasource.password` | 数据库登录密码 | 数据库安全认证 | `1234` |
+| `mybatis.configuration.map-underscore-to-camel-case` | 开启驼峰命名和下划线命名的自动转换 | 数据库表字段为下划线命名（如 `create_time`），Java 实体属性为驼峰命名（如 `createTime`）时，自动完成映射 | `true` |
+| `mybatis.configuration.log-impl` | 指定 MyBatis 的日志实现类 | 在开发调试阶段，将 SQL 执行详情打印到控制台，便于排查问题 | `org.apache.ibatis.logging.stdout.StdOutImpl` |
 
 ## 6.3 三层架构设计与实现 (Controller-Service-Mapper)
 
@@ -954,4 +975,464 @@ dmybatis:
 
 #### 3. 运行测试
 启动业务项目，Spring Boot 会自动加载 `dmybatis-spring-boot-starter`，进而加载 `dmybatis-spring-boot-autoconfigure` 中的 `MybatisAutoConfiguration` 配置类。由于容器中存在 `DataSource` 且类路径下有 `SqlSessionFactory` 类，系统将自动创建 `SqlSessionFactory` 实例并注入到 Spring 容器中，整个 MyBatis 环境即告搭建完成，开发者可直接编写 Mapper 接口进行数据库交互。
+
+---
+
+# 九、 项目实战：Spring Validation 参数校验与全局异常处理
+
+
+
+Spring Boot 提供了 `spring-boot-starter-validation` 起步依赖，基于 Jakarta Bean Validation（JSR-380）规范，通过声明式注解实现优雅的参数校验。当校验失败时，系统会抛出异常。通过结合 [`@RestControllerAdvice`](#97-全局异常统一处理-global-exception-handling) 与 [`@ExceptionHandler`](#97-全局异常统一处理-global-exception-handling)，可以实现全局异常的统一捕获与友好响应。
+
+## 9.1 引入 Validation 起步依赖 (pom.xml)
+
+在项目的 `pom.xml` 中引入 Spring Validation 起步依赖：
+
+```xml 48:53:SpringBoot/big-event/pom.xml
+    <!--validation依赖-->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-validation</artifactId>
+    </dependency>
+```
+
+---
+
+## 9.2 基础校验实战：简单参数校验
+
+### 9.2.1 业务场景
+在用户注册与登录接口中，需要校验前端传入的用户名 `username` 和密码 `password` 必须为 5 到 16 位的非空字符。
+
+### 9.2.2 核心步骤
+1. 在 Controller 类上添加 [`@Validated`](#92-基础校验实战简单参数校验) 注解，开启方法参数校验。
+2. 在方法参数前添加校验注解（如 `@Pattern(regexp = "^\\S{5,16}$")`），指定正则表达式校验规则。
+
+### 9.2.3 代码示例
+
+```java 23:47:SpringBoot/big-event/src/main/java/com/itheima/controller/UserController.java
+@Validated //开启参数校验
+public class UserController {
+
+    @Autowired //自动注入UserService对象
+    private UserService userService;
+    @Autowired //自动注入StringRedisTemplate对象
+    private StringRedisTemplate stringRedisTemplate;
+
+    @PostMapping("/register")
+    // @Pattern(regexp = "^\\S{5,16}$") 参数校验
+    public Result register(@Pattern(regexp = "^\\S{5,16}$") String username, @Pattern(regexp = "^\\S{5,16}$") String password) {
+
+        //查询用户
+        User u = userService.findByUserName(username);
+        if (u == null) {
+            //没有占用
+            //注册
+            userService.register(username, password);
+            return Result.success();
+        } else {
+            //占用
+            return Result.error("用户名已被占用");
+        }
+    }
+```
+
+---
+
+## 9.3 实体对象校验：嵌套与级联校验
+
+### 9.3.1 业务场景
+在更新用户信息接口中，接收的是 JSON 格式的 User 对象，需要对对象内部的多个属性（如邮箱格式、昵称长度等）进行校验。
+
+### 9.3.2 核心步骤
+1. 在 Controller 方法参数上使用 `@RequestBody @Validated` 标注实体参数，触发对该实体类内部属性的校验。
+2. 在实体类（如 `User.java`）的成员变量上标注具体的校验注解：
+   - `@NotNull`：不能为 null。
+   - `@NotEmpty`：不能为 null 且长度必须大于 0（适用于字符串、集合等）。
+   - `@Email`：必须符合邮箱格式。
+   - `@Pattern`：正则表达式校验。
+
+### 9.3.3 代码示例
+
+- **Controller 层方法**：
+
+```java 84:88:SpringBoot/big-event/src/main/java/com/itheima/controller/UserController.java
+    @PutMapping("/update")
+    public Result update(@RequestBody @Validated User user) {
+        userService.update(user);
+        return Result.success();
+    }
+```
+
+- **实体类定义**：
+
+```java 15:35:SpringBoot/big-event/src/main/java/com/itheima/pojo/User.java
+@Data //自动生成setter  getter  toString 方法
+public class User {
+    @NotNull
+    private Integer id;//主键ID
+    private String username;//用户名
+
+    @JsonIgnore//让springmvc把当前对象转换成json字符串的时候,忽略password,最终的json字符串中就没有password这个属性了
+    private String password;//密码
+
+    @NotEmpty
+    @Pattern(regexp = "^\\S{1,10}$")
+    private String nickname;//昵称
+
+    @NotEmpty
+    @Email
+    private String email;//邮箱
+    private String userPic;//用户头像地址
+    private LocalDateTime createTime;//创建时间
+    private LocalDateTime updateTime;//更新时间
+}
+```
+
+---
+
+## 9.4 进阶校验一：分组校验 (Validation Groups)
+
+### 9.4.1 业务场景
+在新增文章分类和更新文章分类时，使用的是同一个实体类 `Category`。但两者的校验规则不同：
+- **新增分类**：主键 `id` 必须为 null（由数据库自增，前端无需且不能传入）。
+- **更新分类**：主键 `id` 必须非 null（用于定位需要更新的记录）。
+
+### 9.4.2 核心步骤
+1. 在实体类中定义表示不同校验分组的标识接口（如 `Add` 和 `Update`），并继承 `jakarta.validation.groups.Default`。
+2. 在校验注解上通过 `groups` 属性指定该校验项属于哪个分组（如 `@NotNull(groups = Update.class)`）。
+3. 在 Controller 方法中，通过 [`@Validated(Category.Add.class)`](#92-基础校验实战简单参数校验) 或 [`@Validated(Category.Update.class)`](#92-基础校验实战简单参数校验) 指定当前校验生效的分组。
+
+### 9.4.3 代码示例
+
+- **实体类定义**：
+
+```java 11:35:SpringBoot/big-event/src/main/java/com/itheima/pojo/Category.java
+public class Category {
+    @NotNull(groups = Update.class)
+    private Integer id;//主键ID
+    @NotEmpty
+    private String categoryName;//分类名称
+    @NotEmpty
+    private String categoryAlias;//分类别名
+    private Integer createUser;//创建人ID
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime createTime;//创建时间
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime updateTime;//更新时间
+
+    //如果说某个校验项没有指定分组,默认属于Default分组
+    //分组之间可以继承, A extends B  那么A中拥有B中所有的校验项
+
+
+    public interface Add extends Default {
+
+    }
+
+    public interface Update extends Default{
+
+    }
+}
+```
+
+- **Controller 层方法**：
+
+```java 18:23:SpringBoot/big-event/src/main/java/com/itheima/controller/CategoryController.java
+    @PostMapping
+    public Result add(@RequestBody @Validated(Category.Add.class) Category category){
+        categoryService.add(category);
+        return Result.success();
+    }
+```
+
+```java 36:41:SpringBoot/big-event/src/main/java/com/itheima/controller/CategoryController.java
+    @PutMapping
+    public Result update(@RequestBody @Validated(Category.Update.class) Category category){
+        categoryService.update(category);
+        return Result.success();
+    }
+```
+
+---
+
+## 9.5 进阶校验二：自定义校验注解与校验器 (Custom Validation)
+
+### 9.5.1 业务场景
+文章发布状态 `state` 字段的值只能是 "已发布" 或 "草稿"。现有的标准校验注解无法满足此特定业务规则，需要自定义校验注解。
+
+### 9.5.2 核心步骤
+1. **自定义注解**：定义一个注解（如 `@State`），并使用 `@Constraint(validatedBy = { StateValidation.class })` 指定提供校验规则的校验器类。
+2. **自定义校验器**：编写一个类（如 `StateValidation`）实现 `ConstraintValidator<State, String>` 接口，并重写 `isValid` 方法提供具体的校验逻辑。
+3. **使用注解**：在实体类的属性上标注自定义的 `@State` 注解。
+
+### 9.5.3 代码示例
+
+- **自定义注解定义**：
+
+```java 17:29:SpringBoot/big-event/src/main/java/com/itheima/anno/State.java
+@Documented//元注解
+@Target({ FIELD})//元注解
+@Retention(RUNTIME)//元注解
+@Constraint(validatedBy = { StateValidation.class})//指定提供校验规则的类
+public @interface State {
+    //提供校验失败后的提示信息
+    String message() default "state参数的值只能是已发布或者草稿";
+    //指定分组
+    Class<?>[] groups() default { };
+    //负载  获取到State注解的附加信息
+    Class<? extends Payload>[] payload() default { };
+}
+```
+
+- **自定义校验器类**：
+
+```java 7:26:SpringBoot/big-event/src/main/java/com/itheima/validation/StateValidation.java
+public class StateValidation implements ConstraintValidator<State,String> {
+    /**
+     *
+     * @param value 将来要校验的数据
+     * @param context context in which the constraint is evaluated
+     *
+     * @return 如果返回false,则校验不通过,如果返回true,则校验通过
+     */
+    @Override
+    public boolean isValid(String value, ConstraintValidatorContext context) {
+        //提供校验规则
+        if (value == null){
+            return false;
+        }
+        if (value.equals("已发布") || value.equals("草稿")){
+            return true;
+        }
+        return false;
+    }
+}
+```
+
+- **实体类属性标注**：
+
+```java 13:33:SpringBoot/big-event/src/main/java/com/itheima/pojo/Article.java
+public class Article {
+    private Integer id;// 主键ID
+
+    @NotEmpty
+    @Pattern(regexp = "^\\S{1,10}$")
+    private String title;// 文章标题
+    
+    @NotEmpty
+    private String content;// 文章内容
+    @NotEmpty
+    @URL
+    private String coverImg;// 封面图像
+
+    @State
+    private String state;// 发布状态 已发布|草稿
+    @NotNull
+    private Integer categoryId;// 文章分类id
+    private Integer createUser;// 创建人ID
+    private LocalDateTime createTime;// 创建时间
+    private LocalDateTime updateTime;// 更新时间
+}
+```
+
+---
+
+## 9.6 全局异常统一处理 (Global Exception Handling)
+
+### 9.6.1 工作机制
+- 当参数校验失败时，Spring Boot 会抛出校验异常。
+- 通过在类上添加 [`@RestControllerAdvice`](#97-全局异常统一处理-global-exception-handling) 注解，声明该类为全局异常处理器。
+- 通过在方法上添加 [`@ExceptionHandler(Exception.class)`](#97-全局异常统一处理-global-exception-handling) 注解，指定该方法捕获并处理所有类型的异常，从而避免将原始的异常堆栈信息暴露给前端，实现统一、友好的 JSON 数据响应。
+
+### 9.6.2 代码示例
+
+```java 8:18:SpringBoot/big-event/src/main/java/com/itheima/exception/GlobalExceptionHandler.java
+@RestControllerAdvice
+public class GlobalExceptionHandler {
+
+    // 处理所有异常
+    @ExceptionHandler(Exception.class)
+    public Result handleException(Exception e){
+        e.printStackTrace();
+        // 如果异常消息不为空，则返回异常消息，否则返回操作失败
+        return Result.error(StringUtils.hasLength(e.getMessage())? e.getMessage() : "操作失败");
+    }
+}
+```
+
+---
+
+# 十、 项目实战：拦截器 (Interceptor) 与 ThreadLocal 会话安全控制
+
+在本项目中，由于采用了基于 JWT（JSON Web Token）的无状态登录机制，每个受保护的 API 接口都需要校验请求头中的令牌。为避免在每个 Controller 方法中重复编写校验逻辑，项目引入了 **Spring MVC 拦截器 (Interceptor)** 机制，结合 **ThreadLocal** 进行线程级会话数据隔离，并配合 **Redis** 实现了 Token 的动态失效校验，构建了高效、安全的统一身份认证与会话管理方案。
+
+## 10.1 什么是拦截器 (Interceptor)
+
+拦截器是 Spring MVC 框架提供的一种动态拦截控制技术，类似于 Servlet 规范中的过滤器（Filter）。它主要用于拦截用户的请求，在请求到达具体的 Handler（Controller 控制器）之前、之后以及请求处理完成（视图渲染完毕）后，执行特定的通用业务逻辑（如权限验证、请求日志记录、接口限流等）。
+
+### 10.1.1 拦截器核心方法说明
+
+实现 `org.springframework.web.servlet.HandlerInterceptor` 接口需要重写以下核心方法。它们在请求生命周期中的调用时机和作用如下：
+
+| 方法名 | 调用时机 | 返回值/参数作用 | 典型应用场景 |
+| :--- | :--- | :--- | :--- |
+| `preHandle` | 在请求到达 Controller 方法**之前**执行 | 返回 `boolean`：<br>• `true`：放行，请求继续向下传递；<br>• `false`：拦截，请求中止，需手动通过 `response` 写入响应。 | 统一身份认证、权限校验、请求防重、限流等。 |
+| `postHandle` | 在 Controller 方法处理完毕、视图渲染**之前**执行 | 可以通过 `ModelAndView` 参数对模型数据和视图进行修改。 | 统一向页面中添加公共模型属性、全局日志记录等。 |
+| `afterCompletion` | 在整个请求处理完成、视图渲染完毕（响应已输出）**之后**执行 | 包含 `Exception ex` 参数，可用于捕获和记录请求处理中的异常。 | 释放资源（如清理 `ThreadLocal` 变量）、性能监控（计算请求总耗时）。 |
+
+---
+
+## 10.2 自定义拦截器实现 (LoginInterceptor)
+
+### 10.2.1 业务场景
+在用户访问除登录（`/user/login`）和注册（`/user/register`）以外的所有后台管理接口时，必须携带有效的 JWT 令牌，并且该令牌不能在 Redis 中处于失效状态。
+
+### 10.2.2 核心步骤
+1. 自定义类 `LoginInterceptor` 并实现 `HandlerInterceptor` 接口。
+2. 标注 `@Component` 注解，使其受 Spring 容器管理，以便能够通过 `@Autowired` 自动注入 Redis 模板。
+3. 在 `preHandle` 方法中：
+   - 从 HTTP 请求头的 `Authorization` 字段中获取 Token。
+   - 在 Redis 中查询该 Token 是否存在：如果 Redis 中不存在，说明该 Token 已失效（例如用户已执行退出登录操作），直接抛出异常；如果存在，则解析 Token 获取其中的 Claims。
+   - 将解析出的用户业务数据存储至线程局部变量 `ThreadLocalUtil` 中，方便在后续的 Controller 和 Service 中直接获取当前登录用户信息。
+   - 校验成功返回 `true` 予以放行；若校验失败（抛出异常），则设置 HTTP 响应状态码为 `401`（未授权），返回 `false` 拦截请求。
+4. 在 `afterCompletion` 方法中，调用 `ThreadLocalUtil.remove()` 清理当前线程绑定的数据，避免由于线程池复用导致的内存泄漏或数据脏读。
+
+### 10.2.3 代码示例
+
+- **LoginInterceptor 拦截器类**：
+
+```java 16:52:SpringBoot/big-event/src/main/java/com/itheima/interceptors/LoginInterceptor.java
+@Component
+public class LoginInterceptor implements HandlerInterceptor {
+    @Autowired
+    private StringRedisTemplate stringRedisTemplate;
+    @Override
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+        //令牌验证
+        String token = request.getHeader("Authorization");
+        //验证token
+        try {
+            //从redis中获取相同的token
+            ValueOperations<String, String> operations = stringRedisTemplate.opsForValue();
+            String redisToken = operations.get(token);
+            if (redisToken==null){
+                //token已经失效了
+                throw new RuntimeException();
+            }
+            Map<String, Object> claims = JwtUtil.parseToken(token);
+
+            //把业务数据存储到ThreadLocal中
+            ThreadLocalUtil.set(claims);
+            //放行
+            return true;
+        } catch (Exception e) {
+            //http响应状态码为401
+            response.setStatus(401);
+            //不放行
+            return false;
+        }
+    }
+
+    @Override
+    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
+        //清空ThreadLocal中的数据
+        ThreadLocalUtil.remove();
+    }
+}
+```
+
+- **ThreadLocal 线程局部变量封装类**：
+
+```java 10:29:SpringBoot/big-event/src/main/java/com/itheima/utils/ThreadLocalUtil.java
+public class ThreadLocalUtil {
+    //提供ThreadLocal对象,
+    private static final ThreadLocal THREAD_LOCAL = new ThreadLocal();
+
+    //根据键获取值
+    public static <T> T get(){
+        return (T) THREAD_LOCAL.get();
+    }
+	
+    //存储键值对
+    public static void set(Object value){
+        THREAD_LOCAL.set(value);
+    }
+
+
+    //清除ThreadLocal 防止内存泄漏
+    public static void remove(){
+        THREAD_LOCAL.remove();
+    }
+}
+```
+
+### 10.2.4 ThreadLocal 核心机制小结
+
+在 Spring Boot 统一会话管理中，`ThreadLocal` 扮演了至关重要的角色。结合其实战应用，核心特征归纳如下：
+
+| 核心特征 | 机制原理 | 项目实战应用 |
+| :--- | :--- | :--- |
+| **用来存取数据：`set()` / `get()`** | `ThreadLocal` 提供了 `set(T value)` 和 `get()` 方法，用于在当前线程中绑定和获取特定类型的数据。 | • **存数据**：在 `LoginInterceptor.preHandle` 拦截器中，解析 JWT 得到用户 Claims 后，调用 `ThreadLocalUtil.set(claims)` 绑定到当前线程。<br>• **取数据**：在后续的 Controller 或 Service 中，可直接通过 `ThreadLocalUtil.get()` 获取当前登录用户信息，无需在方法参数间层层传递。 |
+| **存储的数据线程安全** | `ThreadLocal` 为每个线程提供了一个独立的变量副本。每个线程只能读写自己线程本地的变量，不同线程之间的数据完全隔离、互不干扰，从而在多线程并发环境下实现了天然的**线程安全**。 | • Tomcat 采用多线程模型并发处理用户请求，每个请求由独立的工作线程执行。<br>• 即使成百上千个用户并发访问，通过 `ThreadLocal` 隔离，线程 A 的用户数据绝对不会被线程 B 访问或篡改，确保了高并发场景下的会话隔离与安全。 |
+| **用完记得调用 `remove()` 方法释放** | `ThreadLocal` 底层依靠 `ThreadLocalMap` 存储，其 Entry 的 Key（`ThreadLocal` 实例）是弱引用，而 Value 是强引用。若不手动清理，在线程池复用线程的背景下，Value 强引用链无法被 GC 回收，会导致**内存泄漏**，且下一个请求复用该线程时会产生**数据脏读/越权访问**风险。 | • 在 `LoginInterceptor.afterCompletion` 回调方法中（该方法在请求处理完成、响应输出完毕后必然执行），显式调用 `ThreadLocalUtil.remove()` 清理当前线程绑定的数据。<br>• 这一操作 100% 杜绝了 Tomcat 线程复用带来的内存泄漏与会话脏读隐患。 |
+
+---
+
+## 10.3 注册与配置拦截器 (WebConfig)
+
+自定义的拦截器编写完成后，并不会自动生效，必须通过配置类将其注册到 Spring MVC 的拦截器链（`InterceptorRegistry`）中，并显式指定其拦截与排除（放行）的路由规则。
+
+### 10.3.1 核心步骤
+1. 编写配置类 `WebConfig`，并实现 `WebMvcConfigurer` 接口。
+2. 标注 `@Configuration` 注解，声明其为一个 Spring 配置类。
+3. 通过 `@Autowired` 自动注入已交由 Spring 管理的 `LoginInterceptor` 实例。
+4. 重写 `addInterceptors` 方法：
+   - 调用 `registry.addInterceptor(loginInterceptor)` 注册拦截器。
+   - 调用 `excludePathPatterns("/user/login", "/user/register")` 指定排除（免密放行）的路径。
+   - 默认不配置 `addPathPatterns` 时，将拦截所有请求路径（除排除路径外）。
+
+### 10.3.2 代码示例
+
+```java 9:20:SpringBoot/big-event/src/main/java/com/itheima/config/WebConfig.java
+@Configuration // 配置类
+public class WebConfig implements WebMvcConfigurer {
+
+    @Autowired // 自动注入LoginInterceptor对象
+    private LoginInterceptor loginInterceptor;
+
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        //登录接口和注册接口不拦截
+        registry.addInterceptor(loginInterceptor).excludePathPatterns("/user/login","/user/register");
+    }
+}
+```
+
+---
+
+## 10.4 拦截器核心原理与最佳实践
+
+### 10.4.1 Tomcat 线程池模型与 ThreadLocal 内存泄漏防范
+
+1. **Tomcat 线程池模型**：
+   Spring Boot 内置的 Tomcat 容器使用**线程池（Thread Pool）**模式处理并发请求。当一个 HTTP 请求到达服务器时，Tomcat 会从线程池中分配一个工作线程来执行整个请求处理链路（从 Filter、Interceptor 到 Controller、Service、Mapper）。请求处理完成后，该工作线程并不会被销毁，而是被**回收并重新放回线程池**以供下一个请求复用。
+
+2. **ThreadLocal 内存泄漏原理解析**：
+   在 Java 中，`ThreadLocal` 的底层是由每个 `Thread` 内部维护的 `ThreadLocalMap` 实现的。其 Entry 的 Key（即 `ThreadLocal` 变量本身）是弱引用（`WeakReference`），而 Value（即存储的用户 Claims 业务数据）是强引用。
+   - **泄漏链条**：如果请求结束后没有调用 `remove()`，那么只要线程一直存活（由于线程池复用，工作线程几乎是永久存活的），该 Entry 中的 Value 就永远不会被垃圾回收（GC）。随着请求不断积压，不被释放的 Value 会越来越多，最终导致 **JVM 堆内存溢出（OOM: Out Of Memory）**。
+   - **脏读风险**：由于工作线程被复用，若不清理，下一个请求在没有经过 `LoginInterceptor.preHandle` 重写 `ThreadLocal` 之前（如放行接口或意外出错），通过 `ThreadLocalUtil.get()` 可能会读取到上一个请求残留的用户信息，造成极具安全隐患的**会话数据脏读/越权访问**。
+   - **优雅防范方案**：在 `HandlerInterceptor` 的 `afterCompletion` 回调方法中，由于该方法在整个请求链路（包含视图渲染及异常处理）全部完成后必然会被执行，在其中调用 `ThreadLocalUtil.remove()` 可以 100% 确保当前线程中的局部变量被安全、彻底地清空，从而杜绝了内存泄漏与脏读隐患。
+
+### 10.4.2 拦截器 (Interceptor) 与 过滤器 (Filter) 的深度对比
+
+在 Java Web 开发中，拦截器和过滤器都能实现请求的拦截与预处理，但它们的设计基础和执行生命周期截然不同：
+
+| 特性维度 | 过滤器 (Filter) | 拦截器 (Interceptor) |
+| :--- | :--- | :--- |
+| **规范来源** | 基于 **Servlet** 规范，是 Java Web 容器级别的组件。 | 基于 **Spring** 框架，是 Spring MVC 控制器层面的组件。 |
+| **依赖与管理** | 无法直接享受 Spring 容器的便利依赖注入（需要手动获取 Bean），主要运行于 Servlet 容器中。 | 自身由 Spring 容器管理（可直接使用 `@Autowired` 等注入 IOC 容器中的 Bean，例如 `StringRedisTemplate`）。 |
+| **执行时机** | 处于最外层。在请求进入 `DispatcherServlet` **之前**和响应离开 `DispatcherServlet` **之后**执行。 | 处于内部。在请求通过 `DispatcherServlet` 后，但在到达具体的 **Controller 之前**和**之后**执行。 |
+| **拦截范围** | 基于 URL 匹配（如 `/*`），几乎可以过滤所有请求（包括静态资源、JSP、Servlet 等）。 | 主要拦截针对 Controller 的动态请求。可以通过配置细粒度地指定拦截哪些 Controller 映射（如特定 `Path`）。 |
+| **核心机制** | 基于**函数回调**（`FilterChain.doFilter`）实现。 | 基于 **Java 反射机制**（AOP 思想）实现。 |
+| **访问控制能力** | 只能拿到原始的 `HttpServletRequest` 和 `HttpServletResponse`，无法获取请求将被分发到哪个具体的 Controller 方法。 | 可以通过参数 `Object handler` 获取即将执行的 Controller 方法的详细信息（如方法名、注解、类信息等），控制粒度更细。 |
+
 
