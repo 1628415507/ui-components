@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
-@Service
+@Service // 声明这是一个服务类,注入IOC容器
 public class CategoryServiceImpl implements CategoryService {
 
     @Autowired

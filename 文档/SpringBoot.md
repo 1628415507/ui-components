@@ -243,7 +243,7 @@ public class EmailProperties {
 ---
 
 # 六、 整合 MyBatis 数据库交互
-![alt text](image-1.png)
+![alt text](IOC.png)
 MyBatis 是 Java 领域极其流行的优秀持久层框架。Spring Boot 通过起步依赖 `mybatis-spring-boot-starter` 与数据源的自动配置，极大简化了传统 SSM 框架中繁琐的 MyBatis 配置过程。
 
 ## 6.1 整合起步依赖 (pom.xml)
@@ -1172,7 +1172,7 @@ public class Category {
 @Documented//元注解
 @Target({ FIELD})//元注解
 @Retention(RUNTIME)//元注解
-@Constraint(validatedBy = { StateValidation.class})//指定提供校验规则的类
+@Constraint(validatedBy = { StateValidation.class})//指定提供校验规则的类（关联/validation/StateValidation.java）
 public @interface State {
     //提供校验失败后的提示信息
     String message() default "state参数的值只能是已发布或者草稿";

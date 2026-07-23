@@ -3,7 +3,7 @@ package com.itheima.validation;
 import com.itheima.anno.State;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
-
+// 自定义校验
 public class StateValidation implements ConstraintValidator<State,String> {
     /**
      *
