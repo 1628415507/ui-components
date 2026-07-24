@@ -17,7 +17,7 @@ public class FileUploadController {
     public Result<String> upload(MultipartFile file) throws Exception {
         //把文件的内容存储到本地磁盘上
         String originalFilename = file.getOriginalFilename();
-        //保证文件的名字是唯一的,从而防止文件覆盖
+        //使用UUID,保证文件的名字是唯一的,从而防止文件覆盖
         String filename = UUID.randomUUID().toString()+originalFilename.substring(originalFilename.lastIndexOf("."));
         //file.transferTo(new File("C:\\Users\\Administrator\\Desktop\\files\\"+filename));
         String url = AliOssUtil.uploadFile(filename,file.getInputStream());

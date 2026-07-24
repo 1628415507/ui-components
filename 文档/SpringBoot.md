@@ -1344,7 +1344,7 @@ public class GlobalExceptionHandler {
 
 # 十、 项目实战：拦截器 (Interceptor) 与 ThreadLocal 会话安全控制
 
-在本项目中，由于采用了基于 JWT（JSON Web Token）的无状态登录机制，每个受保护的 API 接口都需要校验请求头中的令牌。为避免在每个 Controller 方法中重复编写校验逻辑，项目引入了 **Spring MVC 拦截器 (Interceptor)** 机制，结合 **ThreadLocal** 进行线程级会话数据隔离，并配合 **Redis** 实现了 Token 的动态失效校验，构建了高效、安全的统一身份认证与会话管理方案。
+在本项目中，由于采用了基于 JWT（JSON Web Token）的无状态登录机制，每个受保护的 API 接口都需要校验请求头中的令牌。为避免在每个 Controller 方法中重复编写校验逻辑，项目引入了 **Spring MVC 拦截器 (Interceptor)** 机制，结合 **ThreadLocal** 进行线程级会话数据隔离，并配合 [Redis](#redis-integration) 实现了 Token 的动态失效校验，构建了高效、安全的统一身份认证与会话管理方案。
 
 ## 10.1 什么是拦截器 (Interceptor)
 
@@ -1362,17 +1362,17 @@ public class GlobalExceptionHandler {
 
 ---
 
-## 10.2 自定义拦截器实现 (LoginInterceptor)
+## 10.2 自定义拦截器实现 (LoginInterceptor) <a id="102-自定义拦截器实现-logininterceptor"></a>
 
 ### 10.2.1 业务场景
-在用户访问除登录（`/user/login`）和注册（`/user/register`）以外的所有后台管理接口时，必须携带有效的 JWT 令牌，并且该令牌不能在 Redis 中处于失效状态。
+在用户访问除登录（`/user/login`）和注册（`/user/register`）以外的所有后台管理接口时，必须携带有效的 JWT 令牌，并且该令牌不能在 [Redis](#redis-integration) 中处于失效状态（登录写入、改密删除、拦截器校验的完整链路见 [11.5](#115-业务实战jwt-token-的存取删)）。
 
 ### 10.2.2 核心步骤
 1. 自定义类 `LoginInterceptor` 并实现 `HandlerInterceptor` 接口。
-2. 标注 `@Component` 注解，使其受 Spring 容器管理，以便能够通过 `@Autowired` 自动注入 Redis 模板。
+2. 标注 `@Component` 注解，使其受 Spring 容器管理，以便能够通过 `@Autowired` 自动注入 [`StringRedisTemplate`](#113-通用-apistringredistemplate-与-valueoperations)。
 3. 在 `preHandle` 方法中：
    - 从 HTTP 请求头的 `Authorization` 字段中获取 Token。
-   - 在 Redis 中查询该 Token 是否存在：如果 Redis 中不存在，说明该 Token 已失效（例如用户已执行退出登录操作），直接抛出异常；如果存在，则解析 Token 获取其中的 Claims。
+   - 用 `ValueOperations.get(token)` 查询 Redis：不存在则令牌已失效，抛出异常；存在则再解析 JWT 获取 Claims。
    - 将解析出的用户业务数据存储至线程局部变量 `ThreadLocalUtil` 中，方便在后续的 Controller 和 Service 中直接获取当前登录用户信息。
    - 校验成功返回 `true` 予以放行；若校验失败（抛出异常），则设置 HTTP 响应状态码为 `401`（未授权），返回 `false` 拦截请求。
 4. 在 `afterCompletion` 方法中，调用 `ThreadLocalUtil.remove()` 清理当前线程绑定的数据，避免由于线程池复用导致的内存泄漏或数据脏读。
@@ -1516,4 +1516,132 @@ public class WebConfig implements WebMvcConfigurer {
 | **核心机制** | 基于**函数回调**（`FilterChain.doFilter`）实现。 | 基于 **Java 反射机制**（AOP 思想）实现。 |
 | **访问控制能力** | 只能拿到原始的 `HttpServletRequest` 和 `HttpServletResponse`，无法获取请求将被分发到哪个具体的 Controller 方法。 | 可以通过参数 `Object handler` 获取即将执行的 Controller 方法的详细信息（如方法名、注解、类信息等），控制粒度更细。 |
 
+---
+
+# 十一、 整合 Redis 与 Token 会话管控 <a id="redis-integration"></a>
+
+JWT 本身无状态，无法在服务端主动作废未过期的令牌。本项目引入 Redis，将登录签发的 Token 同步落库并设置与 JWT 一致的过期时间；拦截器校验时除解析 JWT 外，还需确认 Redis 中仍存在该 Token；修改密码后立即删除 Redis 中的 Token，实现服务端强制下线。
+
+## 11.1 引入起步依赖 (pom.xml)
+
+```xml 98:102:SpringBoot/big-event/pom.xml
+    <!--redis坐标-->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-data-redis</artifactId>
+    </dependency>
+```
+
+引入后，Spring Boot 自动装配 Redis 连接工厂，并提供可注入的 `StringRedisTemplate`（键值均为 `String`，适合存放 Token 文本）。父工程与起步依赖机制见 [一、Maven 依赖管理](#maven-pom)。
+
+## 11.2 Redis 连接配置 (application.yml)
+
+```yaml 7:10:SpringBoot/big-event/src/main/resources/application.yml
+  data:
+    redis:
+      host: localhost
+      port: 6379 #redis的默认端口号
+```
+
+| 配置项 | 作用 | 应用场景 | 示例值 |
+| :--- | :--- | :--- | :--- |
+| `spring.data.redis.host` | Redis 服务主机地址 | 连接本机或远程 Redis | `localhost` |
+| `spring.data.redis.port` | Redis 服务端口 | 指定监听端口（默认 6379） | `6379` |
+
+## 11.3 通用 API：StringRedisTemplate 与 ValueOperations <a id="113-通用-apistringredistemplate-与-valueoperations"></a>
+
+通过 `@Autowired` 注入 `StringRedisTemplate`，再调用 `opsForValue()` 得到字符串类型的 `ValueOperations`，即可完成最常用的 KV 读写。
+
+| 方法 | 作用 | 应用场景 | 示例 |
+| :--- | :--- | :--- | :--- |
+| `opsForValue()` | 获取字符串值操作对象 | 所有 String 类型 KV 读写的入口 | `stringRedisTemplate.opsForValue()` |
+| `set(key, value)` | 写入键值对（无过期时间） | 临时调试、不过期缓存 | `set("username","zhangsan")` |
+| `set(key, value, timeout, unit)` | 写入键值对并设置 TTL | Token、验证码等需自动失效的数据 | `set(token, token, 1, TimeUnit.HOURS)` |
+| `get(key)` | 按键读取值；不存在或已过期返回 `null` | 校验 Token 是否仍有效 | `get(token)` |
+| `getOperations().delete(key)` | 删除指定键 | 改密、退出登录后主动作废 Token | `delete(token)` |
+
+## 11.4 单元测试验证 (RedisTest)
+
+在测试类上使用 `@SpringBootTest`：执行测试方法前会先初始化 Spring 容器，从而可直接 `@Autowired` 注入 `StringRedisTemplate`，连通真实 Redis 做读写验证。
+
+```java 11:33:SpringBoot/big-event/src/test/java/com/itheima/RedisTest.java
+@SpringBootTest//如果在测试类上添加了这个注解,那么将来单元测试方法执行之前,会先初始化Spring容器
+public class RedisTest {
+
+    @Autowired
+    private StringRedisTemplate stringRedisTemplate;
+
+    @Test
+    public void testSet(){
+        //往redis中存储一个键值对  StringRedisTemplate
+        ValueOperations<String, String> operations = stringRedisTemplate.opsForValue();
+
+        operations.set("username","zhangsan");
+        //  (key,value,过期时间,时间单位)
+        operations.set("id","1",15, TimeUnit.SECONDS);//15秒后过期,过期后会被redis删除，就无法获取到了
+    }
+
+    @Test
+    public void testGet(){
+        //从redis中获取一个键值对
+        ValueOperations<String, String> operations = stringRedisTemplate.opsForValue();
+        System.out.println(operations.get("id"));
+
+    }
+}
+```
+
+**使用场景**：联调 Redis 连通性与 TTL 行为——带过期时间写入后，超时再 `get` 得到 `null`，与业务侧「Token 过期即失效」一致。
+
+## 11.5 业务实战：JWT Token 的存 / 取 / 删 <a id="115-业务实战jwt-token-的存取删"></a>
+
+Token 在 Redis 中的完整生命周期如下（键、值均使用 Token 字符串本身）。
+
+### 11.5.1 登录成功：写入并设置过期
+
+登录校验通过后生成 JWT，再以相同过期时间（1 小时）写入 Redis，保证 Redis TTL 与 JWT 过期时间一致。
+
+```java 70:74:SpringBoot/big-event/src/main/java/com/itheima/controller/UserController.java
+            // 把token存储到redis中
+            ValueOperations<String, String> operations = stringRedisTemplate.opsForValue();
+            operations.set(token, token, 1, TimeUnit.HOURS);//过期时间和token的过期时间一样
+            // 返回token
+            return Result.success(token);
+```
+
+### 11.5.2 请求拦截：读取校验是否仍有效
+
+[`LoginInterceptor`](#102-自定义拦截器实现-logininterceptor) 在解析 JWT 之前先查 Redis：`get` 为 `null` 表示令牌已过期被清理，或已被主动删除（如改密），请求返回 401。
+
+```java 26:33:SpringBoot/big-event/src/main/java/com/itheima/interceptors/LoginInterceptor.java
+            //从redis中获取相同的token
+            ValueOperations<String, String> operations = stringRedisTemplate.opsForValue();
+            String redisToken = operations.get(token);
+            //判断redisToken是否为空,如果为空,则token已经失效了
+            if (redisToken==null){
+                //token已经失效了
+                throw new RuntimeException(); //抛出异常，让后续的代码处理catch语句
+            }
+```
+
+### 11.5.3 修改密码：主动删除令牌
+
+密码更新成功后删除当前请求头中的 Token，使用户必须重新登录；即使 JWT 尚未到期，拦截器也会因 Redis 中无记录而拒绝访问。
+
+```java 131:134:SpringBoot/big-event/src/main/java/com/itheima/controller/UserController.java
+        userService.updatePwd(newPwd);
+        // 删除redis中对应的token
+        ValueOperations<String, String> operations = stringRedisTemplate.opsForValue();
+        operations.getOperations().delete(token);
+```
+
+### 11.5.4 链路小结
+
+| 环节 | 操作 | 作用 |
+| :--- | :--- | :--- |
+| 登录 | `set(token, token, 1, HOURS)` | 建立服务端可校验、可过期的会话凭证 |
+| 拦截器 | `get(token)` | 判断令牌是否仍在有效会话集合中 |
+| 改密 | `delete(token)` | 立即作废旧令牌，强制重新登录 |
+
+---
 

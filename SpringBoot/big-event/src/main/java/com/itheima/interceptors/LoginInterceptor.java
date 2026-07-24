@@ -16,7 +16,7 @@ import java.util.Map;
 @Component
 public class LoginInterceptor implements HandlerInterceptor {
     @Autowired
-    private StringRedisTemplate stringRedisTemplate;
+    private StringRedisTemplate stringRedisTemplate;//自动注入StringRedisTemplate对象
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         //令牌验证
@@ -26,9 +26,10 @@ public class LoginInterceptor implements HandlerInterceptor {
             //从redis中获取相同的token
             ValueOperations<String, String> operations = stringRedisTemplate.opsForValue();
             String redisToken = operations.get(token);
+            //判断redisToken是否为空,如果为空,则token已经失效了
             if (redisToken==null){
                 //token已经失效了
-                throw new RuntimeException();
+                throw new RuntimeException(); //抛出异常，让后续的代码处理catch语句
             }
             Map<String, Object> claims = JwtUtil.parseToken(token);
 

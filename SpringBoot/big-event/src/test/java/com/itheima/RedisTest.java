@@ -20,7 +20,8 @@ public class RedisTest {
         ValueOperations<String, String> operations = stringRedisTemplate.opsForValue();
 
         operations.set("username","zhangsan");
-        operations.set("id","1",15, TimeUnit.SECONDS);
+        //  (key,value,过期时间,时间单位)
+        operations.set("id","1",15, TimeUnit.SECONDS);//15秒后过期,过期后会被redis删除，就无法获取到了
     }
 
     @Test

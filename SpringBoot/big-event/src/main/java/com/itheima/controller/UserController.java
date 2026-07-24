@@ -69,7 +69,7 @@ public class UserController {
             String token = JwtUtil.genToken(claims);
             // 把token存储到redis中
             ValueOperations<String, String> operations = stringRedisTemplate.opsForValue();
-            operations.set(token, token, 1, TimeUnit.HOURS);
+            operations.set(token, token, 1, TimeUnit.HOURS);//过期时间和token的过期时间一样
             // 返回token
             return Result.success(token);
         }
