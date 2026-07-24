@@ -2,15 +2,17 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+        <!-- namespace对应接口的类名 -->
 <mapper namespace="com.itheima.mapper.ArticleMapper">
     <!--动态sql-->
     <select id="list" resultType="com.itheima.pojo.Article">
         select * from article
         <where>
+            <!-- 动态sql -->
+            <!-- categoryId需和mapper的名字一致 -->
             <if test="categoryId!=null">
                 category_id=#{categoryId}
             </if>
-
             <if test="state!=null">
                 and state=#{state}
             </if>

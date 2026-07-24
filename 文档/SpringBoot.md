@@ -1,4 +1,4 @@
-# 一、 Maven 依赖管理(pom.xml)
+# 一、 Maven 依赖管理(pom.xml) <a id="maven-pom"></a>
 
 在 Spring Boot 项目中，依赖管理通过父工程（`spring-boot-starter-parent`）和各种起步依赖（`starter`）来简化。
 
@@ -248,14 +248,21 @@ MyBatis 是 Java 领域极其流行的优秀持久层框架。Spring Boot 通过
 
 ## 6.1 整合起步依赖 (pom.xml)
 
-在项目中引入 MyBatis 依赖和 MySQL 驱动依赖，即可实现与数据库的安全、高效连接。
+在业务项目（如 `big-event`）中引入 MyBatis 依赖和 MySQL 驱动依赖，即可实现与数据库的安全、高效连接。父工程版本管理方式见 [一、Maven 依赖管理](#maven-pom)。
 
-```xml
-<dependency>
-    <groupId>org.mybatis.spring.boot</groupId>
-    <artifactId>mybatis-spring-boot-starter</artifactId>
-    <version>3.0.0</version>
-</dependency>
+```xml 29:40:SpringBoot/big-event/pom.xml
+    <!--mybatis依赖-->
+    <dependency>
+      <groupId>org.mybatis.spring.boot</groupId>
+      <artifactId>mybatis-spring-boot-starter</artifactId>
+      <version>3.0.0</version>
+    </dependency>
+
+    <!--mysql驱动依赖-->
+    <dependency>
+      <groupId>com.mysql</groupId>
+      <artifactId>mysql-connector-j</artifactId>
+    </dependency>
 ```
 
 > **注意**：在实际项目中，除了 MyBatis 的 Starter 起步依赖外，通常还需要引入对应的数据库驱动依赖（如 `mysql-connector-j`）以使 Spring Boot 底层的物理数据源可以正确装配并通信。
@@ -314,7 +321,7 @@ public class User {
 
 ### 6.3.2 持久层接口设计 (Mapper)
 - 使用 `@Mapper` 注解标识该接口为 **MyBatis 的 Mapper 映射器**，由 Spring Boot 容器统一进行代理类生命周期的管理。
-- 在接口方法上使用注解（如 `@Select`）编写 SQL 查询。
+- 在接口方法上使用注解（如 `@Select`）编写 SQL 查询；可选条件较多的动态查询见 [6.5 Mapper XML 映射与动态 SQL](#65-mapper-xml-映射与动态-sql)。
 
 ```java 7:13:SpringBoot/springboot-quickstart/src/main/java/com/itheima/springbootmybatis/mapper/UserMapper.java
 @Mapper // Mapper标识该接口为 MyBatis 的 Mapper 映射器
@@ -405,6 +412,80 @@ public class SpringbootMybatisApplication {
 1. **容器托管**：在接口上声明 `@Mapper` 注解后，Spring Boot 在应用启动时会扫描到该接口。
 2. **动态代理**：MyBatis-Spring 整合模块会利用 JDK 动态代理技术，在内存中动态生成该接口的代理实现类对象。
 3. **依赖注入**：将该动态代理实例作为 Bean 注册 to Spring 容器中，允许 Service 层通过 `@Autowired` 直接注入并无感使用。
+
+---
+
+## 6.5 Mapper XML 映射与动态 SQL <a id="65-mapper-xml-映射与动态-sql"></a>
+
+简单、固定的 SQL（如单表插入）可直接写在 [`@Mapper`](#mapper-declaration) 接口的注解上（如 `@Insert`）；当查询条件随请求参数**可选出现**时，注解内拼接 `if` 逻辑可读性差，项目中改为在 Mapper XML 中编写**动态 SQL**。
+
+### 6.5.1 使用场景
+
+文章列表查询需同时满足：
+
+- **必选条件**：始终按当前登录用户过滤（`create_user = #{userId}`），保证数据隔离。
+- **可选条件**：分类 ID（`categoryId`）、发布状态（`state`）由前端按需传入；未传时不参与 WHERE 拼接。
+
+控制层将 `categoryId`、`state` 声明为可选请求参数，业务层取出当前用户 ID 后调用 Mapper；Mapper 接口方法不写 `@Select`，由同名 XML 完成 SQL 组装。
+
+```java 16:17:SpringBoot/big-event/src/main/java/com/itheima/mapper/ArticleMapper.java
+    // 动态sql的时候不使用注解吗，使用映射xml会更方便 关联\resources\com\itheima\mapper\ArticleMapper.xml
+    List<Article> list(Integer userId, Integer categoryId, String state);
+```
+
+### 6.5.2 XML 与接口的绑定约定
+
+| 约定项 | 说明 | 本项目取值 |
+| :--- | :--- | :--- |
+| 文件位置 | 放在 `resources` 下，包路径与 Mapper 接口一致 | `com/itheima/mapper/ArticleMapper.xml` |
+| `namespace` | 必须等于 Mapper 接口全限定名 | `com.itheima.mapper.ArticleMapper` |
+| `id` | 必须等于接口方法名 | `list` |
+| `resultType` | 查询结果映射的实体全限定名 | `com.itheima.pojo.Article` |
+| 参数名 | `<if test="...">` 与 `#{}` 中的名称须与接口方法形参名一致 | `userId`、`categoryId`、`state` |
+
+### 6.5.3 动态 SQL 核心标签
+
+| 标签 | 作用 | 应用场景 | 示例 |
+| :--- | :--- | :--- | :--- |
+| `<where>` | 自动生成 `WHERE`，并去掉条件片段开头多余的 `AND` / `OR` | 多个可选条件组合查询，避免手写 `WHERE 1=1` | 包裹全部筛选条件 |
+| `<if test="...">` | `test` 为真时才拼接内部 SQL 片段 | 前端可选筛选（分类、状态等） | `test="categoryId!=null"` |
+
+### 6.5.4 实战示例
+
+```xml 6:22:SpringBoot/big-event/src/main/resources/com/itheima/mapper/ArticleMapper.xml
+        <!-- namespace对应接口的类名 -->
+<mapper namespace="com.itheima.mapper.ArticleMapper">
+    <!--动态sql-->
+    <select id="list" resultType="com.itheima.pojo.Article">
+        select * from article
+        <where>
+            <!-- categoryId需和mapper的名字一致 -->
+            <if test="categoryId!=null">
+                category_id=#{categoryId}
+            </if>
+            <!-- 动态sql -->
+            <if test="state!=null">
+                and state=#{state}
+            </if>
+
+            and create_user=#{userId}
+        </where>
+    </select>
+</mapper>
+```
+
+**拼接结果示意**（`<where>` 会自动处理关键字与多余 `AND`）：
+
+- 仅传 `userId`：`SELECT * FROM article WHERE create_user=?`
+- 再传 `categoryId`：`... WHERE category_id=? AND create_user=?`
+- 再传 `state`：`... WHERE category_id=? AND state=? AND create_user=?`
+
+### 6.5.5 编写要点
+
+1. **注解与 XML 分工**：固定 SQL 用接口注解；条件分支多、可选参数多时用 XML 动态 SQL。
+2. **参数名对齐**：`test`、`#{}` 中的名字必须与 Mapper 方法形参一致（如 `categoryId`），否则条件永不生效或绑定失败。
+3. **必选条件放在 `<where>` 内**：如 `create_user=#{userId}`，保证即使用户未传任何可选条件，仍能生成合法且带数据隔离的 SQL。
+4. **`<where>` 负责去多余连接词**：可选片段前可写 `and`，由 `<where>` 在最终 SQL 中自动裁剪，无需手写 `WHERE 1=1`。
 
 ---
 

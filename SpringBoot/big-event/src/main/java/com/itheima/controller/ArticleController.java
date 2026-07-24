@@ -29,6 +29,7 @@ public class ArticleController {
             @RequestParam(required = false) Integer categoryId,
             @RequestParam(required = false) String state
     ) {
+    // 返回分页数据对象
        PageBean<Article> pb =  articleService.list(pageNum,pageSize,categoryId,state);
        return Result.success(pb);
     }

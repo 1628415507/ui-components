@@ -13,6 +13,6 @@ public interface ArticleMapper {
             "values(#{title},#{content},#{coverImg},#{state},#{categoryId},#{createUser},#{createTime},#{updateTime})")
     void add(Article article);
 
-
+    // 动态sql的时候不使用注解吗，使用映射xml会更方便?关联\resources\com\itheima\mapper\ArticleMapper.xml
     List<Article> list(Integer userId, Integer categoryId, String state);
 }
