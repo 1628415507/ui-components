@@ -116,6 +116,7 @@ Spring Boot 提供了多种属性配置方式，最常用的两种格式是 `pro
 | `spring.application.name` | 指定当前微服务的应用名称 | `springboot-quickstart` | `springboot-quickstart` | 用于服务注册、日志追踪及区分。 |
 | `server.port` | 指定内嵌 Web 服务器（如 Tomcat）的监听端口号 | `9090` | `9191` | 默认端口为 `8080`。Jar 部署时可通过外部配置、环境变量或命令行覆盖，优先级见 [12.3.4 配置优先级](#配置优先级)。 |
 | `server.servlet.context-path` | 指定 Web 应用的上下文访问路径（根路径） | `/start` | `/start2` | 配置后，所有接口路径前均需追加该路径作为前缀。 |
+| `spring.profiles.active` | 指定当前激活的环境 Profile | `dev` | `dev` | 用于切换开发 / 测试 / 生产等环境配置，详见 [5.5 多环境配置](#55-多环境配置-profiles)。 |
 
 ## 5.2 properties 配置文件
 
@@ -239,6 +240,125 @@ public class EmailProperties {
 | **松散绑定 (Relaxed Binding)** | 不支持（键名必须绝对精确一致） | **支持**（如配置文件中的 `user` 或松散格式可自动映射到驼峰命名变量上） |
 | **JSR-303 数据校验** | 不支持 | **支持**（可配合 `@Validated` 对绑定数据进行规则校验） |
 | **最佳实践** | 适合少量、临时、各不相干的散落配置项 | 适合面向业务、高度结构化的批量核心模块配置（推荐） |
+
+---
+
+## 5.5 多环境配置 (Profiles) <a id="55-多环境配置-profiles"></a>
+
+开发、测试、生产等环境通常需要不同的端口、数据源与业务开关。Spring Boot 通过 **Profile** 机制按环境拆分并激活配置。项目 `SpringBoot/springboot-profiles` 演示了两种组织方式：**单文件配置**与**多文件配置**。激活方式除写在配置文件中外，也可在部署时用环境变量或命令行覆盖，优先级见 [12.3.4 配置优先级](#配置优先级)。
+
+### 5.5.1 通用配置属性
+
+| 配置项 / 语法 | 作用 | 应用场景 | 示例 |
+| :--- | :--- | :--- | :--- |
+| `spring.profiles.active` | 声明当前激活的 Profile 名称 | 主配置中指定默认环境，或部署时覆盖 | `spring.profiles.active: dev` |
+| `spring.config.activate.on-profile` | 标明当前文档块（或文件）仅在指定 Profile 下生效 | 单文件内按环境分段，或多文件中声明归属环境 | `on-profile: test` |
+| YAML 文档分隔符 `---` | 在同一 `application.yml` 内分隔多个独立文档块 | 单文件多环境配置 | 公共配置与 `dev` / `test` / `pro` 块之间用 `---` 隔开 |
+
+### 5.5.2 单文件配置
+
+在同一个 `application.yml` 中，用 `---` 将公共配置与各环境配置拆成多个文档块；每个环境块通过 [`spring.config.activate.on-profile`](#55-多环境配置-profiles) 声明归属，再由 [`spring.profiles.active`](#51-通用配置属性) 决定实际生效环境。
+
+项目备份示例见 `SpringBoot/springboot-profiles/src/main/resources/temp/application.yml.bak`，结构如下：
+
+```yaml
+# 用 `---` 将公共配置与各环境配置拆成多个文档块
+# 公共配置 + 激活环境
+spring:
+  profiles:
+    active: dev # 激活环境
+server:
+  servlet:
+    context-path: /aaa
+---
+# 开发环境
+spring:
+  config:
+    activate:
+      on-profile: dev # 标明当前文档块仅在指定 Profile 下生效
+server:
+  port: 8081
+  servlet:
+    context-path: /bbb
+---
+# 测试环境
+spring:
+  config:
+    activate:
+      on-profile: test
+server:
+  port: 8082
+---
+# 生产环境
+spring:
+  config:
+    activate:
+      on-profile: pro
+server:
+  port: 8083
+```
+
+当 `spring.profiles.active=dev` 时，公共块与 `on-profile: dev` 块同时生效（同名属性以后者为准），监听端口为 `8081`，上下文路径为 `/bbb`。
+
+### 5.5.3 多文件配置
+
+将各环境配置拆到独立文件，命名约定为 `application-{环境名称}.yml`；在主文件 `application.yml` 中通过 [`spring.profiles.active`](#51-通用配置属性) 激活目标环境，Spring Boot 会自动加载对应的 `application-{环境名称}.yml`。
+
+主文件激活示例见 `SpringBoot/springboot-profiles/src/main/resources/temp2/application.yml.bak`：
+
+```yaml
+spring:
+  profiles:
+    active: test
+```
+
+各环境文件示例：
+
+```yaml 1:3:SpringBoot/springboot-profiles/src/main/resources/temp2/application-dev.yml.bak
+#开发环境
+server:
+  port: 8081
+```
+
+```yaml 1:3:SpringBoot/springboot-profiles/src/main/resources/temp2/application-test.yml.bak
+#测试环境
+server:
+  port: 8082
+```
+
+```yaml 1:3:SpringBoot/springboot-profiles/src/main/resources/temp2/application-pro.yml.bak
+#生产环境
+server:
+  port: 8083
+```
+
+当前 `springboot-profiles` 模块的主配置采用多文件方式，并进一步用 `spring.profiles.group` 将逻辑环境名映射到多组细分 Profile（如服务器、数据库等）：
+
+```yaml 1:6:SpringBoot/springboot-profiles/src/main/resources/application.yml
+spring:
+  profiles:
+    group:
+      "dev": devServer,devDB,devSelf
+      #"test": testServer,testDB,testSelf
+    active: dev
+```
+
+```yaml 1:3:SpringBoot/springboot-profiles/src/main/resources/application-devServer.yml
+#服务器相关信息
+server:
+  port: 8081
+```
+
+激活 `dev` 时，会按 group 同时加载 `devServer`、`devDB`、`devSelf` 等对应的 `application-*.yml`（本模块中已落地 `application-devServer.yml`）。
+
+### 5.5.4 两种方式对比
+
+| 维度 | 单文件配置 | 多文件配置 |
+| :--- | :--- | :--- |
+| **组织方式** | 同一 `application.yml` 内用 `---` 分段 | 按 `application-{环境}.yml` 拆分多个文件 |
+| **环境归属** | 各段声明 `spring.config.activate.on-profile` | 由文件名中的环境名决定；可配合 `profiles.group` 组合加载 |
+| **激活方式** | 主段或外部指定 `spring.profiles.active` | 在主 `application.yml`（或外部）指定 `spring.profiles.active` |
+| **适用场景** | 环境差异小、配置项少，希望集中查阅 | 环境差异大、配置项多，希望按环境隔离维护（推荐） |
 
 ---
 
@@ -1740,6 +1860,12 @@ server:
 
 ```bash
 java -jar big-event-1.0-SNAPSHOT.jar --server.port=7777
+```
+
+切换多环境 Profile（见 [5.5 多环境配置](#55-多环境配置-profiles)）同样可用命令行，例如：
+
+```bash
+java -jar app.jar --spring.profiles.active=pro
 ```
 
 ### 12.3.4 配置优先级 <a id="配置优先级"></a>
