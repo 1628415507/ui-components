@@ -14,4 +14,4 @@ mybatis:
     map-underscore-to-camel-case: true #开启驼峰命名和下划线命名的自动转换
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
 server:
-  port: 8080
+  port: 8080 #SpringBoot的默认端口号,打成jar包后可以通过环境变量的方式来修改

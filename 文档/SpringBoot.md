@@ -114,7 +114,7 @@ Spring Boot 提供了多种属性配置方式，最常用的两种格式是 `pro
 | 配置项 | 作用 | 配置值示例 (properties) | 配置值示例 (yaml) | 备注说明 |
 | :--- | :--- | :--- | :--- | :--- |
 | `spring.application.name` | 指定当前微服务的应用名称 | `springboot-quickstart` | `springboot-quickstart` | 用于服务注册、日志追踪及区分。 |
-| `server.port` | 指定内嵌 Web 服务器（如 Tomcat）的监听端口号 | `9090` | `9191` | 默认端口为 `8080`。 |
+| `server.port` | 指定内嵌 Web 服务器（如 Tomcat）的监听端口号 | `9090` | `9191` | 默认端口为 `8080`。Jar 部署时可通过外部配置、环境变量或命令行覆盖，优先级见 [12.3.4 配置优先级](#配置优先级)。 |
 | `server.servlet.context-path` | 指定 Web 应用的上下文访问路径（根路径） | `/start` | `/start2` | 配置后，所有接口路径前均需追加该路径作为前缀。 |
 
 ## 5.2 properties 配置文件
@@ -1642,6 +1642,116 @@ Token 在 Redis 中的完整生命周期如下（键、值均使用 Token 字符
 | 登录 | `set(token, token, 1, HOURS)` | 建立服务端可校验、可过期的会话凭证 |
 | 拦截器 | `get(token)` | 判断令牌是否仍在有效会话集合中 |
 | 改密 | `delete(token)` | 立即作废旧令牌，强制重新登录 |
+
+---
+
+# 十二、 项目打包与部署 <a id="packaging-deployment"></a>
+
+Spring Boot 项目开发完成后，需通过 Maven 将源码编译并打包为**可执行 Jar 包**，再部署到服务器独立运行。本节以 `big-event` 项目为例，说明打包插件配置、Jar 生成与运行方式、服务器环境要求，以及部署阶段如何在不改源码的前提下覆盖 [5.1 通用配置属性](#51-通用配置属性)（如 `server.port`）。
+
+## 12.1 打包插件 (spring-boot-maven-plugin)
+
+在 `pom.xml` 的 `<build>` 中配置 `spring-boot-maven-plugin`，Maven 执行 `package` 阶段时会将应用及其依赖、内嵌 Tomcat 等一并打入**单个可执行 Fat Jar**，无需额外部署 WAR 到外部容器。
+
+```xml 106:114:SpringBoot/big-event/pom.xml
+  <build>
+    <plugins>
+      <!--打包插件-->
+      <plugin>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-maven-plugin</artifactId>
+        <version>3.1.3</version>
+      </plugin>
+    </plugins>
+  </build>
+```
+
+| 配置项 | 作用 | 备注 |
+| :--- | :--- | :--- |
+| `groupId` / `artifactId` | 指定 Spring Boot 官方 Maven 打包插件 | 与父工程 `spring-boot-starter-parent` 版本保持一致（本项目为 `3.1.3`） |
+| `packaging`（项目级） | 声明打包产物类型 | `big-event` 为 `jar`，见 [一、Maven 依赖管理](#maven-pom) 中 `<packaging>jar</packaging>` |
+
+## 12.2 生成与运行 Jar 包
+
+### 12.2.1 如何生成 Jar 包
+
+在项目根目录执行 Maven 打包命令：
+
+```bash
+mvn package
+```
+
+打包成功后，可执行 Jar 位于 `target` 目录，文件名由 `artifactId` 与 `version` 组成，例如 `big-event-1.0-SNAPSHOT.jar`。
+
+### 12.2.2 如何运行 Jar 包
+
+```bash
+java -jar big-event-1.0-SNAPSHOT.jar
+```
+
+启动后应用按当前生效配置监听端口（项目内默认见 [5.1 通用配置属性](#51-通用配置属性) 中 `server.port`，`big-event` 为 `8080`）。
+
+### 12.2.3 服务器部署要求
+
+部署 Jar 的服务器须安装 **Java 运行环境**（JRE 或 JDK），且版本需满足 Spring Boot 3.x 要求（JDK 17 及以上）。仅运行 Jar 时安装 JRE 即可；若需在服务器上重新打包，则须安装完整 JDK。
+
+## 12.3 部署阶段配置覆盖
+
+Jar 内已包含 `src/main/resources` 下的 `application.yml`，但生产环境常需按机器或环境调整端口、数据库等，**无需重新打包**。Spring Boot 支持多种外部覆盖方式；`big-event` 源码注释亦说明打包后可通过环境变量修改端口：
+
+```yaml 16:17:SpringBoot/big-event/src/main/resources/application.yml
+server:
+  port: 8080 #SpringBoot的默认端口号,打成jar包后可以通过环境变量的方式来修改
+```
+
+### 12.3.1 外部配置文件方式
+
+将 `application.yml`（或 `application.properties`）放在 **Jar 包所在目录的同级路径**下。例如目录结构为：
+
+```text
+deploy/
+├── big-event-1.0-SNAPSHOT.jar
+└── application.yml
+```
+
+外部 `application.yml` 示例（覆盖监听端口）：
+
+```yaml
+server:
+  port: 7777
+```
+
+运行 `java -jar big-event-1.0-SNAPSHOT.jar` 时，同级外部文件中的 `server.port` 会覆盖 Jar 内默认值。
+
+### 12.3.2 操作系统环境变量方式
+
+在操作系统中设置与配置项对应的环境变量即可生效。属性名支持 **点号形式**（如 `server.port`）或 Spring Boot 约定的 **大写下划线形式**（如 `SERVER_PORT`）。
+
+| 变量名示例 | 值示例 | 作用 |
+| :--- | :--- | :--- |
+| `server.port` | `7777` | 覆盖 Web 服务监听端口 |
+| `SERVER_PORT` | `7777` | 同上（松散绑定等价写法） |
+
+在 Windows「环境变量」对话框的用户变量或系统变量中新建上述键值对后，再执行 `java -jar` 即可使应用监听 `7777` 端口。
+
+### 12.3.3 命令行参数方式
+
+启动 Jar 时通过 `--` 传递 Spring Boot 配置项，优先级最高：
+
+```bash
+java -jar big-event-1.0-SNAPSHOT.jar --server.port=7777
+```
+
+### 12.3.4 配置优先级 <a id="配置优先级"></a>
+
+多种配置来源同时存在时，**越靠下优先级越高**，后出现的值覆盖先前的值：
+
+1. **Jar 内** `resources` 目录下的 `application.yml`（开发阶段写入、打进 Jar 的默认配置）
+2. **Jar 包所在目录**下的 `application.yml`（外部配置文件）
+3. **操作系统环境变量**（如 `server.port` / `SERVER_PORT`）
+4. **命令行参数**（如 `--server.port=7777`）
+
+**示例**：Jar 内 `server.port=8080`，同级外部文件设为 `7777`，环境变量再设为 `8888`，启动命令带 `--server.port=9999`，则最终生效端口为 **9999**。
 
 ---
 
