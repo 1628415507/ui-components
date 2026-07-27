@@ -26,10 +26,10 @@ public class ArticleController {
     public Result<PageBean<Article>> list(
             Integer pageNum,
             Integer pageSize,
-            @RequestParam(required = false) Integer categoryId,
-            @RequestParam(required = false) String state
-    ) {
-    // 返回分页数据对象
+            @RequestParam(required = false) Integer categoryId, // 分类id,非必传
+            @RequestParam(required = false) String state // 状态,非必传
+    ) { 
+       // 返回分页数据对象
        PageBean<Article> pb =  articleService.list(pageNum,pageSize,categoryId,state);
        return Result.success(pb);
     }

@@ -47,18 +47,19 @@
 | 注解名称 | 作用 | 应用场景 | 示例 |
 | :--- | :--- | :--- | :--- |
 | `@SpringBootApplication` | 标识该类为 Spring Boot 的启动类，集成了自动配置、组件扫描和配置类声明。 | Spring Boot 项目**主入口**类。 | `com.itheima.springbootquickstart.SpringbootQuickstartApplication` |
-| `@RestController` | 标识该类是一个 RESTful 风格的控制器，相当于 `@Controller` 与 `@ResponseBody` 的组合。返回值会直接作为 HTTP 响应体返回。 | Web 接口开发控制器类。 | `com.itheima.springbootquickstart.controller.HelloController` |
+| `@RestController` | 标识该类是一个 RESTful 风格的控制器，相当于 `@Controller` 与 `@ResponseBody` 的组合。**返回值会直接作为 HTTP 响应体返回。** | Web 接口开发控制器类。 | `com.itheima.springbootquickstart.controller.HelloController` |
 | `@RequestMapping` | 用于映射 Web 请求的 URL 路径到具体的方法上。 | 控制器内定义 API 路由。 | `@RequestMapping("/hello")` |
-| [`@Value`](#541-value-单项注入) | 逐个读取并注入配置文件中的单个属性。 | 读取散落、单独的非结构化配置。 | `@Value("${email.user}")` |
-| [`@ConfigurationProperties`](#542-configurationproperties-批量绑定) | 批量将指定前缀的配置项绑定到 JavaBean 实体的成员变量上。 | 批量、有结构的一组属性（如邮件、第三方账号配置等）绑定。 | `@ConfigurationProperties(prefix = "email")` |
+| [`@RequestParam`](#42-请求参数绑定-requestparam) | 将请求中的查询参数或表单参数绑定到控制器方法形参。默认必传（`required = true`）；筛选类条件常设 `required = false`。 | GET 查询条件、表单字段等简单参数接收。 | `com.itheima.controller.ArticleController` |
+| [`@Value`](#541-value-单项注入) | 逐个读取并注入配置文件中的**单个属性**。 | 读取散落、单独的非结构化配置。 | `@Value("${email.user}")` |
+| [`@ConfigurationProperties`](#542-configurationproperties-批量绑定) | 批量将**指定前缀**的配置项绑定到 JavaBean 实体的成员变量上。 | 批量、有结构的一组属性（如邮件、第三方账号配置等）绑定。 | `@ConfigurationProperties(prefix = "email")` |
+| [`@Bean`](#third-party-bean-annotations) | 标注在配置类的方法上，将该方法的返回值作为 Bean 注册到 Spring 容器中。主要用于整合并管理**第三方类库**提供的类。 | 注册第三方的非自定义类对象。 | 注入外部工具库、连接池等组件 |
+| [`@Autowired`](#di-annotations) | 声明自动注入依赖。**Spring 会自动从 IoC 容器中按类型匹配并装配 Bean。** | 依赖注入组件（控制反转/依赖注入）。 | 成员变量或 setter 方法上 |
 | [`@Service`](#custom-bean-annotations) | 标识该类是 Spring 中的 Service **业务逻辑层组件**，并自动注册到 Spring 容器中。 | 业务逻辑实现类。 | `com.itheima.springbootmybatis.service.impl.UserServiceImpl` |
-| [`@Autowired`](#di-annotations) | 声明自动注入依赖。Spring 会自动从 IoC 容器中按类型匹配并装配 Bean。 | 依赖注入组件（控制反转/依赖注入）。 | 成员变量或 setter 方法上 |
 | [`@Mapper`](#mapper-declaration) | MyBatis 框架注解。标识该接口为**数据访问层**（Mapper）组件，运行时自动生成动态代理实现类并注册到 Spring 容器。 | MyBatis 数据持久层接口。 | `com.itheima.springbootmybatis.mapper.UserMapper` |
-| [`@Component`](#custom-bean-annotations) | 声明 Bean 的基础注解。若某个类不属于控制层、服务层或持久层，使用此注解注册到 Spring 容器中。 | 通用组件、工具类等。 | 自定义公共工具类组件 |
-| [`@Controller`](#custom-bean-annotations) | `@Component` 的衍生注解，标注在控制层类上，声明其为 Spring MVC 控制器。 | Spring MVC Web 控制器。 | `com.itheima.springbootquickstart.controller.HelloController` |
-| [`@Bean`](#third-party-bean-annotations) | 标注在配置类的方法上，将该方法的返回值作为 Bean 注册到 Spring 容器中。主要用于整合并管理第三方类库提供的类。 | 注册第三方的非自定义类对象。 | 注入外部工具库、连接池等组件 |
+| [`@Component`](#custom-bean-annotations) | 声明 Bean 的基础注解。若某个类不属于控制层(`@Controller`)、服务层(`@Service`)或持久层(`@Mapper`)，使用此注解注册到 Spring 容器中。 | 通用组件、工具类等。 | 自定义公共工具类组件 |
+| [`@Controller`](#custom-bean-annotations)<br>(`@Component` 的衍生注解)  | 标注在控制层类上，声明其为 Spring MVC 控制器。 | Spring MVC Web 控制器。 | `com.itheima.springbootquickstart.controller.HelloController` |
 | [`@Import`](#third-party-bean-annotations) | 用于在配置类上快速导入外部类. 可以导入普通的 Bean、配置类（`@Configuration`） or `ImportSelector` 接口实现类。 | 模块化集成、快速引入第三方依赖包中的配置组件。 | `@Import({CommonConfig.class})` |
-| [`@Repository`](#custom-bean-annotations) | `@Component` 的衍生注解，标注在数据访问层类上。由于常与 MyBatis 整合并使用 `@Mapper`，因此在现代 Spring Boot 开发中相对少用。 | 数据访问层/持久层实现组件。 | DAO 实现类 |
+| [`@Repository`](#custom-bean-annotations)<br>(`@Component` 的衍生注解) | 标注在**数据访问层类**上。由于常与 MyBatis 整合并使用 `@Mapper`，因此在现代 Spring Boot 开发中相对少用。 | 数据访问层/持久层实现组件。 | DAO 实现类 |
 | [`@ConditionalOnProperty`](#753-设置注册生效条件注解-conditional-条件装配) | 配置文件中存在指定的属性且符合特定值（或存在即可）时，才注册该 Bean。 | 根据配置文件参数动态决定是否启用某组件。 | `@ConditionalOnProperty(name = "email.auth", havingValue = "true")` |
 | [`@ConditionalOnMissingBean`](#753-设置注册生效条件注解-conditional-条件装配) | 当 Spring IoC 容器中不存在指定类型或名称的 Bean 时，才注册该 Bean。 | 框架中提供默认配置组件，并允许用户自定义覆盖（自定义优先）。 | `@ConditionalOnMissingBean(EmailProperties.class)` |
 | [`@ConditionalOnClass`](#753-设置注册生效条件注解-conditional-条件装配) | 当当前运行环境/类路径中存在指定的类时，才注册该 Bean。 | 根据是否引入了某第三方依赖决定是否装配对应核心服务。 | `@ConditionalOnClass(name = "com.alibaba.fastjson.JSON")` |
@@ -99,6 +100,48 @@ public class HelloController {
         return "hello world~";
     }
 }
+```
+
+## 4.2 请求参数绑定 (@RequestParam) <a id="42-请求参数绑定-requestparam"></a>
+
+[`@RequestParam`](#core-annotations) 负责把 HTTP 查询串（如 `?categoryId=1&state=已发布`）或表单字段绑定到方法形参。文章列表接口中，分页参数与可选筛选参数的声明方式不同，体现了「必传 / 非必传」的绑定策略。
+
+### 4.2.1 常用属性
+
+| 属性 | 作用 | 默认值 | 本项目用法 |
+| :--- | :--- | :--- | :--- |
+| `required` | 请求中是否必须携带该参数；<br/>缺失且为 `true` 时抛出参数缺失异常 | `true` | 筛选条件设为 `false`，未传时形参为 `null` |
+| `name` / `value` | 指定要绑定的请求参数名；<br/>省略时默认与方法形参名一致 | 形参名 | 省略，直接按 `categoryId`、`state` 绑定 |
+| `defaultValue` | 参数缺失时使用的默认字符串<br/>（设置后等价于非必传） | 无 | 本接口未使用，依赖 `null` 交由下层动态 SQL 判断 |
+
+### 4.2.2 实战：可选筛选参数
+
+文章分页列表中，`pageNum`、`pageSize` 为简单类型形参，由框架按同名请求参数自动绑定；`categoryId`、`state` 为可选筛选条件，须显式声明 `@RequestParam(required = false)`——若写成默认的 `@RequestParam`（`required = true`），前端未传对应查询参数时接口会直接失败，无法实现「按需过滤」。
+
+```java 25:35:SpringBoot/big-event/src/main/java/com/itheima/controller/ArticleController.java
+    @GetMapping
+    public Result<PageBean<Article>> list(
+            Integer pageNum,
+            Integer pageSize,
+            @RequestParam(required = false) Integer categoryId, // 分类id,非必传
+            @RequestParam(required = false) String state // 状态,非必传
+    ) { 
+       // 返回分页数据对象
+       PageBean<Article> pb =  articleService.list(pageNum,pageSize,categoryId,state);
+       return Result.success(pb);
+    }
+```
+
+未传入时形参为 `null`，业务层原样下传至 Mapper；XML 中通过 `<if test="categoryId!=null">` / `<if test="state!=null">` 决定是否拼接条件，详见 [6.5 Mapper XML 映射与动态 SQL](#65-mapper-xml-映射与动态-sql)。
+
+对比：更新头像接口使用默认必传的 `@RequestParam`（可叠加校验注解），请求必须携带 `avatarUrl`：
+
+```java 99:103:SpringBoot/big-event/src/main/java/com/itheima/controller/UserController.java
+    @PatchMapping("updateAvatar")
+    public Result updateAvatar(@RequestParam @URL String avatarUrl) {
+        userService.updateAvatar(avatarUrl);
+        return Result.success();
+    }
 ```
 
 ---
@@ -148,7 +191,7 @@ spring.application.name=springboot-quickstart
 server:
   port: 9191
   servlet:
-    context-path: /start2
+    context-path: /start2 # 指定 Web 应用的上下文访问路径（根路径）
 ```
 
 ## 5.4 配置信息的获取与注入
@@ -209,8 +252,8 @@ email:
 将上述配置绑定到 `EmailProperties` 实体类：
 
 ```java
-@Component
-@ConfigurationProperties(prefix = "email")
+@Component // 修饰的配置类必须是 Spring 容器管理的 Bean（例如使用 `@Component` 标注）
+@ConfigurationProperties(prefix = "email") // 指定前缀
 public class EmailProperties {
 
     // 发件人邮箱
@@ -245,9 +288,11 @@ public class EmailProperties {
 
 ## 5.5 多环境配置 (Profiles) <a id="55-多环境配置-profiles"></a>
 
-开发、测试、生产等环境通常需要不同的端口、数据源与业务开关。Spring Boot 通过 **Profile** 机制按环境拆分并激活配置。项目 `SpringBoot/springboot-profiles` 演示了两种组织方式：**单文件配置**与**多文件配置**。激活方式除写在配置文件中外，也可在部署时用环境变量或命令行覆盖，优先级见 [12.3.4 配置优先级](#配置优先级)。
+- 开发、测试、生产等环境通常需要不同的端口、数据源与业务开关。Spring Boot 通过 **Profile** 机制按环境拆分并激活配置。
+- 激活方式除写在配置文件中外，也可在部署时用环境变量或命令行覆盖，优先级见 [12.3.4 配置优先级](#配置优先级)。
+- 项目 `SpringBoot/springboot-profiles` 演示了两种组织方式：**单文件配置**与**多文件配置**。
 
-### 5.5.1 通用配置属性
+### 5.5.1 用配置属性
 
 | 配置项 / 语法 | 作用 | 应用场景 | 示例 |
 | :--- | :--- | :--- | :--- |
@@ -257,12 +302,14 @@ public class EmailProperties {
 
 ### 5.5.2 单文件配置
 
-在同一个 `application.yml` 中，用 `---` 将公共配置与各环境配置拆成多个文档块；每个环境块通过 [`spring.config.activate.on-profile`](#55-多环境配置-profiles) 声明归属，再由 [`spring.profiles.active`](#51-通用配置属性) 决定实际生效环境。
+- 在同一个 `application.yml` 中，用 `---` 将公共配置与各环境配置拆成多个文档块；
+- 每个环境块通过 [`spring.config.activate.on-profile`](#55-多环境配置-profiles) 声明归属，再由 [`spring.profiles.active`](#51-通用配置属性) 决定实际生效环境。
 
 项目备份示例见 `SpringBoot/springboot-profiles/src/main/resources/temp/application.yml.bak`，结构如下：
 
 ```yaml
 # 用 `---` 将公共配置与各环境配置拆成多个文档块
+
 # 公共配置 + 激活环境
 spring:
   profiles:
@@ -271,7 +318,7 @@ server:
   servlet:
     context-path: /aaa
 ---
-# 开发环境
+# 开发环境dev
 spring:
   config:
     activate:
@@ -281,7 +328,7 @@ server:
   servlet:
     context-path: /bbb
 ---
-# 测试环境
+# 测试环境test
 spring:
   config:
     activate:
@@ -302,9 +349,9 @@ server:
 
 ### 5.5.3 多文件配置
 
-将各环境配置拆到独立文件，命名约定为 `application-{环境名称}.yml`；在主文件 `application.yml` 中通过 [`spring.profiles.active`](#51-通用配置属性) 激活目标环境，Spring Boot 会自动加载对应的 `application-{环境名称}.yml`。
-
-主文件激活示例见 `SpringBoot/springboot-profiles/src/main/resources/temp2/application.yml.bak`：
+- 将各环境配置拆到独立文件，命名约定为 `application-{环境名称}.yml`；
+- 在主文件 `application.yml` 中通过 [`spring.profiles.active`](#51-通用配置属性) 激活目标环境，Spring Boot 会自动加载对应的 `application-{环境名称}.yml`。
+- 主文件激活示例见 `SpringBoot/springboot-profiles/src/main/resources/temp2/application.yml.bak`：
 
 ```yaml
 spring:
@@ -315,7 +362,7 @@ spring:
 各环境文件示例：
 
 ```yaml 1:3:SpringBoot/springboot-profiles/src/main/resources/temp2/application-dev.yml.bak
-#开发环境
+#开发环境 application-dev.yml.bak
 server:
   port: 8081
 ```
@@ -396,8 +443,8 @@ MyBatis 是 Java 领域极其流行的优秀持久层框架。Spring Boot 通过
 ```yaml 1:15:SpringBoot/big-event/src/main/resources/application.yml
 spring:
   datasource:
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/big_event
+    driver-class-name: com.mysql.cj.jdbc.Driver # 指定数据库驱动类名
+    url: jdbc:mysql://localhost:3306/big_event  # 指定数据库连接 UR
     username: root
     password: 1234
 
@@ -431,12 +478,12 @@ mybatis:
 
 ```java 3:9:SpringBoot/springboot-quickstart/src/main/java/com/itheima/springbootmybatis/pojo/User.java
 public class User {
-    
     private Integer id;
     private String name;
     private Short age;
     private Short gender;
     private String phone;
+}
 ```
 
 ### 6.3.2 持久层接口设计 (Mapper)
@@ -523,7 +570,6 @@ public class SpringbootMybatisApplication {
     public static void main(String[] args) {
         SpringApplication.run(SpringbootMybatisApplication.class, args);
     }
-
 }
 ```
 
@@ -537,7 +583,8 @@ public class SpringbootMybatisApplication {
 
 ## 6.5 Mapper XML 映射与动态 SQL <a id="65-mapper-xml-映射与动态-sql"></a>
 
-简单、固定的 SQL（如单表插入）可直接写在 [`@Mapper`](#mapper-declaration) 接口的注解上（如 `@Insert`）；当查询条件随请求参数**可选出现**时，注解内拼接 `if` 逻辑可读性差，项目中改为在 Mapper XML 中编写**动态 SQL**。
+- 简单、固定的 SQL（如单表插入）可直接写在 [`@Mapper`](#mapper-declaration) 接口的注解上（如 `@Insert`）；
+- 当查询条件随请求参数**动态出现**时，注解内拼接 `if` 逻辑可读性差，项目中改为在 `Mapper XML` 中编写**动态 SQL**。
 
 ### 6.5.1 使用场景
 
@@ -546,10 +593,10 @@ public class SpringbootMybatisApplication {
 - **必选条件**：始终按当前登录用户过滤（`create_user = #{userId}`），保证数据隔离。
 - **可选条件**：分类 ID（`categoryId`）、发布状态（`state`）由前端按需传入；未传时不参与 WHERE 拼接。
 
-控制层将 `categoryId`、`state` 声明为可选请求参数，业务层取出当前用户 ID 后调用 Mapper；Mapper 接口方法不写 `@Select`，由同名 XML 完成 SQL 组装。
+控制层将 `categoryId`、`state` 声明为 [`@RequestParam(required = false)`](#42-请求参数绑定-requestparam) 可选请求参数，业务层取出当前用户 ID 后调用 Mapper；Mapper 接口方法不写 `@Select`，由同名 XML 完成 SQL 组装。
 
 ```java 16:17:SpringBoot/big-event/src/main/java/com/itheima/mapper/ArticleMapper.java
-    // 动态sql的时候不使用注解吗，使用映射xml会更方便 关联\resources\com\itheima\mapper\ArticleMapper.xml
+    // 动态sql的时候不使用注解，使用映射xml会更方便 关联\resources\com\itheima\mapper\ArticleMapper.xml
     List<Article> list(Integer userId, Integer categoryId, String state);
 ```
 
@@ -573,9 +620,12 @@ public class SpringbootMybatisApplication {
 ### 6.5.4 实战示例
 
 ```xml 6:22:SpringBoot/big-event/src/main/resources/com/itheima/mapper/ArticleMapper.xml
-        <!-- namespace对应接口的类名 -->
+<!-- namespace对应接口的类名 -->
 <mapper namespace="com.itheima.mapper.ArticleMapper">
-    <!--动态sql-->
+    <!-- 动态sql,
+		id对应接口名称
+		resultType对应实体类
+    -->
     <select id="list" resultType="com.itheima.pojo.Article">
         select * from article
         <where>
@@ -587,7 +637,6 @@ public class SpringbootMybatisApplication {
             <if test="state!=null">
                 and state=#{state}
             </if>
-
             and create_user=#{userId}
         </where>
     </select>
