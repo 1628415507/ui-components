@@ -3,7 +3,7 @@
 
 # 一、环境配置
 ## 1.1 安装JDK
-1. [下载JDK](https://www.oracle.com/java/technologies/downloads/#jdk25-windows) -> (配置环境变量)[https://www.bilibili.com/video/BV1TJxCzSEEZ?spm_id_from=333.788.player.switch&vd_source=9d75580d0b23d1137d56e03a996ac726&p=5]
+1. [下载JDK](https://www.oracle.com/java/technologies/downloads/#jdk25-windows) -> [配置环境变量](https://www.bilibili.com/video/BV1TJxCzSEEZ?spm_id_from=333.788.player.switch&vd_source=9d75580d0b23d1137d56e03a996ac726&p=5)
 
 ## 1.2 [安装IDEA](https://www.bilibili.com/video/BV1TJxCzSEEZ?spm_id_from=333.788.player.switch&vd_source=9d75580d0b23d1137d56e03a996ac726&p=6)
 
@@ -17,11 +17,10 @@
 | final | 表示最终，不可变。可修饰类、方法、变量 | `final int NUMBER = 100;` |
 | [abstract](#1010-抽象类与抽象方法-abstract-class--method) | 抽象修饰符，用于声明抽象类和抽象方法 | `public abstract class Animal { ... }` |
 | void | 表示方法没有返回值 | `public static void printArr(int[] arr) { ... }` |
-| return | 用于结束方法，并将结果返回给调用处 | `return sum;` |
 | public static void main | 表示Java程序的主入口，当程序开始运行的时候，会从主入口开始逐行往下执行 | `public static void main(String[] args) { ... }` |
 | [enum](#107-枚举-enum) | 用于定义枚举类，表示一种特殊的、包含固定常量的类 | `public enum OrderState { ... }` |
-| [interface](#1011-接口-interface) | 声明接口的关键字 | `public interface MyInter { ... }` |
-| [implements](#1011-接口-interface) | 用于类实现接口的关键字 | `public class MyInterImpl implements MyInter { ... }` |
+| [interface](#1011-接口-interface) | **声明**接口的关键字 | `public interface MyInter { ... }` |
+| [implements](#1011-接口-interface) | 用于类**实现**接口的关键字 | `public class MyInterImpl implements MyInter { ... }` |
 
 # 三、数据类型
 
@@ -1734,5 +1733,4 @@ Arrays.sort(arr, (o1, o2) -> o1 - o2);
 | **简化目标** | 用于简化匿名内部类的写法。 |
 | **接口约束** | 只能简化函数式接口的匿名内部类。 |
 | **函数式判定** | 接口有且仅有一个抽象方法；可用 `@FunctionalInterface` 标记。 |
-
 
