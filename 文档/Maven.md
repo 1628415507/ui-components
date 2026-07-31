@@ -88,9 +88,33 @@ Spring Boot 项目中的目录与依赖实践见 [SpringBoot.md · Maven 依赖�
 | `packaging` | 打包方式，默认 `jar`；Web 项目需设为 `war` | `war` |
 | `properties` | 定义变量（如 JDK 版本、依赖版本），供 `pom.xml` 引用 | 见下文 |
 | `parent` | 继承父 POM，统一依赖版本等 | 见 [Spring Boot 父工程](./SpringBoot.md#maven-pom) |
-| `dependencies` | 声明本模块直接依赖 | 含 `scope` 时可限定测试范围等 |
+| `dependencies` | 声明本模块直接依赖 | 含 `scope` 时可限定使用范围 |
 
-## 2.2 属性定义与变量引用（properties）
+## 2.2 依赖范围 (Scope)
+
+`scope` 元素用于控制依赖的使用范围：即 Jar 包在哪些阶段（编译、测试、运行/打包）被加载和使用。
+
+### 2.2.1 核心范围对比
+
+| 范围 (Scope) | 编译 (`main`) | 测试 (`test`) | 运行/打包 | 典型示例 |
+| :--- | :---: | :---: | :---: | :--- |
+| **`compile`** (默认) | √ | √ | √ | 大多数第三方库（如 `log4j`） |
+| **`test`** | × | √ | × | 单元测试框架（如 `junit`） |
+| **`provided`** | √ | √ | × | 容器已提供的 API（如 `servlet-api`） |
+| **`runtime`** | × | √ | √ | 仅运行时需要的实现（如 `mysql-connector`） |
+| **`system`** | √ | √ | × | 本地 Jar 包（需配合 `systemPath` 使用，不推荐） |
+
+### 2.2.2 场景说明
+
+-   **`compile`**：最强的依赖。参与项目编译、测试、打包和运行。
+-   **`test`**：仅在测试代码编译和执行时有效。打包时会被排除，避免生产环境携带测试工具。
+-   **`provided`**：理论上参与编译和测试，但**不会被打包**。因为运行环境（如 Tomcat）已提供该 Jar，打包进入会导致冲突（如 `servlet-api`）。
+-   **`runtime`**：跳过编译阶段（代码中不直接引用该类，通过反射或接口调用），但测试和运行时必须存在。
+-   **`system`**：与 `provided` 类似，但不从仓库下载，而是引用本地文件系统路径的 Jar。
+
+> **最佳实践**：如果拿不准范围，通常保留默认的 `compile` 即可确保功能正常；从中央仓库复制坐标时，直接保留其自带的 `scope` 配置。
+
+## 2.3 属性定义与变量引用（properties）
 
 通过 `<properties>` 定义变量，可实现依赖版本的集中管理，避免多处硬编码。
 
@@ -101,7 +125,7 @@ Spring Boot 项目中的目录与依赖实践见 [SpringBoot.md · Maven 依赖�
     <!-- 设置 JDK 编译版本 -->
     <maven.compiler.source>17</maven.compiler.source>
     <maven.compiler.target>17</maven.compiler.target>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding> 
     
     <!-- 自定义依赖版本变量 -->
     <javax.servlet.version>3.1.0</javax.servlet.version>
