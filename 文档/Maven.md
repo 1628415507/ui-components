@@ -106,11 +106,11 @@ Spring Boot 项目中的目录与依赖实践见 [SpringBoot.md · Maven 依赖�
 
 ### 2.2.2 场景说明
 
--   **`compile`**：最强的依赖。参与项目编译、测试、打包和运行。
--   **`test`**：仅在测试代码编译和执行时有效。打包时会被排除，避免生产环境携带测试工具。
--   **`provided`**：理论上参与编译和测试，但**不会被打包**。因为运行环境（如 Tomcat）已提供该 Jar，打包进入会导致冲突（如 `servlet-api`）。
--   **`runtime`**：跳过编译阶段（代码中不直接引用该类，通过反射或接口调用），但测试和运行时必须存在。
--   **`system`**：与 `provided` 类似，但不从仓库下载，而是引用本地文件系统路径的 Jar。
+- **`compile`**：最强的依赖。参与项目编译、测试、打包和运行。
+- **`test`**：仅在测试代码编译和执行时有效。打包时会被排除，避免生产环境携带测试工具。
+- **`provided`**：理论上参与编译和测试，但**不会被打包**。因为运行环境（如 Tomcat）已提供该 Jar，打包进入会导致冲突（如 `servlet-api`）。
+- **`runtime`**：跳过编译阶段（代码中不直接引用该类，通过反射或接口调用），但测试和运行时必须存在。
+- **`system`**：与 `provided` 类似，但不从仓库下载，而是引用本地文件系统路径的 Jar。
 
 > **最佳实践**：如果拿不准范围，通常保留默认的 `compile` 即可确保功能正常；从中央仓库复制坐标时，直接保留其自带的 `scope` 配置。
 
@@ -142,6 +142,38 @@ Spring Boot 项目中的目录与依赖实践见 [SpringBoot.md · Maven 依赖�
 ```
 
 父工程与起步依赖（Starter）属于 Spring Boot 场景，详见 [SpringBoot.md · Maven 依赖管理](./SpringBoot.md#maven-pom)，此处不重复展开。
+
+## 2.4 传递依赖与排除
+
+### 2.4.1 传递依赖 (Transitive Dependency)
+
+当项目 A 依赖项目 B，而项目 B 又依赖项目 C 时，项目 C 就是项目 A 的**传递依赖**。
+
+- **自动管理**：Maven 会自动将 B 的依赖 C 引入项目 A，无需手动配置。
+- **Scope 限制**：只有当 B 对 C 的依赖范围是 `compile` 时，C 才会传递给 A。若为 `test` 或 `provided`，则不会传递。
+- **查看依赖树**：使用 `mvn dependency:tree` 命令可以清晰查看项目的完整依赖层级。
+
+### 2.4.2 依赖排除 (Exclusions)
+
+当传递依赖引入了不需要或冲突的 Jar 包时，可以通过 `<exclusions>` 标签将其手动排除。
+
+**场景描述**：项目 Hello 依赖项目 B，项目 B 传递引入了 `mysql-connector-j`。若 Hello 项目需要排除该驱动（例如为了避免版本冲突），配置如下：
+
+```xml
+<dependency>
+    <groupId>com.xushu</groupId>
+    <artifactId>bproject</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    
+    <!-- 手动排除传递依赖 -->
+    <exclusions>
+        <exclusion>
+            <groupId>com.mysql</groupId>
+            <artifactId>mysql-connector-j</artifactId>
+        </exclusion>
+    </exclusions>
+</dependency>
+```
 
 ---
 
