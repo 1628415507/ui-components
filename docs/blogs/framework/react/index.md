@@ -93,7 +93,8 @@ export default function Counter() {
 }
 
 ```
-
+### 注意
+dispatch 函数 是为下一次渲染而更新 state。因此**在调用 dispatch 函数后读取 state 并不会拿到更新后的值**，也就是说**只能获取到调用前的值**
 ## React.memo
 ### 说明
 - `React.memo` 是一个高阶组件（HOC），用于性能优化。
