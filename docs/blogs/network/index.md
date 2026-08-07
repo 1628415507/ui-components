@@ -99,7 +99,7 @@ console.log('明文:', decrypted.toString(CryptoJS.enc.Utf8))
 ```
 
 #### RSA 非对称加密示例
-
+![alt text](image-1.png)
 ```js{4,10,16}
 import CryptoJS from 'crypto-js' // 引入 CryptoJS
 

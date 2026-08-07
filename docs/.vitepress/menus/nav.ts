@@ -50,7 +50,11 @@ export const nav: DefaultTheme.NavItem[] = [
       {
         text: '业务应用',
         link: '/blogs/business' // 对应docs/column/Algorithm下的index.md文件
-      }
+      },
+      // {
+      //   text: '电脑技巧',
+      //   link: '/blogs/computer'
+      // }
       // {
       //   text: '方法',
       //   link: '/examples' // 对应docs/column/Algorithm下的index.md文件
