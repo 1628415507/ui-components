@@ -34,6 +34,12 @@ CREATE TABLE depts(
 );
 ```
 
+创建表时可通过 `DEFAULT` 指定列的默认值：
+
+```sql
+CREATE TABLE 表名(列名 类型 DEFAULT 默认值, ...);
+```
+
 ### 1.1 删除表
 
 使用 [`DROP TABLE`](#一ddl数据定义语言) 语句删除表：
@@ -140,3 +146,37 @@ ALTER TABLE emp MODIFY salary FLOAT(8,2) NULL;
 ### 2.5 检查约束 (Check)
 
 [`CHECK`](#二约束) 由用户自定义约束条件，确保数据满足特定规则；MySQL 当前不支持该约束。
+
+## 三、DML（数据操纵语言）
+
+DML（Data Manipulation Language）用于对表中的数据进行增、删、改等操作。
+
+| 语句 | 作用 | 示例 |
+| :--- | :--- | :--- |
+| [`UPDATE`](#31-更新数据-update) | 更新表中已有数据 | `UPDATE 表名 SET 列名=值 WHERE 条件;` |
+| [`DELETE`](#32-删除数据-delete) | 按条件删除数据 | `DELETE FROM 表名 WHERE 条件;` |
+| [`TRUNCATE`](#33-清空表-truncate) | 清空表中全部数据 | `TRUNCATE TABLE 表名;` |
+
+### 3.1 更新数据 (UPDATE)
+
+使用 [`UPDATE`](#三dml数据操纵语言) 更新表中数据，可同时修改多列，须通过 `WHERE` 指定更新条件：
+
+```sql
+UPDATE 表名 SET 列名=值, 列名=值 WHERE 条件;
+```
+
+### 3.2 删除数据 (DELETE)
+
+使用 [`DELETE`](#三dml数据操纵语言) 按条件删除表中的数据：
+
+```sql
+DELETE FROM 表名 WHERE 条件;
+```
+
+### 3.3 清空表 (TRUNCATE)
+
+使用 [`TRUNCATE`](#三dml数据操纵语言) 清空表中全部数据：
+
+```sql
+TRUNCATE TABLE 表名;
+```
