@@ -413,7 +413,9 @@ server:
 ---
 
 # 六、 整合 MyBatis 数据库交互
+
 ![alt text](IOC.png)
+
 MyBatis 是 Java 领域极其流行的优秀持久层框架。Spring Boot 通过起步依赖 `mybatis-spring-boot-starter` 与数据源的自动配置，极大简化了传统 SSM 框架中繁琐的 MyBatis 配置过程。
 
 ## 6.1 整合起步依赖 (pom.xml)
