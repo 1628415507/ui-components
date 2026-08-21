@@ -202,15 +202,15 @@ DQL（Data Query Language）用于从表中查询数据，核心语句为 `SELEC
 | `[表别名](#43-表别名)`                | 为表指定短名，用于限定列      | `SELECT 表别名.列名 FROM 表名 AS 表别名 WHERE 条件;` |
 | `[NULL](#41-null空值)`            | 表示缺失、未知或不适用的值     | `列名 IS NULL`                             |
 | `[比较条件](#45-比较条件)`              | 用于 `WHERE` 子句比较过滤 | `列名 > 值`                                 |
-| `[IN](#46-in-条件)`               | 测试值是否在列表中        | `列名 IN (值1, 值2)`                         |
-| `[LIKE](#47-like-条件)`           | 通配符模糊匹配          | `列名 LIKE 'S%'`                           |
-| `[优先规则](#48-优先规则)`              | 运算符求值顺序          | 见 [4.8](#48-优先规则)                        |
-| `[ORDER BY](#49-排序-order-by)`    | 对查询结果排序          | `ORDER BY 列名 DESC`                         |
+| `[IN](#46-in-条件)`               | 测试值是否在列表中         | `列名 IN (值1, 值2)`                         |
+| `[LIKE](#47-like-条件)`           | 通配符模糊匹配           | `列名 LIKE 'S%'`                           |
+| `[优先规则](#48-优先规则)`              | 运算符求值顺序           | 见 [4.8](#48-优先规则)                        |
+| `[ORDER BY](#49-排序-order-by)`   | 对查询结果排序           | `ORDER BY 列名 DESC`                       |
 
 
 ### 4.1 NULL（空值）
 
-[`NULL`](#四dql数据查询语言) 是一个未分配的、未知的或不适用的值；**不是 `0`，也不是空格**（`0` 是数字，空格是字符）。若一行中某列缺少数据值，该值被置为 `NULL`。
+`[NULL](#四dql数据查询语言)` 是一个未分配的、未知的或不适用的值；**不是 `0`，也不是空格**（`0` 是数字，空格是字符）。若一行中某列缺少数据值，该值被置为 `NULL`。
 
 ```sql
 SELECT last_name, job_id, salary, commission_pct
@@ -261,20 +261,22 @@ SELECT DISTINCT 列名 FROM 表名;
 
 ### 4.5 比较条件
 
-[`比较条件`](#四dql数据查询语言) 用于 `WHERE` 子句中对列值进行比较过滤：
+`[比较条件](#四dql数据查询语言)` 用于 `WHERE` 子句中对列值进行比较过滤：
 
-| 运算 | 含义 |
-| :--- | :--- |
-| `=` | 等于 |
-| `>` | 大于 |
-| `>=` | 大于等于 |
-| `<` | 小于 |
-| `<=` | 小于等于 |
-| `<>`、`!=` | 不等于 |
+
+| 运算        | 含义   |
+| --------- | ---- |
+| `=`       | 等于   |
+| `>`       | 大于   |
+| `>=`      | 大于等于 |
+| `<`       | 小于   |
+| `<=`      | 小于等于 |
+| `<>`、`!=` | 不等于  |
+
 
 ### 4.6 IN 条件
 
-使用 [`IN`](#四dql数据查询语言) 成员条件测试列值是否在列表中：
+使用 `[IN](#四dql数据查询语言)` 成员条件测试列值是否在列表中：
 
 ```sql
 SELECT 列名 FROM 表名 WHERE 列名 IN (值1, 值2, ...);
@@ -282,12 +284,14 @@ SELECT 列名 FROM 表名 WHERE 列名 IN (值1, 值2, ...);
 
 ### 4.7 LIKE 条件
 
-使用 [`LIKE`](#四dql数据查询语言) 对字符串执行通配符搜索，搜索条件可包含文字或数字：
+使用 `[LIKE](#四dql数据查询语言)` 对字符串执行通配符搜索，搜索条件可包含文字或数字：
 
-| 通配符 | 含义 |
-| :--- | :--- |
+
+| 通配符 | 含义      |
+| --- | ------- |
 | `%` | 零个或多个字符 |
-| `_` | 一个字符 |
+| `_` | 一个字符    |
+
 
 ```sql
 SELECT 列名 FROM 表名 WHERE 列名 LIKE '模式';
@@ -303,24 +307,26 @@ WHERE first_name LIKE 'S%';
 
 ### 4.8 优先规则
 
-[`WHERE`](#四dql数据查询语言) 子句中多个条件按以下顺序求值（数字越小优先级越高）：
+`[WHERE](#四dql数据查询语言)` 子句中多个条件按以下顺序求值（数字越小优先级越高）：
 
-| 求值顺序 | 运算 |
-| :--- | :--- |
-| 1 | 算术运算 |
-| 2 | 连字操作 |
-| 3 | 比较操作 |
-| 4 | `IS [NOT] NULL`、`LIKE`、`[NOT] IN` |
-| 5 | `[NOT] BETWEEN` |
-| 6 | `NOT` 逻辑条件 |
-| 7 | `AND` 逻辑条件 |
-| 8 | `OR` 逻辑条件 |
+
+| 求值顺序 | 运算                                |
+| ---- | --------------------------------- |
+| 1    | 算术运算                              |
+| 2    | 连字操作                              |
+| 3    | 比较操作                              |
+| 4    | `IS [NOT] NULL`、`LIKE`、`[NOT] IN` |
+| 5    | `[NOT] BETWEEN`                   |
+| 6    | `NOT` 逻辑条件                        |
+| 7    | `AND` 逻辑条件                        |
+| 8    | `OR` 逻辑条件                         |
+
 
 可使用圆括号改变优先规则。
 
 ### 4.9 排序 (ORDER BY)
 
-使用 [`ORDER BY`](#四dql数据查询语言) 对查询结果排序：
+使用 `[ORDER BY](#四dql数据查询语言)` 对查询结果排序：
 
 ```sql
 SELECT 列名 FROM 表名 ORDER BY 列名 [ASC | DESC];
@@ -334,7 +340,7 @@ FROM employees
 ORDER BY department_id, salary DESC;
 ```
 
-**使用列别名排序**：可在 `ORDER BY` 中引用 [`列别名`](#42-列别名)：
+**使用列别名排序**：可在 `ORDER BY` 中引用 `[列别名](#42-列别名)`：
 
 ```sql
 SELECT employee_id, last_name, salary*12 annsal
@@ -346,66 +352,76 @@ ORDER BY annsal;
 
 SQL 函数用于在查询中对数据进行转换、提取与计算，常见分类包括 [字符函数](#51-字符函数)、[日期函数](#52-日期函数) 与 [通用函数](#53-通用函数)。
 
-| 分类 | 作用 |
-| :--- | :--- |
-| [字符函数](#51-字符函数) | 大小写转换、字符串拼接、截取与替换等 |
+
+| 分类               | 作用                      |
+| ---------------- | ----------------------- |
+| [字符函数](#51-字符函数) | 大小写转换、字符串拼接、截取与替换等      |
 | [日期函数](#52-日期函数) | 获取当前日期时间、提取日期部分、计算日期间隔等 |
-| [通用函数](#53-通用函数) | 条件判断、NULL 值处理等 |
+| [通用函数](#53-通用函数) | 条件判断、NULL 值处理等          |
+
 
 ### 5.1 字符函数
 
 #### 5.1.1 大小写处理函数
 
-| 函数 | 描述 | 示例 |
-| :--- | :--- | :--- |
-| `LOWER(s)` \| `LCASE(s)` | 将字符串 `s` 转换为小写 | `SELECT LOWER("OLDLU"); -- oldlu` |
-| `UPPER(s)` \| `UCASE(s)` | 将字符串 `s` 转换为大写 | `SELECT UPPER("oldlu"); -- OLDLU` |
+
+| 函数                      | 描述             | 示例                                |
+| ----------------------- | -------------- | --------------------------------- |
+| `LOWER(s)` | `LCASE(s)` | 将字符串 `s` 转换为小写 | `SELECT LOWER("OLDLU"); -- oldlu` |
+| `UPPER(s)` | `UCASE(s)` | 将字符串 `s` 转换为大写 | `SELECT UPPER("oldlu"); -- OLDLU` |
+
 
 #### 5.1.2 字符处理函数
 
-| 函数 | 描述 | 示例 |
-| :--- | :--- | :--- |
-| `LENGTH(s)` | 返回字符串 `s` 的长度 | `SELECT LENGTH("oldlu"); -- 5` |
-| `CONCAT(s1,s2,...sn)` | 将多个字符串合并为一个 | `SELECT CONCAT("sxt ", "teacher", ", oldlu"); -- sxt teacher, oldlu` |
-| `LPAD(s1,len,s2)` | 在 `s1` 开始处填充 `s2`，使长度达到 `len` | `SELECT LPAD('oldlu',8,'x'); -- xxxoldlu` |
-| `LTRIM(s)` | 去掉字符串 `s` 开始处的空格 | `SELECT LTRIM("  oldlu"); -- oldlu` |
-| `REPLACE(s,s1,s2)` | 将 `s` 中的 `s1` 替换为 `s2` | `SELECT REPLACE('oldlu','o','O'); -- Oldlu` |
-| `REVERSE(s)` | 将字符串 `s` 的顺序反转 | `SELECT REVERSE('abc'); -- cba` |
-| `RPAD(s1,len,s2)` | 在 `s1` 结尾处填充 `s2`，使长度达到 `len` | `SELECT RPAD('oldlu',8,'x'); -- oldluxxx` |
-| `RTRIM(s)` | 去掉字符串 `s` 结尾处的空格 | `SELECT RTRIM("oldlu  "); -- oldlu` |
-| `SUBSTR(s,start,length)` | 从 `s` 的 `start` 位置截取长度为 `length` 的子串 | `SELECT SUBSTR("OLDLU", 2, 3); -- LDL` |
-| `SUBSTRING(s,start,length)` | 同 `SUBSTR`，截取指定子串 | `SELECT SUBSTRING("OLDLU", 2, 3); -- LDL` |
+
+| 函数                          | 描述                                   | 示例                                                                   |
+| --------------------------- | ------------------------------------ | -------------------------------------------------------------------- |
+| `LENGTH(s)`                 | 返回字符串 `s` 的长度                        | `SELECT LENGTH("oldlu"); -- 5`                                       |
+| `CONCAT(s1,s2,...sn)`       | 将多个字符串合并为一个                          | `SELECT CONCAT("sxt ", "teacher", ", oldlu"); -- sxt teacher, oldlu` |
+| `LPAD(s1,len,s2)`           | 在 `s1` 开始处填充 `s2`，使长度达到 `len`        | `SELECT LPAD('oldlu',8,'x'); -- xxxoldlu`                            |
+| `LTRIM(s)`                  | 去掉字符串 `s` 开始处的空格                     | `SELECT LTRIM(" oldlu"); -- oldlu`                                   |
+| `REPLACE(s,s1,s2)`          | 将 `s` 中的 `s1` 替换为 `s2`               | `SELECT REPLACE('oldlu','o','O'); -- Oldlu`                          |
+| `REVERSE(s)`                | 将字符串 `s` 的顺序反转                       | `SELECT REVERSE('abc'); -- cba`                                      |
+| `RPAD(s1,len,s2)`           | 在 `s1` 结尾处填充 `s2`，使长度达到 `len`        | `SELECT RPAD('oldlu',8,'x'); -- oldluxxx`                            |
+| `RTRIM(s)`                  | 去掉字符串 `s` 结尾处的空格                     | `SELECT RTRIM("oldlu "); -- oldlu`                                   |
+| `SUBSTR(s,start,length)`    | 从 `s` 的 `start` 位置截取长度为 `length` 的子串 | `SELECT SUBSTR("OLDLU", 2, 3); -- LDL`                               |
+| `SUBSTRING(s,start,length)` | 同 `SUBSTR`，截取指定子串                    | `SELECT SUBSTRING("OLDLU", 2, 3); -- LDL`                            |
+
 
 ### 5.2 日期函数
 
 MySQL 允许直接使用字符串表示日期，格式须为 `'YYYY-MM-DD HH:MI:SS'` 或 `'YYYY/MM/DD HH:MI:SS'`。
 
-| 函数 | 描述 | 示例 |
-| :--- | :--- | :--- |
-| `CURDATE()` | 返回当前日期 | `SELECT CURDATE(); -- 2018-09-19` |
-| `CURTIME()` | 返回当前时间 | `SELECT CURTIME(); -- 19:59:02` |
-| `CURRENT_DATE()` | 返回当前日期 | `SELECT CURRENT_DATE(); -- 2018-09-19` |
-| `CURRENT_TIME()` | 返回当前时间 | `SELECT CURRENT_TIME(); -- 19:59:02` |
-| `DATE()` | 从日期或日期时间表达式中提取日期值 | `SELECT DATE("2017-06-15"); -- 2017-06-15` |
-| `DATEDIFF(d1,d2)` | 计算 `d1` 到 `d2` 之间相隔的天数 | `SELECT DATEDIFF('2001-01-01','2001-02-02'); -- -32` |
-| `DAY(d)` | 返回日期值 `d` 的日期部分 | `SELECT DAY("2017-06-15"); -- 15` |
-| `DAYNAME(d)` | 返回日期 `d` 是星期几 | `SELECT DAYNAME('2011-11-11 11:11:11'); -- Friday` |
-| `DAYOFMONTH(d)` | 计算日期 `d` 是本月的第几天 | `SELECT DAYOFMONTH('2011-11-11 11:11:11'); -- 11` |
-| `DAYOFWEEK(d)` | 返回日期 `d` 是星期几（1 星期日，2 星期一，以此类推） | `SELECT DAYOFWEEK('2011-11-11 11:11:11'); -- 6` |
-| `DAYOFYEAR(d)` | 计算日期 `d` 是本年的第几天 | `SELECT DAYOFYEAR('2011-11-11 11:11:11');` |
+
+| 函数                | 描述                              | 示例                                                   |
+| ----------------- | ------------------------------- | ---------------------------------------------------- |
+| `CURDATE()`       | 返回当前日期                          | `SELECT CURDATE(); -- 2018-09-19`                    |
+| `CURTIME()`       | 返回当前时间                          | `SELECT CURTIME(); -- 19:59:02`                      |
+| `CURRENT_DATE()`  | 返回当前日期                          | `SELECT CURRENT_DATE(); -- 2018-09-19`               |
+| `CURRENT_TIME()`  | 返回当前时间                          | `SELECT CURRENT_TIME(); -- 19:59:02`                 |
+| `DATE()`          | 从日期或日期时间表达式中提取日期值               | `SELECT DATE("2017-06-15"); -- 2017-06-15`           |
+| `DATEDIFF(d1,d2)` | 计算 `d1` 到 `d2` 之间相隔的天数          | `SELECT DATEDIFF('2001-01-01','2001-02-02'); -- -32` |
+| `DAY(d)`          | 返回日期值 `d` 的日期部分                 | `SELECT DAY("2017-06-15"); -- 15`                    |
+| `DAYNAME(d)`      | 返回日期 `d` 是星期几                   | `SELECT DAYNAME('2011-11-11 11:11:11'); -- Friday`   |
+| `DAYOFMONTH(d)`   | 计算日期 `d` 是本月的第几天                | `SELECT DAYOFMONTH('2011-11-11 11:11:11'); -- 11`    |
+| `DAYOFWEEK(d)`    | 返回日期 `d` 是星期几（1 星期日，2 星期一，以此类推） | `SELECT DAYOFWEEK('2011-11-11 11:11:11'); -- 6`      |
+| `DAYOFYEAR(d)`    | 计算日期 `d` 是本年的第几天                | `SELECT DAYOFYEAR('2011-11-11 11:11:11');`           |
+
 
 ### 5.3 通用函数
 
-[`通用函数`](#五sql-函数) 用于条件判断与 [`NULL`](#41-null空值) 值处理：
+`[通用函数](#五sql-函数)` 用于条件判断与 `[NULL](#41-null空值)` 值处理：
 
-| 函数 | 描述 | 示例 |
-| :--- | :--- | :--- |
-| `IF(expr,v1,v2)` | 若 `expr` 成立返回 `v1`，否则返回 `v2` | `SELECT IF(1 > 0, '正确', '错误'); -- 正确` |
-| `IFNULL(v1,v2)` | 若 `v1` 不为 NULL 返回 `v1`，否则返回 `v2` | `SELECT IFNULL(null, 'Hello Word'); -- Hello Word` |
-| `ISNULL(expression)` | 判断表达式是否为 NULL | `SELECT ISNULL(NULL); -- 1` |
-| `NULLIF(expr1,expr2)` | 若 `expr1` 与 `expr2` 相等返回 NULL，否则返回 `expr1` | `SELECT NULLIF(25, 25); -- NULL` |
-| `COALESCE(expr1,expr2,...,expr_n)` | 从左向右返回第一个非 NULL 表达式 | `SELECT COALESCE(NULL, NULL, NULL, 'bjsxt.com', NULL, 'google.com'); -- bjsxt.com` |
-| `CASE ... END` | 按条件分支返回值，首个匹配成立后后续不再执行 | 见下方示例 |
+
+| 函数                                 | 描述                                         | 示例                                                                                 |
+| ---------------------------------- | ------------------------------------------ | ---------------------------------------------------------------------------------- |
+| `IF(expr,v1,v2)`                   | 若 `expr` 成立返回 `v1`，否则返回 `v2`               | `SELECT IF(1 > 0, '正确', '错误'); -- 正确`                                              |
+| `IFNULL(v1,v2)`                    | 若 `v1` 不为 NULL 返回 `v1`，否则返回 `v2`           | `SELECT IFNULL(null, 'Hello Word'); -- Hello Word`                                 |
+| `ISNULL(expression)`               | 判断表达式是否为 NULL                              | `SELECT ISNULL(NULL); -- 1`                                                        |
+| `NULLIF(expr1,expr2)`              | 若 `expr1` 与 `expr2` 相等返回 NULL，否则返回 `expr1` | `SELECT NULLIF(25, 25); -- NULL`                                                   |
+| `COALESCE(expr1,expr2,...,expr_n)` | 从左向右返回第一个非 NULL 表达式                        | `SELECT COALESCE(NULL, NULL, NULL, 'bjsxt.com', NULL, 'google.com'); -- bjsxt.com` |
+| `CASE ... END`                     | 按条件分支返回值，首个匹配成立后后续不再执行                     | 见下方示例                                                                              |
+
 
 `CASE` 表示函数开始，`END` 表示结束；`condition` 成立则返回对应 `result`，全部不成立则返回 `ELSE` 的 `result`：
 
@@ -415,4 +431,149 @@ SELECT CASE 'oldlu'
   WHEN 'admin' THEN 'ADMIN'
   ELSE 'kevin'
 END;
+```
+
+## 六、表连接
+
+多表查询通过连接将多个表的数据组合在一起。MySQL 5.7 支持部分 SQL99 标准。
+
+
+| 连接类型                                          | 作用               | 示例                                                    |
+| --------------------------------------------- | ---------------- | ----------------------------------------------------- |
+| [表别名](#61-表别名多表查询)                            | 简化多表查询、快速标识列所属表  | `FROM 表1 e, 表2 d WHERE e.id = d.id`                   |
+| [自连接](#62-自连接)                                | 单表按层级或关联关系自关联    | `FROM employees worker JOIN employees manager ON ...` |
+| [CROSS JOIN](#63-交叉连接-cross-join)             | 两表笛卡尔积（交叉乘积）     | `FROM 表1 CROSS JOIN 表2`                               |
+| [NATURAL JOIN](#64-自然连接-natural-join)         | 按同名同类型列自动等值连接    | `FROM 表1 NATURAL JOIN 表2`                             |
+| [INNER JOIN](#65-内连接-inner-join)              | 返回两表匹配的行（交集）     | `FROM 表1 INNER JOIN 表2 ON 条件`                         |
+| [多表连接](#66-多表连接on-子句)                         | 连续 `ON` 连接三张及以上表 | `JOIN 表2 ON ... JOIN 表3 ON ...`                       |
+| [LEFT OUTER JOIN](#68-左外连接-left-outer-join)   | 返回左表全部行及右表匹配行    | `FROM 表1 LEFT OUTER JOIN 表2 ON 条件`                    |
+| [RIGHT OUTER JOIN](#69-右外连接-right-outer-join) | 返回右表全部行及左表匹配行    | `FROM 表1 RIGHT OUTER JOIN 表2 ON 条件`                   |
+| [FULL OUTER JOIN](#610-全外连接-full-outer-join) | 返回两表全部行（MySQL 需 UNION 模拟） | 见 [6.10](#610-全外连接-full-outer-join)                    |
+
+
+### 6.1 表别名（多表查询）
+
+多表连接中常用 `[表别名](#43-表别名)` 简化查询，便于数据库引擎快速识别列所属表。
+
+**定义原则**：
+
+- 别名不宜过长，越短越好
+- 别名应有意义（如取表名首字母）
+- 表别名仅对当前 `SELECT` 语句有效
+
+```sql
+SELECT e.employee_id, e.last_name, e.department_id,
+       d.department_id, d.location_id
+FROM employees e, departments d 
+WHERE e.department_id = d.department_id;
+```
+
+### 6.2 自连接
+
+`[自连接](#六表连接)` 将同一张表视为两个逻辑表进行关联，常用于层级关系查询（如员工与经理）：
+
+```sql
+SELECT worker.last_name AS employee, manager.last_name AS manager
+FROM employees worker
+JOIN employees manager
+ON worker.manager_id = manager.employee_id;
+```
+
+`worker` 表中的 `manager_id` 等于 `manager` 表中的 `employee_id`。
+
+### 6.3 交叉连接 (CROSS JOIN)（少用）
+
+`[CROSS JOIN](#六表连接)` 产生两表的交叉乘积，等同于两表之间的笛卡尔积：
+
+```sql
+SELECT last_name, department_name
+FROM employees
+CROSS JOIN departments;
+```
+
+### 6.4 自然连接 (NATURAL JOIN)
+
+`[NATURAL JOIN](#六表连接)` 基于两表中**所有同名且同数据类型**的列进行等值连接，选取这些列值均相等的行。
+
+若列名相同但数据类型不同，使用 `NATURAL JOIN` 会报错。
+
+### 6.5 内连接 (INNER JOIN)
+
+`[INNER JOIN](#六表连接)` 连接两个表，仅返回匹配的行（交集），`INNER` 关键字可省略：
+
+```sql
+SELECT 查询列表
+FROM 表1 别名
+INNER JOIN 连接表 ON 连接条件;
+```
+
+```sql
+SELECT e.last_name, d.department_name
+FROM employees e
+INNER JOIN departments d
+ON e.department_id = d.department_id;
+```
+
+### 6.6 多表连接（ON 子句）
+
+使用 `[ON](#六表连接)` 子句可连续连接多张表，每次 `JOIN` 指定一组连接条件：
+
+```sql
+SELECT employee_id, city, department_name
+FROM employees e
+JOIN departments d
+  ON d.department_id = e.department_id
+JOIN locations l
+  ON d.location_id = l.location_id;
+```
+
+### 6.7 外连接 (OUTER JOIN)
+
+`[外连接](#六表连接)` 在内连接结果基础上，额外返回某一侧（或两侧）未匹配的行：
+
+
+| 连接类型    | 说明                      |
+| ------- | ----------------------- |
+| 内连接     | 仅返回两表匹配的行               |
+| 左（右）外连接 | 返回内连接结果，同时返回左（右）表中未匹配的行 |
+| 全外连接    | 返回内连接结果，同时返回左、右两侧未匹配的行  |
+
+
+**孤儿数据**：被连接列的值为 `[NULL](#41-null空值)` 的数据，无法与另一表匹配。
+
+### 6.8 左外连接 (LEFT OUTER JOIN)
+
+`[LEFT OUTER JOIN](#六表连接)` 返回**左表全部**行及右表匹配行；右表无匹配时，右表列补 `NULL`：
+
+```sql
+SELECT e.last_name, e.department_id, d.department_name
+FROM employees e
+LEFT OUTER JOIN departments d
+ON (e.department_id = d.department_id);
+```
+
+### 6.9 右外连接 (RIGHT OUTER JOIN)
+
+`[RIGHT OUTER JOIN](#六表连接)` 返回**右表全部**行及左表匹配行；左表无匹配时，左表列补 `NULL`：
+
+```sql
+SELECT e.last_name, e.department_id, d.department_name
+FROM employees e
+RIGHT OUTER JOIN departments d
+ON (e.department_id = d.department_id);
+```
+
+### 6.10 全外连接 (FULL OUTER JOIN)
+
+[`FULL OUTER JOIN`](#67-外连接-outer-join) 返回两表全部行（左表与右表并集）；**MySQL 不支持 `FULL OUTER JOIN`**，可通过 `UNION` 模拟：
+
+| 关键字 | 说明 |
+| :--- | :--- |
+| `UNION` | 合并两个结果集并返回唯一行（去重） |
+| `UNION ALL` | 简单合并两个结果集，保留重复行 |
+
+```sql
+(SELECT 投影列 FROM 表1 LEFT OUTER JOIN 表2 ON 连接条件)
+UNION
+(SELECT 投影列 FROM 表1 RIGHT OUTER JOIN 表2 ON 连接条件);
 ```
