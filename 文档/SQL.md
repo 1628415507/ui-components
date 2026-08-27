@@ -15,6 +15,8 @@ DDL（Data Definition Language）用于定义和管理数据库结构，包括�
 | `[ALTER TABLE ... DROP COLUMN](#15-删除指定列)`  | 删除表中的指定列        | `ALTER TABLE 表名 DROP COLUMN 列名;`           |
 
 
+
+
 ### 1.0 创建表
 
 使用 `[CREATE TABLE](#一ddl数据定义语言)` 创建表，可在列定义中直接声明 `[PRIMARY KEY](#21-主键约束-primary-key)`、`[UNIQUE](#23-唯一性约束-unique)`、`[NOT NULL](#24-非空约束-not-null)` 等约束：
@@ -30,8 +32,8 @@ CREATE TABLE 表名(
 
 ```sql
 CREATE TABLE depts(
-  department_id INT PRIMARY KEY AUTO_INCREMENT,
-  department_name VARCHAR(30) UNIQUE,
+  department_id INT PRIMARY KEY AUTO_INCREMENT, /* 自动增长 */
+  department_name VARCHAR(30) UNIQUE, /* 不允许重复 */
   location_id INT NOT NULL
 );
 ```
@@ -42,6 +44,8 @@ CREATE TABLE depts(
 CREATE TABLE 表名(列名 类型 DEFAULT 默认值, ...);
 ```
 
+
+
 ### 1.1 删除表
 
 使用 `[DROP TABLE](#一ddl数据定义语言)` 语句删除表：
@@ -49,6 +53,8 @@ CREATE TABLE 表名(列名 类型 DEFAULT 默认值, ...);
 ```sql
 DROP TABLE 表名;
 ```
+
+
 
 ### 1.2 修改表名
 
@@ -58,6 +64,8 @@ DROP TABLE 表名;
 ALTER TABLE 旧表名 RENAME 新表名;
 ```
 
+
+
 ### 1.3 修改列名
 
 使用 `[ALTER TABLE ... CHANGE COLUMN](#一ddl数据定义语言)` 修改列名，须同时指定新列名与数据类型：
@@ -65,6 +73,8 @@ ALTER TABLE 旧表名 RENAME 新表名;
 ```sql
 ALTER TABLE 表名 CHANGE COLUMN 旧列名 新列名 类型;
 ```
+
+
 
 ### 1.4 添加新列
 
@@ -80,6 +90,8 @@ ALTER TABLE 表名 ADD COLUMN 新列名 类型;
 ALTER TABLE emp ADD COLUMN commission_pct FLOAT(4,2);
 ```
 
+
+
 ### 1.5 删除指定列
 
 使用 `[ALTER TABLE ... DROP COLUMN](#一ddl数据定义语言)` 删除表中的指定列：
@@ -93,6 +105,8 @@ ALTER TABLE 表名 DROP COLUMN 列名;
 ```sql
 ALTER TABLE emp DROP COLUMN commission_pct;
 ```
+
+
 
 ## 二、约束
 
@@ -108,6 +122,8 @@ ALTER TABLE emp DROP COLUMN commission_pct;
 | `CHECK`[（检查）](#25-检查约束-check)             | 按自定义条件校验数据 | MySQL 当前不支持      |
 
 
+
+
 ### 2.1 主键约束 (Primary Key)
 
 `[PRIMARY KEY](#二约束)` 是使用最频繁的约束，一般每张表都会设置主键，用于唯一标识每条记录（如学生信息表中的学号）。
@@ -119,6 +135,8 @@ ALTER TABLE emp DROP COLUMN commission_pct;
 | 联合主键 | 使用多个列作为主键列，多列值组合相同时违反唯一约束 |
 
 
+
+
 ### 2.2 外键约束 (Foreign Key)
 
 `[FOREIGN KEY](#二约束)` 常与 `[PRIMARY KEY](#21-主键约束-primary-key)` 一起使用，用来确保数据的一致性。
@@ -128,6 +146,8 @@ ALTER TABLE emp DROP COLUMN commission_pct;
 ```sql
 ALTER TABLE 表名 ADD CONSTRAINT 约束名 FOREIGN KEY(列名) REFERENCES 参照的表名(参照的列名);
 ```
+
+
 
 ### 2.3 唯一性约束 (Unique)
 
@@ -149,6 +169,8 @@ ALTER TABLE 表名 MODIFY 列名 类型 NULL;
 ALTER TABLE emp MODIFY salary FLOAT(8,2) NULL;
 ```
 
+
+
 ### 2.5 检查约束 (Check)
 
 `[CHECK](#二约束)` 由用户自定义约束条件，确保数据满足特定规则；MySQL 当前不支持该约束。
@@ -165,6 +187,8 @@ DML（Data Manipulation Language）用于对表中的数据进行增、删、改
 | `[TRUNCATE](#33-清空表-truncate)` | 清空表中全部数据 | `TRUNCATE TABLE 表名;`           |
 
 
+
+
 ### 3.1 更新数据 (UPDATE)
 
 使用 `[UPDATE](#三dml数据操纵语言)` 更新表中数据，可同时修改多列，须通过 `WHERE` 指定更新条件：
@@ -173,6 +197,8 @@ DML（Data Manipulation Language）用于对表中的数据进行增、删、改
 UPDATE 表名 SET 列名=值, 列名=值 WHERE 条件;
 ```
 
+
+
 ### 3.2 删除数据 (DELETE)
 
 使用 `[DELETE](#三dml数据操纵语言)` 按条件删除表中的数据：
@@ -180,6 +206,8 @@ UPDATE 表名 SET 列名=值, 列名=值 WHERE 条件;
 ```sql
 DELETE FROM 表名 WHERE 条件;
 ```
+
+
 
 ### 3.3 清空表 (TRUNCATE)
 
@@ -210,7 +238,7 @@ DQL（Data Query Language）用于从表中查询数据，核心语句为 `SELEC
 
 ### 4.1 NULL（空值）
 
-`[NULL](#四dql数据查询语言)` 是一个未分配的、未知的或不适用的值；**不是 `0`，也不是空格**（`0` 是数字，空格是字符）。若一行中某列缺少数据值，该值被置为 `NULL`。
+`[NULL](#四dql数据查询语言)` 是一个未分配的、未知的或不适用的值；**不是** `0`**，也不是空格**（`0` 是数字，空格是字符）。若一行中某列缺少数据值，该值被置为 `NULL`。
 
 ```sql
 SELECT last_name, job_id, salary, commission_pct
@@ -219,7 +247,7 @@ FROM employees;
 
 查询结果中，`commission_pct` 为空表示该员工无佣金（如 King、Kochhar），有值则表示存在佣金比例（如 Zlotkey 为 `.2`）。
 
-NULL 条件包括 `IS NULL` 与 `IS NOT NULL`，用于空值测试；**不能使用 `=` 或 `<>` 判断 NULL**，因为 NULL 不能等于或不等于任何值。
+NULL 条件包括 `IS NULL` 与 `IS NOT NULL`，用于空值测试；**不能使用** `=` **或** `<>` **判断 NULL**，因为 NULL 不能等于或不等于任何值。
 
 ```sql
 SELECT 列名 FROM 表名 WHERE 列名 IS NULL;
@@ -365,10 +393,10 @@ SQL 函数用于在查询中对数据进行转换、提取与计算，常见分�
 #### 5.1.1 大小写处理函数
 
 
-| 函数                      | 描述             | 示例                                |
-| ----------------------- | -------------- | --------------------------------- |
-| `LOWER(s)` | `LCASE(s)` | 将字符串 `s` 转换为小写 | `SELECT LOWER("OLDLU"); -- oldlu` |
-| `UPPER(s)` | `UCASE(s)` | 将字符串 `s` 转换为大写 | `SELECT UPPER("oldlu"); -- OLDLU` |
+| 函数         | 描述         | 示例             |
+| ---------- | ---------- | -------------- |
+| `LOWER(s)` | `LCASE(s)` | 将字符串 `s` 转换为小写 |
+| `UPPER(s)` | `UCASE(s)` | 将字符串 `s` 转换为大写 |
 
 
 #### 5.1.2 字符处理函数
@@ -433,22 +461,26 @@ SELECT CASE 'oldlu'
 END;
 ```
 
+
+
 ## 六、表连接
 
 多表查询通过连接将多个表的数据组合在一起。MySQL 5.7 支持部分 SQL99 标准。
 
 
-| 连接类型                                          | 作用               | 示例                                                    |
-| --------------------------------------------- | ---------------- | ----------------------------------------------------- |
-| [表别名](#61-表别名多表查询)                            | 简化多表查询、快速标识列所属表  | `FROM 表1 e, 表2 d WHERE e.id = d.id`                   |
-| [自连接](#62-自连接)                                | 单表按层级或关联关系自关联    | `FROM employees worker JOIN employees manager ON ...` |
-| [CROSS JOIN](#63-交叉连接-cross-join)             | 两表笛卡尔积（交叉乘积）     | `FROM 表1 CROSS JOIN 表2`                               |
-| [NATURAL JOIN](#64-自然连接-natural-join)         | 按同名同类型列自动等值连接    | `FROM 表1 NATURAL JOIN 表2`                             |
-| [INNER JOIN](#65-内连接-inner-join)              | 返回两表匹配的行（交集）     | `FROM 表1 INNER JOIN 表2 ON 条件`                         |
-| [多表连接](#66-多表连接on-子句)                         | 连续 `ON` 连接三张及以上表 | `JOIN 表2 ON ... JOIN 表3 ON ...`                       |
-| [LEFT OUTER JOIN](#68-左外连接-left-outer-join)   | 返回左表全部行及右表匹配行    | `FROM 表1 LEFT OUTER JOIN 表2 ON 条件`                    |
-| [RIGHT OUTER JOIN](#69-右外连接-right-outer-join) | 返回右表全部行及左表匹配行    | `FROM 表1 RIGHT OUTER JOIN 表2 ON 条件`                   |
-| [FULL OUTER JOIN](#610-全外连接-full-outer-join) | 返回两表全部行（MySQL 需 UNION 模拟） | 见 [6.10](#610-全外连接-full-outer-join)                    |
+| 连接类型                                          | 作用                        | 示例                                                    |
+| --------------------------------------------- | ------------------------- | ----------------------------------------------------- |
+| [表别名](#61-表别名多表查询)                            | 简化多表查询、快速标识列所属表           | `FROM 表1 e, 表2 d WHERE e.id = d.id`                   |
+| [自连接](#62-自连接)                                | 单表按层级或关联关系自关联             | `FROM employees worker JOIN employees manager ON ...` |
+| [CROSS JOIN](#63-交叉连接-cross-join)             | 两表笛卡尔积（交叉乘积）              | `FROM 表1 CROSS JOIN 表2`                               |
+| [NATURAL JOIN](#64-自然连接-natural-join)         | 按同名同类型列自动等值连接             | `FROM 表1 NATURAL JOIN 表2`                             |
+| [INNER JOIN](#65-内连接-inner-join)              | 返回两表匹配的行（交集）              | `FROM 表1 INNER JOIN 表2 ON 条件`                         |
+| [多表连接](#66-多表连接on-子句)                         | 连续 `ON` 连接三张及以上表          | `JOIN 表2 ON ... JOIN 表3 ON ...`                       |
+| [LEFT OUTER JOIN](#68-左外连接-left-outer-join)   | 返回左表全部行及右表匹配行             | `FROM 表1 LEFT OUTER JOIN 表2 ON 条件`                    |
+| [RIGHT OUTER JOIN](#69-右外连接-right-outer-join) | 返回右表全部行及左表匹配行             | `FROM 表1 RIGHT OUTER JOIN 表2 ON 条件`                   |
+| [FULL OUTER JOIN](#610-全外连接-full-outer-join)  | 返回两表全部行（MySQL 需 UNION 模拟） | 见 [6.10](#610-全外连接-full-outer-join)                   |
+
+
 
 
 ### 6.1 表别名（多表查询）
@@ -468,20 +500,22 @@ FROM employees e, departments d
 WHERE e.department_id = d.department_id;
 ```
 
+
+
 ### 6.2 自连接
 
-`[自连接](#六表连接)` 将同一张表视为两个逻辑表进行关联，常用于层级关系查询（如员工与经理）：
+`[自连接](#六表连接)` 将**同一张表**视为两个逻辑表进行关联，常用于层级关系查询（如员工与经理）：
 
 ```sql
 SELECT worker.last_name AS employee, manager.last_name AS manager
-FROM employees worker
-JOIN employees manager
+FROM employees worker /* 同张表 */
+JOIN employees manager  /* 同张表 */
 ON worker.manager_id = manager.employee_id;
 ```
 
 `worker` 表中的 `manager_id` 等于 `manager` 表中的 `employee_id`。
 
-### 6.3 交叉连接 (CROSS JOIN)（少用）
+### ~~6.3 交叉连接 (CROSS JOIN)（少用）~~
 
 `[CROSS JOIN](#六表连接)` 产生两表的交叉乘积，等同于两表之间的笛卡尔积：
 
@@ -491,15 +525,17 @@ FROM employees
 CROSS JOIN departments;
 ```
 
+
+
 ### 6.4 自然连接 (NATURAL JOIN)
 
-`[NATURAL JOIN](#六表连接)` 基于两表中**所有同名且同数据类型**的列进行等值连接，选取这些列值均相等的行。
+`[NATURAL JOIN](#六表连接)` 基于两表中**所有同名且同数据类型**的列进行等值连接，选取这些**列值均相等**的行。
 
 若列名相同但数据类型不同，使用 `NATURAL JOIN` 会报错。
 
 ### 6.5 内连接 (INNER JOIN)
 
-`[INNER JOIN](#六表连接)` 连接两个表，仅返回匹配的行（交集），`INNER` 关键字可省略：
+`[INNER JOIN](#六表连接)` 连接两个表，仅返回匹配的行（**交集**），`INNER` 关键字可省略：
 
 ```sql
 SELECT 查询列表
@@ -514,6 +550,8 @@ INNER JOIN departments d
 ON e.department_id = d.department_id;
 ```
 
+
+
 ### 6.6 多表连接（ON 子句）
 
 使用 `[ON](#六表连接)` 子句可连续连接多张表，每次 `JOIN` 指定一组连接条件：
@@ -526,6 +564,8 @@ JOIN departments d
 JOIN locations l
   ON d.location_id = l.location_id;
 ```
+
+
 
 ### 6.7 外连接 (OUTER JOIN)
 
@@ -552,6 +592,8 @@ LEFT OUTER JOIN departments d
 ON (e.department_id = d.department_id);
 ```
 
+
+
 ### 6.9 右外连接 (RIGHT OUTER JOIN)
 
 `[RIGHT OUTER JOIN](#六表连接)` 返回**右表全部**行及左表匹配行；左表无匹配时，左表列补 `NULL`：
@@ -563,17 +605,214 @@ RIGHT OUTER JOIN departments d
 ON (e.department_id = d.department_id);
 ```
 
+
+
 ### 6.10 全外连接 (FULL OUTER JOIN)
 
-[`FULL OUTER JOIN`](#67-外连接-outer-join) 返回两表全部行（左表与右表并集）；**MySQL 不支持 `FULL OUTER JOIN`**，可通过 `UNION` 模拟：
+`[FULL OUTER JOIN](#67-外连接-outer-join)` 返回两表全部行（左表与右表并集）；**MySQL 不支持** `FULL OUTER JOIN`，可通过 `UNION` 模拟：
 
-| 关键字 | 说明 |
-| :--- | :--- |
-| `UNION` | 合并两个结果集并返回唯一行（去重） |
-| `UNION ALL` | 简单合并两个结果集，保留重复行 |
+
+| 关键字         | 说明                |
+| ----------- | ----------------- |
+| `UNION`     | 合并两个结果集并返回唯一行（去重） |
+| `UNION ALL` | 简单合并两个结果集，保留重复行   |
+
 
 ```sql
 (SELECT 投影列 FROM 表1 LEFT OUTER JOIN 表2 ON 连接条件)
 UNION
 (SELECT 投影列 FROM 表1 RIGHT OUTER JOIN 表2 ON 连接条件);
+```
+
+
+
+## 七、聚合与分组
+
+聚合函数对一组数据进行统计计算；`[GROUP BY](#72-group-by-分组)` 将行划分为小组，`[HAVING](#73-having-子句)` 对分组后的结果进行过滤。
+
+
+| 语法                            | 作用         | 示例                           |
+| ----------------------------- | ---------- | ---------------------------- |
+| [聚合函数](#71-聚合函数)              | 对一组值计算统计结果 | `SUM(salary)`                |
+| `[GROUP BY](#72-group-by-分组)` | 将行划分为较小的组  | `GROUP BY department_id`     |
+| `[HAVING](#73-having-子句)`     | 过滤分组后的结果   | `HAVING SUM(salary) > 13000` |
+
+
+
+
+### 7.1 聚合函数
+
+
+| 函数      | 作用  |
+| ------- | --- |
+| `AVG`   | 平均值 |
+| `COUNT` | 计数  |
+| `MAX`   | 最大值 |
+| `MIN`   | 最小值 |
+| `SUM`   | 合计  |
+
+
+**使用原则**：
+
+- `DISTINCT` 使函数只考虑不重复的值
+- 所有聚合函数忽略 `[NULL](#41-null空值)`；需用默认值替代空值时，使用 `[IFNULL](#53-通用函数)` 或 `[COALESCE](#53-通用函数)`
+
+`MIN(arg)` / `MAX(arg)` 求分组中的最小/最大数据，`arg` 参数类型可以是字符、数字、日期：
+
+```sql
+SELECT MIN(hire_date), MAX(hire_date) FROM employees;
+```
+
+
+
+### 7.2 GROUP BY 分组
+
+`[GROUP BY](#七聚合与分组)` 子句将表中的行划分到较小的组中：
+
+```sql
+SELECT column, group_function(column) 
+FROM table
+[WHERE condition]
+[GROUP BY group_by_expression]
+[ORDER BY column];
+```
+
+**使用原则**：
+
+- 使用 `WHERE` 子句可在划分行成组**以前**过滤行
+- 若有 `WHERE` 子句，`GROUP BY` 必须在 `WHERE` 子句**后面**
+- `GROUP BY` 子句中**必须包含列** 
+
+在多列上使用 `GROUP BY`：
+
+```sql
+SELECT department_id dept_id, job_id, SUM(salary)
+FROM employees
+GROUP BY department_id, job_id;
+```
+
+
+
+### 7.3 HAVING 子句
+
+`[HAVING](#七聚合与分组)` 子句对**分组后的结果**进行过滤；`WHERE` **约束行，**`HAVING` **约束组**。
+
+```sql
+SELECT column, group_function
+FROM table
+[WHERE condition]
+[GROUP BY group_by_expression]
+[HAVING group_condition]
+[ORDER BY column];
+```
+
+示例：查询每个部门最高薪水大于 10000 的部门：
+
+```sql
+SELECT department_id, MAX(salary)
+FROM employees
+GROUP BY department_id
+HAVING MAX(salary) > 10000;
+```
+
+示例：显示合计薪水超过 13000 的各工作岗位合计薪水，排除 `JOB_ID` 含 `REP` 的岗位，并按合计月薪排序：
+
+```sql
+SELECT job_id, SUM(salary) PAYROLL
+FROM employees
+WHERE job_id NOT LIKE '%REP%'
+GROUP BY job_id
+HAVING SUM(salary) > 13000
+ORDER BY PAYROLL;
+```
+
+## 八、子查询
+
+子查询是嵌套在另一个 `SELECT` 语句子句中的 `SELECT` 语句，可用简单语句构建复杂查询。
+
+| 类型 | 作用 | 比较符 |
+| :--- | :--- | :--- |
+| [子查询](#81-概述) | 内查询先执行，结果供外查询使用 | `(SELECT ... FROM ...)` |
+| [单行子查询](#82-单行子查询) | 子查询仅返回一行 | 见 [4.5 比较条件](#45-比较条件) |
+| [多行子查询](#83-多行子查询) | 子查询返回多行 | `IN`、`ANY`、`ALL` |
+
+### 8.1 概述
+
+[`子查询`](#八子查询)（内查询）在主查询（外查询）执行前先执行一次，其结果作为外查询的输入条件：
+
+```sql
+WHERE expr operator
+      (SELECT select_list
+       FROM table);
+```
+
+子查询可出现在 `WHERE`、`HAVING`、`FROM` 等子句中。
+
+### 8.2 单行子查询
+
+[`单行子查询`](#八子查询) 仅返回一行，使用 [`比较条件`](#45-比较条件) 中的单行比较符（`=`、`>`、`>=`、`<`、`<=`）。
+
+### 8.3 多行子查询
+
+[`多行子查询`](#八子查询) 返回多行，须使用多行比较符而非单行比较符：
+
+| 操作符 | 含义 |
+| :--- | :--- |
+| `IN` | 等于列表中的任何成员（等价于 `= ANY`） |
+| `ANY` | 与子查询返回的每个值比较 |
+| `ALL` | 与子查询返回的全部值比较 |
+
+**ANY 运算符**：将一个值与子查询返回的每个值比较。
+
+- `< ANY`：小于子查询返回的**最大值**
+- `> ANY`：大于子查询返回的**最小值**
+
+```sql
+SELECT employee_id, last_name, job_id, salary
+FROM employees
+WHERE salary < ANY
+              (SELECT salary
+               FROM employees
+               WHERE job_id = 'IT_PROG')
+AND job_id <> 'IT_PROG';
+```
+
+**ALL 运算符**：将一个值与子查询返回的每个值比较。
+
+- `< ALL`：小于子查询返回的**最小值**
+- `> ALL`：大于子查询返回的**最大值**
+
+`NOT` 运算符可与 `IN` 运算符一起使用。
+
+```sql
+SELECT employee_id, last_name, job_id, salary
+FROM employees
+WHERE salary < ALL
+              (SELECT salary
+               FROM employees
+               WHERE job_id = 'IT_PROG')
+AND job_id <> 'IT_PROG';
+```
+
+### 8.4 子查询中的空值
+
+若子查询结果集可能含 [`NULL`](#41-null空值)，与 `NULL` 做 `>`、`<`、`<>` 比较均返回 `NULL`，因此**不能使用 `NOT IN`**（等价于 `<> ALL`），否则整个查询可能无返回行：
+
+```sql
+SELECT emp.last_name
+FROM employees emp
+WHERE emp.employee_id NOT IN
+                       (SELECT mgr.manager_id
+                        FROM employees mgr);
+-- no rows selected
+```
+
+子查询结果集含 `NULL` 时，使用 [`IN`](#46-in-条件) 运算符无此问题（等价于 `= ANY`）：
+
+```sql
+SELECT emp.last_name
+FROM employees emp
+WHERE emp.employee_id IN
+                       (SELECT mgr.manager_id
+                        FROM employees mgr);
 ```
