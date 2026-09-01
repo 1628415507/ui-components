@@ -628,14 +628,12 @@ UNION
 
 ## 七、聚合与分组
 
-聚合函数对一组数据进行统计计算；`[GROUP BY](#72-group-by-分组)` 将行划分为小组，`[HAVING](#73-having-子句)` 对分组后的结果进行过滤。
-
 
 | 语法                            | 作用         | 示例                           |
 | ----------------------------- | ---------- | ---------------------------- |
-| [聚合函数](#71-聚合函数)              | 对一组值计算统计结果 | `SUM(salary)`                |
+| [聚合函数](#71-聚合函数)              | 对一组数据进行统计计算 | `SUM(salary)`                |
 | `[GROUP BY](#72-group-by-分组)` | 将行划分为较小的组  | `GROUP BY department_id`     |
-| `[HAVING](#73-having-子句)`     | 过滤分组后的结果   | `HAVING SUM(salary) > 13000` |
+| `[HAVING](#73-having-子句)`     | 对分组后的结果进行过滤   | `HAVING SUM(salary) > 13000` |
 
 
 
@@ -762,7 +760,7 @@ WHERE expr operator
 | `ANY` | 与子查询返回的每个值比较 |
 | `ALL` | 与子查询返回的全部值比较 |
 
-**ANY 运算符**：将一个值与子查询返回的每个值比较。
+**ANY 运算符**：将一个值与子查询返回的**每个值**比较。
 
 - `< ANY`：小于子查询返回的**最大值**
 - `> ANY`：大于子查询返回的**最小值**
@@ -815,4 +813,93 @@ FROM employees emp
 WHERE emp.employee_id IN
                        (SELECT mgr.manager_id
                         FROM employees mgr);
+```
+
+## 九、索引
+
+索引用于加速数据检索，是对表中一列或多列值进行排序的一种结构。
+
+| 索引类型 | 说明 |
+| :--- | :--- |
+| [普通索引](#93-普通索引) | 最基本的索引，无额外限制 |
+| [唯一索引](#94-唯一索引) | 索引列值必须唯一，允许 NULL |
+| [主键索引](#95-主键索引) | 特殊唯一索引，唯一标识记录，不允许 NULL |
+| [联合索引](#96-联合索引) | 在多个字段上建立索引，加速查询 |
+
+### 9.1 优缺点与使用时机
+
+**优点**：
+- 创建唯一索引可保证数据库表中每一行数据的唯一性
+- 加快数据检索速度
+- 加速表与表之间的连接
+- 使用分组和排序检索时，可减少查询中分组和排序的时间
+
+**缺点**：
+- 创建和维护索引需要时间，且随数据量增长而增加
+- 索引占用物理空间，数据量越大占用越多
+- 降低对表的 `INSERT`、`DELETE`、`UPDATE` 效率，因索引也需动态维护
+
+**需要创建索引**：频繁作为查询条件的字段；查询中排序的字段；查询中统计或分组的字段。
+
+**不需要创建索引**：频繁更新的字段；`WHERE` 条件中用不到的字段；表记录太少；经常增删改的表；数据重复且分布平均的字段（如性别仅男/女，建立索引效果不大）。
+
+### 9.2 通用操作
+
+查询索引：
+
+```sql
+SHOW INDEX FROM table_name;
+```
+
+直接创建索引：
+
+```sql
+CREATE INDEX index_name ON table(column(length));
+```
+
+### 9.3 普通索引
+
+[`普通索引`](#九索引) 是最基本的索引，无额外限制。创建时可指定 `length` 参数定义索引长度，仅字符串类型字段可指定；`BLOB`、`TEXT` 类型必须指定 `length`。若指定单列索引长度，`length` 须小于该字段允许的最大字符数。
+
+### 9.4 唯一索引
+
+[`唯一索引`](#九索引) 类似普通索引，索引列值必须唯一但允许 NULL；组合索引时列值组合须唯一。详见 [2.3 唯一性约束](#23-唯一性约束-unique)。
+
+```sql
+CREATE UNIQUE INDEX index_name ON table(column(length));
+```
+
+```sql
+CREATE UNIQUE INDEX emp_name_index ON emp(name);
+```
+
+修改表添加唯一索引：
+
+```sql
+ALTER TABLE table_name ADD UNIQUE index_name (column(length));
+```
+
+### 9.5 主键索引
+
+[`主键索引`](#九索引) 是特殊的唯一索引，一个表只能有一个主键，不允许 NULL，一般建表时同时创建。详见 [2.1 主键约束](#21-主键约束-primary-key)。
+
+修改表添加主键索引：
+
+```sql
+ALTER TABLE 表名 ADD PRIMARY KEY(列名);
+```
+
+```sql
+ALTER TABLE emp ADD PRIMARY KEY(employee_id);
+```
+
+### 9.6 联合索引
+
+[`联合索引`](#九索引) 在多个字段上建立索引，能加速查询。仅当查询条件包含索引**第一个字段**时索引才生效，称为**最左前缀原则**。
+
+以 `name`、`address`、`salary` 建立联合索引为例，生效组合：`name`/`address`/`salary`、`name`/`address`、`name`；不生效：`address`/`salary`、`salary`。
+
+```sql
+ALTER TABLE table_name ADD INDEX index_name
+(column(length), column(length));
 ```
