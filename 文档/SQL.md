@@ -903,3 +903,84 @@ ALTER TABLE emp ADD PRIMARY KEY(employee_id);
 ALTER TABLE table_name ADD INDEX index_name
 (column(length), column(length));
 ```
+
+## 十、事务（了解即可，实际开发中主要使用Springboot框架的事务实现）
+
+事务是指作为单个逻辑工作单元执行的一系列操作，要么完全执行，要么完全不执行。
+
+| 概念 | 说明 |
+| :--- | :--- |
+| [事务](#101-事务简介) | 最小的不可再分工作单元，通常对应一个完整业务 |
+| [ACID](#102-acid-四大特征) | 原子性、一致性、隔离性、持久性 |
+| [显式事务](#103-事务类型) | 需手动 `COMMIT` 或 `ROLLBACK`，[DML](#三dml数据操纵语言) 操作 |
+| [隐式事务](#103-事务类型) | 数据库自动提交，无法回滚，DDL/DCL 操作 |
+
+### 10.1 事务简介
+
+[`事务`](#十事务) 是一个最小的不可再分的工作单元，通常一个事务对应一个完整的业务（如银行账户转账）；一个完整业务需要批量 [DML](#三dml数据操纵语言)（`INSERT`、`UPDATE`、`DELETE`）语句共同完成。事务只和 DML 语句有关，与业务逻辑所需的 DML 语句个数相关。
+
+### 10.2 ACID 四大特征
+
+| 特征 | 说明 |
+| :--- | :--- |
+| 原子性 (Atomicity) | 事务中的操作要么都不做，要么全做 |
+| 一致性 (Consistency) | 保护数据上的不变属性（如完整性约束），事务成功后数据处于一致状态 |
+| 隔离性 (Isolation) | 一个事务的执行不能被其他事务干扰 |
+| 持久性 (Durability) | 事务一旦提交，对数据库数据的改变是永久性的 |
+
+### 10.3 事务类型
+
+| 类型 | 说明 |
+| :--- | :--- |
+| 显式事务 | 需手动提交或回滚；[DML](#三dml数据操纵语言) 操作均为显式事务操作 |
+| 隐式事务 | 数据库自动提交，无法回滚；[DDL](#一ddl数据定义语言) 和 DCL 操作均为隐式事务操作 |
+
+### 10.4 提交与回滚
+
+```sql
+-- 提交事务
+COMMIT;
+
+-- 回滚事务（须在提交之前执行，提交后不可回滚）
+ROLLBACK;
+```
+
+事务回滚使数据库恢复到执行事务操作前的状态。
+
+### 10.5 并发问题
+
+多用户并发访问同一数据时，可能产生以下读异常：
+
+| 问题 | 说明 |
+| :--- | :--- |
+| 脏读 | 一个事务读取了另一个事务未提交的数据；若对方回滚，读到的即为脏数据 |
+| 不可重复读 | 同一事务内多次读取同一行，结果不一致（如期间被其他事务更新并提交） |
+| 幻读 | 同一事务内多次读取，数据总量不一致（如期间被其他事务插入并提交） |
+
+### 10.6 隔离级别
+
+隔离级别决定并发读写控制方式；级别越低，并发支持越高。MySQL 提供四种隔离级别（由低到高）：
+
+| 隔离级别 | 脏读 | 不可重复读 | 幻读 |
+| :--- | :---: | :---: | :---: |
+| `READ UNCOMMITTED` | N | N | N |
+| `READ COMMITTED` | Y | N | N |
+| `REPEATABLE READ` | Y | Y | N |
+| `SERIALIZABLE` | Y | Y | Y |
+
+表中 `Y` 表示解决，`N` 表示未解决。
+
+查看 MySQL 默认事务隔离级别：
+
+```sql
+SELECT @@transaction_isolation;
+```
+
+设置事务隔离级别（对当前 session 有效）：
+
+```sql
+SET SESSION TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
+SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED;
+SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ;
+SET SESSION TRANSACTION ISOLATION LEVEL SERIALIZABLE;
+```
