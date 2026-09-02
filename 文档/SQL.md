@@ -234,6 +234,7 @@ DQL（Data Query Language）用于从表中查询数据，核心语句为 `SELEC
 | `[LIKE](#47-like-条件)`           | 通配符模糊匹配           | `列名 LIKE 'S%'`                           |
 | `[优先规则](#48-优先规则)`              | 运算符求值顺序           | 见 [4.8](#48-优先规则)                        |
 | `[ORDER BY](#49-排序-order-by)`   | 对查询结果排序           | `ORDER BY 列名 DESC`                       |
+| `[LIMIT](#410-分页查询-limit)`    | 限制返回行数，实现分页       | `LIMIT 开始位置, 查询数量`                       |
 
 
 ### 4.1 NULL（空值）
@@ -374,6 +375,38 @@ ORDER BY department_id, salary DESC;
 SELECT employee_id, last_name, salary*12 annsal
 FROM employees
 ORDER BY annsal;
+```
+
+### 4.10 分页查询 (LIMIT)
+
+MySQL 分页查询原则：
+
+1. 在 MySQL 数据库中使用 `[LIMIT](#四dql数据查询语言)` 子句进行分页查询。
+2. MySQL 分页中**开始位置为 0**。
+3. 分页子句在查询语句的**最末尾**（位于 `[ORDER BY](#49-排序-order-by)` 之后）。
+
+**LIMIT 子句**：
+
+```sql
+SELECT 投影列 FROM 表名 WHERE 条件 ORDER BY 列名 LIMIT 开始位置, 查询数量;
+```
+
+示例：查询雇员表中所有数据按 `employee_id` 排序，实现分页查询，每次返回两条结果。
+
+```sql
+SELECT * FROM employees ORDER BY employee_id LIMIT 0, 2;
+```
+
+**LIMIT OFFSET 子句**（参数顺序与上式不同）：
+
+```sql
+SELECT 投影列 FROM 表名 WHERE 条件 ORDER BY 列名 LIMIT 查询数量 OFFSET 开始位置;
+```
+
+示例：查询雇员表中所有数据按 `employee_id` 排序，使用 `LIMIT OFFSET` 实现分页查询，每次返回两条结果（从第 5 条开始）。
+
+```sql
+SELECT * FROM employees ORDER BY employee_id LIMIT 2 OFFSET 4;
 ```
 
 ## 五、SQL 函数
@@ -984,3 +1017,100 @@ SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED;
 SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ;
 SET SESSION TRANSACTION ISOLATION LEVEL SERIALIZABLE;
 ```
+
+## 十一、MySQL 用户管理
+
+MySQL 是多用户数据库系统，按权限可分为 **root 用户**（超级管理员）和由 root 创建的**普通用户**。新建用户须先分配权限方可登录。
+
+| 操作 | 作用 | 示例 |
+| :--- | :--- | :--- |
+| [创建用户](#111-创建与查看用户) | 创建新用户账号 | `CREATE USER username IDENTIFIED BY 'password';` |
+| [查看用户](#111-创建与查看用户) | 查看已有用户及主机 | `SELECT USER, HOST FROM mysql.user;` |
+| [授权](#112-权限管理) | 为用户分配数据库权限 | `GRANT 权限 ON 数据库.表 TO 用户名@主机` |
+| [刷新权限](#113-刷新与删除) | 使权限变更生效 | `FLUSH PRIVILEGES;` |
+| [删除用户](#113-刷新与删除) | 删除用户账号 | `DROP USER username@localhost;` |
+
+### 11.1 创建与查看用户
+
+```sql
+CREATE USER username IDENTIFIED BY 'password';
+```
+
+```sql
+SELECT USER, HOST FROM mysql.user;
+```
+
+示例：创建 `u_sxt` 用户并查看是否成功：
+
+```sql
+CREATE USER u_sxt IDENTIFIED BY 'sxt';
+```
+
+### 11.2 权限管理
+
+新建用户无法直接登录，须先 [`授权`](#十一mysql-用户管理)：
+
+```sql
+GRANT 权限 ON 数据库.表 TO 用户名@登录主机 IDENTIFIED BY '密码';
+```
+
+**登录主机**：
+
+| 字段 | 含义 |
+| :--- | :--- |
+| `%` | 匹配所有主机 |
+| `localhost` | 不解析为 IP，通过 UNIX socket 连接 |
+| `127.0.0.1` | 通过 TCP/IP 连接，仅本机访问 |
+| `::1` | 兼容 IPv6 的 `127.0.0.1` |
+
+**常用权限**：
+
+| 权限 | 作用范围 | 作用 |
+| :--- | :--- | :--- |
+| `ALL [PRIVILEGES]` | 服务器 | 所有权限 |
+| `SELECT` | 表、列 | 选择行 |
+| `INSERT` | 表、列 | 插入行 |
+| `UPDATE` | 表、列 | 更新行 |
+
+授予全部权限：
+
+```sql
+GRANT ALL PRIVILEGES ON *.* TO 'username'@'localhost'
+IDENTIFIED BY 'password';
+```
+
+示例：为 `u_sxt` 分配仅可查询 `bjsxt.employees` 表、且仅本机登录的权限：
+
+```sql
+GRANT SELECT ON bjsxt.employees TO 'u_sxt'@'localhost'
+IDENTIFIED BY 'sxt';
+```
+
+### 11.3 刷新与删除
+
+调整权限后通常须刷新权限：
+
+```sql
+FLUSH PRIVILEGES;
+```
+
+删除用户：
+
+```sql
+DROP USER username@localhost;
+```
+
+```sql
+DROP USER 'u_sxt'@'localhost';
+```
+
+## 十二、数据导入导出
+
+### 12.1 导出 SQL 脚本文件
+
+可通过 Navicat 等图形化工具将数据库表导出为 SQL 脚本文件，典型步骤：
+
+1. 在左侧连接树中选中目标数据库下的**表**节点（或展开后多选表）。
+2. 在表列表中选中需要导出的表（如 `countries`、`departments`、`employees` 等），右键选择导出相关菜单，按向导生成 `.sql` 脚本。
+
+导出脚本通常包含所选表的建表语句与数据插入语句，便于备份或在其他环境还原。
