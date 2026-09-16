@@ -1,7 +1,7 @@
 # 一、标准目录结构
 
 Maven 采用**约定优于配置**的标准目录布局。根目录存在 `[pom.xml](#maven-pom)` 即标识为 Maven 工程；构建产物默认输出到 `target`。
-
+![alt text](pom-xml.jpg)
 Maven 标准目录结构示意
 
 ## 1.1 目录职责
