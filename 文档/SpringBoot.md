@@ -46,27 +46,27 @@
 
 | 注解名称 | 作用 | 应用场景 | 示例 |
 | :--- | :--- | :--- | :--- |
-| `@SpringBootApplication` | 标识该类为 Spring Boot 的启动类，集成了自动配置、组件扫描和配置类声明。 | Spring Boot 项目**主入口**类。 | `com.itheima.springbootquickstart.SpringbootQuickstartApplication` |
+| `@SpringBootApplication` | 标识该类为 Spring Boot 的**启动类**，集成了自动配置、组件扫描和配置类声明。 | Spring Boot 项目**主入口**类。 | `com.itheima.springbootquickstart.SpringbootQuickstartApplication` |
 | `@RestController` | 标识该类是一个 RESTful 风格的控制器，相当于 `@Controller` 与 `@ResponseBody` 的组合。**返回值会直接作为 HTTP 响应体返回。** | Web 接口开发控制器类。 | `com.itheima.springbootquickstart.controller.HelloController` |
-| `@RequestMapping` | 用于映射 Web 请求的 URL 路径到具体的方法上。 | 控制器内定义 API 路由。 | `@RequestMapping("/hello")` |
-| [`@RequestParam`](#42-请求参数绑定-requestparam) | 将请求中的查询参数或表单参数绑定到控制器方法形参。默认必传（`required = true`）；筛选类条件常设 `required = false`。 | GET 查询条件、表单字段等简单参数接收。 | `com.itheima.controller.ArticleController` |
-| [`@Value`](#541-value-单项注入) | 逐个读取并注入配置文件中的**单个属性**。 | 读取散落、单独的非结构化配置。 | `@Value("${email.user}")` |
-| [`@ConfigurationProperties`](#542-configurationproperties-批量绑定) | 批量将**指定前缀**的配置项绑定到 JavaBean 实体的成员变量上。 | 批量、有结构的一组属性（如邮件、第三方账号配置等）绑定。 | `@ConfigurationProperties(prefix = "email")` |
-| [`@EnableConfigurationProperties`](#enable-configuration-properties) | 启用指定的 `@ConfigurationProperties` 类型，并将其注册为 Spring Bean，完成配置绑定。 | 自动配置 / 自定义 Starter 中注册属性类（属性类本身可不加 `@Component`）。 | `@EnableConfigurationProperties(MybatisProperties.class)` |
-| [`@Bean`](#third-party-bean-annotations) | 标注在配置类的方法上，将该方法的返回值作为 Bean 注册到 Spring 容器中。主要用于整合并管理**第三方类库**提供的类。 | 注册第三方的非自定义类对象。 | 注入外部工具库、连接池等组件 |
-| [`@Autowired`](#di-annotations) | 声明自动注入依赖。**Spring 会自动从 IoC 容器中按类型匹配并装配 Bean。** | 依赖注入组件（控制反转/依赖注入）。 | 成员变量或 setter 方法上 |
-| [`@Service`](#custom-bean-annotations) | 标识该类是 Spring 中的 Service **业务逻辑层组件**，并自动注册到 Spring 容器中。 | 业务逻辑实现类。 | `com.itheima.springbootmybatis.service.impl.UserServiceImpl` |
-| [`@Mapper`](#mapper-declaration) | MyBatis 框架注解。标识该接口为**数据访问层**（Mapper）组件，运行时自动生成动态代理实现类并注册到 Spring 容器。 | MyBatis 数据持久层接口。 | `com.itheima.springbootmybatis.mapper.UserMapper` |
-| [`@Component`](#custom-bean-annotations) | 声明 Bean 的基础注解。若某个类不属于控制层(`@Controller`)、服务层(`@Service`)或持久层(`@Mapper`)，使用此注解注册到 Spring 容器中。 | 通用组件、工具类等。 | 自定义公共工具类组件 |
-| [`@Controller`](#custom-bean-annotations)<br>(`@Component` 的衍生注解)  | 标注在控制层类上，声明其为 Spring MVC 控制器。 | Spring MVC Web 控制器。 | `com.itheima.springbootquickstart.controller.HelloController` |
-| [`@Import`](#third-party-bean-annotations) | 用于在配置类上快速导入外部类. 可以导入普通的 Bean、配置类（`@Configuration`） or `ImportSelector` 接口实现类。 | 模块化集成、快速引入第三方依赖包中的配置组件。 | `@Import({CommonConfig.class})` |
-| [`@Repository`](#custom-bean-annotations)<br>(`@Component` 的衍生注解) | 标注在**数据访问层类**上。由于常与 MyBatis 整合并使用 `@Mapper`，因此在现代 Spring Boot 开发中相对少用。 | 数据访问层/持久层实现组件。 | DAO 实现类 |
-| [`@ConditionalOnProperty`](#753-设置注册生效条件注解-conditional-条件装配) | 配置文件中存在指定的属性且符合特定值（或存在即可）时，才注册该 Bean。 | 根据配置文件参数动态决定是否启用某组件。 | `@ConditionalOnProperty(name = "email.auth", havingValue = "true")` |
-| [`@ConditionalOnMissingBean`](#753-设置注册生效条件注解-conditional-条件装配) | 当 Spring IoC 容器中不存在指定类型或名称的 Bean 时，才注册该 Bean。 | 框架中提供默认配置组件，并允许用户自定义覆盖（自定义优先）。 | `@ConditionalOnMissingBean(EmailProperties.class)` |
-| [`@ConditionalOnClass`](#753-设置注册生效条件注解-conditional-条件装配) | 当当前运行环境/类路径中存在指定的类时，才注册该 Bean。 | 根据是否引入了某第三方依赖决定是否装配对应核心服务。 | `@ConditionalOnClass(name = "com.alibaba.fastjson.JSON")` |
-| [`@Validated`](#93-基础校验实战简单参数校验) | 标注在类或方法参数上，开启 Spring Validation 参数校验机制，支持分组校验。 | 控制器或业务层参数校验。 | `com.itheima.controller.UserController` |
-| [`@RestControllerAdvice`](#97-全局异常统一处理-global-exception-handling) | 组合注解，集成了 `@ControllerAdvice` 和 `@ResponseBody`，用于定义全局异常处理器，将返回值直接作为 JSON 响应体返回。 | 全局异常处理与统一响应。 | `com.itheima.exception.GlobalExceptionHandler` |
-| [`@ExceptionHandler`](#97-全局异常统一处理-global-exception-handling) | 标注在全局异常处理器的方法上，指定该方法需要捕获并处理的异常类型。 | 捕获特定异常并进行定制化处理。 | `@ExceptionHandler(Exception.class)` |
+| `@RequestMapping` | 用于映射 Web 请求的 `URL 路径`到具体的方法上。 | 控制器内定义 API 路由。 | `@RequestMapping("/hello")` |
+| `[@RequestParam](#42-请求参数绑定-requestparam)` | 将请求中的查询参数或表单参数绑定到控制器方法形参。默认必传（`required = true`）；筛选类条件常设 `required = false`。 | GET 查询条件、表单字段等简单参数接收。 | `com.itheima.controller.ArticleController` |
+| `[@Value](#541-value-单项注入)` | 逐个读取并注入配置文件中的**单个属性**。 | 读取散落、单独的非结构化配置。 | `@Value("${email.user}")` |
+| `[@ConfigurationProperties](#542-configurationproperties-批量绑定)` | 批量将**指定前缀**的配置项绑定到 JavaBean 实体的成员变量上。 | 批量、有结构的一组属性（如邮件、第三方账号配置等）绑定。 | `@ConfigurationProperties(prefix = "email")` |
+| `[@EnableConfigurationProperties](#enable-configuration-properties)` | 启用指定的 `@ConfigurationProperties` 类型，并将其注册为 Spring Bean，完成配置绑定。 | 自动配置 / 自定义 Starter 中注册属性类（属性类本身可不加 `@Component`）。 | `@EnableConfigurationProperties(MybatisProperties.class)` |
+| `[@Bean](#third-party-bean-annotations)` | 标注在配置类的方法上，将该方法的返回值作为 Bean 注册到 Spring 容器中。主要用于整合并管理**第三方类库**提供的类。 | 注册第三方的非自定义类对象。 | 注入外部工具库、连接池等组件 |
+| `[@Autowired](#di-annotations)` | 声明自动注入依赖。**Spring 会自动从 IoC 容器中按类型匹配并装配 Bean。** | 依赖注入组件（控制反转/依赖注入）。 | 成员变量或 setter 方法上 |
+| `[@Service](#custom-bean-annotations)` | 标识该类是 Spring 中的 Service **业务逻辑层组件**，并自动注册到 Spring 容器中。 | 业务逻辑实现类。 | `com.itheima.springbootmybatis.service.impl.UserServiceImpl` |
+| `[@Mapper](#mapper-declaration)` | MyBatis 框架注解。标识该接口为**数据访问层**（Mapper）组件，运行时自动生成动态代理实现类并注册到 Spring 容器。 | MyBatis 数据持久层接口。 | `com.itheima.springbootmybatis.mapper.UserMapper` |
+| `[@Component](#custom-bean-annotations)` | 声明 Bean 的基础注解。若某个类不属于控制层(`@Controller`)、服务层(`@Service`)或持久层(`@Mapper`)，使用此注解注册到 Spring 容器中。 | 通用组件、工具类等。 | 自定义公共工具类组件 |
+| `[@Controller](#custom-bean-annotations)`<br>(`@Component` 的衍生注解)  | 标注在控制层类上，声明其为 Spring MVC 控制器。 | Spring MVC Web 控制器。 | `com.itheima.springbootquickstart.controller.HelloController` |
+| `[@Import](#third-party-bean-annotations)` | 用于在配置类上快速导入外部类. 可以导入普通的 Bean、配置类（`@Configuration`） or `ImportSelector` 接口实现类。 | 模块化集成、快速引入第三方依赖包中的配置组件。 | `@Import({CommonConfig.class})` |
+| `[@Repository](#custom-bean-annotations)`<br>(`@Component` 的衍生注解) | 标注在**数据访问层类**上。由于常与 MyBatis 整合并使用 `@Mapper`，因此在现代 Spring Boot 开发中相对少用。 | 数据访问层/持久层实现组件。 | DAO 实现类 |
+| `[@ConditionalOnProperty](#753-设置注册生效条件注解-conditional-条件装配)` | 配置文件中存在指定的属性且符合特定值（或存在即可）时，才注册该 Bean。 | 根据配置文件参数动态决定是否启用某组件。 | `@ConditionalOnProperty(name = "email.auth", havingValue = "true")` |
+| `[@ConditionalOnMissingBean](#753-设置注册生效条件注解-conditional-条件装配)` | 当 Spring IoC 容器中不存在指定类型或名称的 Bean 时，才注册该 Bean。 | 框架中提供默认配置组件，并允许用户自定义覆盖（自定义优先）。 | `@ConditionalOnMissingBean(EmailProperties.class)` |
+| `[@ConditionalOnClass](#753-设置注册生效条件注解-conditional-条件装配)` | 当当前运行环境/类路径中存在指定的类时，才注册该 Bean。 | 根据是否引入了某第三方依赖决定是否装配对应核心服务。 | `@ConditionalOnClass(name = "com.alibaba.fastjson.JSON")` |
+| `[@Validated](#93-基础校验实战简单参数校验)` | 标注在类或方法参数上，开启 Spring Validation 参数校验机制，支持分组校验。 | 控制器或业务层参数校验。 | `com.itheima.controller.UserController` |
+| `[@RestControllerAdvice](#97-全局异常统一处理-global-exception-handling)` | 组合注解，集成了 `@ControllerAdvice` 和 `@ResponseBody`，用于定义全局异常处理器，将返回值直接作为 JSON 响应体返回。 | 全局异常处理与统一响应。 | `com.itheima.exception.GlobalExceptionHandler` |
+| `[@ExceptionHandler](#97-全局异常统一处理-global-exception-handling)` | 标注在全局异常处理器的方法上，指定该方法需要捕获并处理的异常类型。 | 捕获特定异常并进行定制化处理。 | `@ExceptionHandler(Exception.class)` |
 ---
 
 # 三、 启动入口
@@ -91,7 +91,6 @@ public class SpringbootQuickstartApplication {
 ## 4.1 编写 Controller 示例
 - 当应用启动后，可以通过访问 `http://localhost:8080/hello` 来触发该方法，获取返回值。
 - 若修改了默认的内嵌服务器端口或应用上下文路径，具体的访问 URL 规则可参考 [5.1 通用配置属性](#51-通用配置属性)。
-
 ```java 6:13:SpringBoot/springboot-quickstart/src/main/java/com/itheima/springbootquickstart/controller/HelloController.java
 @RestController // 返回值会直接作为 HTTP 响应体返回
 public class HelloController {
@@ -102,10 +101,11 @@ public class HelloController {
     }
 }
 ```
+![alt text](image-2.png)
 
 ## 4.2 请求参数绑定 (@RequestParam) <a id="42-请求参数绑定-requestparam"></a>
 
-[`@RequestParam`](#core-annotations) 负责把 HTTP 查询串（如 `?categoryId=1&state=已发布`）或表单字段绑定到方法形参。文章列表接口中，分页参数与可选筛选参数的声明方式不同，体现了「必传 / 非必传」的绑定策略。
+`[@RequestParam](#core-annotations)` 负责把 HTTP 查询串（如 `?categoryId=1&state=已发布`）或表单字段绑定到方法形参。文章列表接口中，分页参数与可选筛选参数的声明方式不同，体现了「必传 / 非必传」的绑定策略。
 
 ### 4.2.1 常用属性
 
@@ -117,7 +117,8 @@ public class HelloController {
 
 ### 4.2.2 实战：可选筛选参数
 
-文章分页列表中，`pageNum`、`pageSize` 为简单类型形参，由框架按同名请求参数自动绑定；`categoryId`、`state` 为可选筛选条件，须显式声明 `@RequestParam(required = false)`——若写成默认的 `@RequestParam`（`required = true`），前端未传对应查询参数时接口会直接失败，无法实现「按需过滤」。
+- 文章分页列表中，`pageNum`、`pageSize` 为简单类型形参，由框架按同名请求参数自动绑定；
+- `categoryId`、`state` 为可选筛选条件，须显式声明 `@RequestParam(required = false)`——若写成默认的 `@RequestParam`（`required = true`），前端未传对应查询参数时接口会直接失败，无法实现「按需过滤」。
 
 ```java 25:35:SpringBoot/big-event/src/main/java/com/itheima/controller/ArticleController.java
     @GetMapping
@@ -144,7 +145,7 @@ public class HelloController {
         return Result.success();
     }
 ```
-
+![alt text](image-3.png)
 ---
 
 # 五、 配置文件
@@ -236,8 +237,8 @@ public class AppConfig {
 #### 语法规则
 1. **前缀绑定**：通过 `@ConfigurationProperties(prefix = "前缀")` 指定配置前缀。
 2. **容器管理**：修饰的配置类必须成为 Spring 容器中的 Bean，常用两种方式：
-   - 业务工程内直接加 [`@Component`](#custom-bean-annotations)；
-   - 自动配置 / Starter 中由 [`@EnableConfigurationProperties`](#enable-configuration-properties) 在配置类上声明注册（属性类本身可不加 `@Component`）。
+   - 业务工程内直接加 `[@Component](#custom-bean-annotations)`；
+   - 自动配置 / Starter 中由 `[@EnableConfigurationProperties](#enable-configuration-properties)` 在配置类上声明注册（属性类本身可不加 `@Component`）。
 3. **命名一致性**：Java Bean 的成员变量名（通常符合 camelCase 驼峰命名法）必须与配置文件中的属性键名保持一致。
 
 #### 示例配置
@@ -258,7 +259,7 @@ email:
 @Component // 修饰的配置类必须是 Spring 容器管理的 Bean（例如使用 `@Component` 标注）
 @ConfigurationProperties(prefix = "email") // 指定前缀
 public class EmailProperties {
-
+    // 成员变量名必须与配置文件中的属性键名保持一致，会自动匹配
     // 发件人邮箱
     public String user;
 
@@ -306,7 +307,7 @@ public class EmailProperties {
 ### 5.5.2 单文件配置
 
 - 在同一个 `application.yml` 中，用 `---` 将公共配置与各环境配置拆成多个文档块；
-- 每个环境块通过 [`spring.config.activate.on-profile`](#55-多环境配置-profiles) 声明归属，再由 [`spring.profiles.active`](#51-通用配置属性) 决定实际生效环境。
+- 每个环境块通过 `[spring.config.activate.on-profile](#55-多环境配置-profiles)` 声明归属，再由 `[spring.profiles.active](#51-通用配置属性)` 决定实际生效环境。
 
 项目备份示例见 `SpringBoot/springboot-profiles/src/main/resources/temp/application.yml.bak`，结构如下：
 
@@ -353,7 +354,7 @@ server:
 ### 5.5.3 多文件配置
 
 - 将各环境配置拆到独立文件，命名约定为 `application-{环境名称}.yml`；
-- 在主文件 `application.yml` 中通过 [`spring.profiles.active`](#51-通用配置属性) 激活目标环境，Spring Boot 会自动加载对应的 `application-{环境名称}.yml`。
+- 在主文件 `application.yml` 中通过 `[spring.profiles.active](#51-通用配置属性)` 激活目标环境，Spring Boot 会自动加载对应的 `application-{环境名称}.yml`。
 - 主文件激活示例见 `SpringBoot/springboot-profiles/src/main/resources/temp2/application.yml.bak`：
 
 ```yaml
@@ -562,7 +563,7 @@ public class UserController {
 - **启动类路径**：`com.itheima.springbootmybatis.SpringbootMybatisApplication`
 - **控制器路径**：`com.itheima.controller.UserController`
 
-根据 Spring Boot 默认的 **组件扫描机制 (Component Scan)**，`@SpringBootApplication` 底层集成的组件扫描只会扫描**启动类所在的包及其所有子包**（即 `com.itheima.springbootmybatis.*`），这会导致位于 `com.itheima.controller` 下的控制器无法被 IoC 容器识别与注册。
+根据 Spring Boot 默认的 **组件扫描机制 (Component Scan)**，`@SpringBootApplication` 底层集成的组件扫描只会扫描**启动类所在的包及其所有子包**（即 `com.itheima.springbootmybatis.`*），这会导致位于 `com.itheima.controller` 下的控制器无法被 IoC 容器识别与注册。
 
 #### 解决方案
 在启动类上显式声明 `@ComponentScan(basePackages = "com.itheima")` 注解，扩大组件扫描的物理包范围，从而完美兼容跨包组件的集成。
@@ -588,7 +589,7 @@ public class SpringbootMybatisApplication {
 
 ## 6.5 Mapper XML 映射与动态 SQL <a id="65-mapper-xml-映射与动态-sql"></a>
 
-- 简单、固定的 SQL（如单表插入）可直接写在 [`@Mapper`](#mapper-declaration) 接口的注解上（如 `@Insert`）；
+- 简单、固定的 SQL（如单表插入）可直接写在 `[@Mapper](#mapper-declaration)` 接口的注解上（如 `@Insert`）；
 - 当查询条件随请求参数**动态出现**时，注解内拼接 `if` 逻辑可读性差，项目中改为在 `Mapper XML` 中编写**动态 SQL**。
 
 ### 6.5.1 使用场景
@@ -598,7 +599,7 @@ public class SpringbootMybatisApplication {
 - **必选条件**：始终按当前登录用户过滤（`create_user = #{userId}`），保证数据隔离。
 - **可选条件**：分类 ID（`categoryId`）、发布状态（`state`）由前端按需传入；未传时不参与 WHERE 拼接。
 
-控制层将 `categoryId`、`state` 声明为 [`@RequestParam(required = false)`](#42-请求参数绑定-requestparam) 可选请求参数，业务层取出当前用户 ID 后调用 Mapper；Mapper 接口方法不写 `@Select`，由同名 XML 完成 SQL 组装。
+控制层将 `categoryId`、`state` 声明为 `[@RequestParam(required = false)](#42-请求参数绑定-requestparam)` 可选请求参数，业务层取出当前用户 ID 后调用 Mapper；Mapper 接口方法不写 `@Select`，由同名 XML 完成 SQL 组装。
 
 ```java 16:17:SpringBoot/big-event/src/main/java/com/itheima/mapper/ArticleMapper.java
     // 动态sql的时候不使用注解，使用映射xml会更方便 关联\resources\com\itheima\mapper\ArticleMapper.xml
@@ -705,14 +706,14 @@ IoC 与 DI 是同一概念在不同维度下的表述：
 
 ### 7.5.1 自定义 Bean 注册注解（一类/衍生注解） <a id="custom-bean-annotations"></a>
 
-对于开发者自己编写的业务类，可以使用基础注解 [`@Component`](#core-annotations) 及其衍生注解进行注册。它们在功能上是完全相通的，但在应用架构中扮演不同的层级角色：
+对于开发者自己编写的业务类，可以使用基础注解 `[@Component](#core-annotations)` 及其衍生注解进行注册。它们在功能上是完全相通的，但在应用架构中扮演不同的层级角色：
 
 | 注解 | 层级角色 | 说明 |
 | :--- | :--- | :--- |
-| [`@Component`](#core-annotations) | 基础 / 通用组件 | 声明 Bean 的基础注解。类不属于控制层、业务层、数据访问层时使用（如通用组件、工具类）。 |
-| [`@Controller`](#core-annotations) | Web 控制层（衍生） | 标注在 Spring MVC 控制器类上；RESTful 接口开发中通常使用组合注解 `@RestController`。 |
-| [`@Service`](#core-annotations) | 业务逻辑层（衍生） | 标注在 Service 业务逻辑实现类上（如项目中的 `UserServiceImpl`）。 |
-| [`@Repository`](#core-annotations) | 数据访问层（衍生） | 标注在传统 DAO 实现类上；与 MyBatis/MyBatis-Plus 整合时数据访问层多用 [`@Mapper`](#mapper-declaration)，此注解实际较少使用。 |
+| `[@Component](#core-annotations)` | 基础 / 通用组件 | 声明 Bean 的基础注解。类不属于控制层、业务层、数据访问层时使用（如通用组件、工具类）。 |
+| `[@Controller](#core-annotations)` | Web 控制层（衍生） | 标注在 Spring MVC 控制器类上；RESTful 接口开发中通常使用组合注解 `@RestController`。 |
+| `[@Service](#core-annotations)` | 业务逻辑层（衍生） | 标注在 Service 业务逻辑实现类上（如项目中的 `UserServiceImpl`）。 |
+| `[@Repository](#core-annotations)` | 数据访问层（衍生） | 标注在传统 DAO 实现类上；与 MyBatis/MyBatis-Plus 整合时数据访问层多用 `[@Mapper](#mapper-declaration)`，此注解实际较少使用。 |
 
 ---
 
@@ -801,7 +802,7 @@ public class SpringbootRegistApplication {
 ```
 
 ##### 方式三：使用自定义 @EnableXxxx 注解封装 @Import <a id="enable-xxxx-import"></a>
-* **工作机制**：自定义一个业务注解（如 `@EnableCommonConfig`），并在该自定义注解上标注 [`@Import`](#third-party-bean-annotations)（如 `@Import(CommonImportSelector.class)` 或 `@Import(CommonConfig.class)`）。使用者在启动类上只需声明该自有的 `@EnableXxxx` 注解即可。
+* **工作机制**：自定义一个业务注解（如 `@EnableCommonConfig`），并在该自定义注解上标注 `[@Import](#third-party-bean-annotations)`（如 `@Import(CommonImportSelector.class)` 或 `@Import(CommonConfig.class)`）。使用者在启动类上只需声明该自有的 `@EnableXxxx` 注解即可。
 * **应用场景**：实现“即插即用”（Plug-and-Play）的模块化开关，是 Spring Boot 中大量 Starter（如 `@EnableCaching`, `@EnableScheduling`）的标准底层实现模式。
 * **示例说明**：
 
@@ -819,10 +820,10 @@ public @interface EnableCommonConfig {
 | API | 作用 | 本示例取值 | 说明 |
 | :--- | :--- | :--- | :--- |
 | `@Target` | 限定自定义注解允许标注的程序元素位置 | `ElementType.TYPE` | 只能标在**类、接口、枚举**上，与「写在启动类 / 配置类上启用模块」的用法一致 |
-| `@Retention` | 限定自定义注解的保留阶段 | `RetentionPolicy.RUNTIME` | 必须保留到运行期，Spring 才能通过反射读取注解并触发 [`@Import`](#third-party-bean-annotations) 导入 |
-| [`@Import`](#third-party-bean-annotations) | 声明实际要导入的配置类或 `ImportSelector` | `CommonImportSelector.class` | 真正的加载逻辑仍由方式一 / 方式二完成；`@EnableXxxx` 只做开关式封装 |
+| `@Retention` | 限定自定义注解的保留阶段 | `RetentionPolicy.RUNTIME` | 必须保留到运行期，Spring 才能通过反射读取注解并触发 `[@Import](#third-party-bean-annotations)` 导入 |
+| `[@Import](#third-party-bean-annotations)` | 声明实际要导入的配置类或 `ImportSelector` | `CommonImportSelector.class` | 真正的加载逻辑仍由方式一 / 方式二完成；`@EnableXxxx` 只做开关式封装 |
 
-`@Target`、`@Retention` 为 Java 元注解：定义任何会被框架在运行时识别的自定义注解时通常都需要二者。项目中自定义校验注解 [`@State`](#95-进阶校验二自定义校验注解与校验器-custom-validation) 同样声明了它们，但 `@Target` 取值为 `FIELD`（标在实体字段上），与此处的 `TYPE` 形成对照。
+`@Target`、`@Retention` 为 Java 元注解：定义任何会被框架在运行时识别的自定义注解时通常都需要二者。项目中自定义校验注解 `[@State](#95-进阶校验二自定义校验注解与校验器-custom-validation)` 同样声明了它们，但 `@Target` 取值为 `FIELD`（标在实体字段上），与此处的 `TYPE` 形成对照。
 
 - **启动类声明**：
 ```java
@@ -1186,13 +1187,13 @@ public class MybatisAutoConfiguration {
 
 ##### `@EnableConfigurationProperties` 属性说明 <a id="enable-configuration-properties"></a>
 
-上文 `MybatisProperties` 仅标注了 [`@ConfigurationProperties`](#542-configurationproperties-批量绑定)，**并未**标注 [`@Component`](#custom-bean-annotations)。仅有绑定注解不足以让该类进入 IoC 容器，因此需在自动配置类上使用 `@EnableConfigurationProperties` 显式启用并注册。
+上文 `MybatisProperties` 仅标注了 `[@ConfigurationProperties](#542-configurationproperties-批量绑定)`，**并未**标注 `[@Component](#custom-bean-annotations)`。仅有绑定注解不足以让该类进入 IoC 容器，因此需在自动配置类上使用 `@EnableConfigurationProperties` 显式启用并注册。
 
 | 属性 | 作用 | 本示例 |
 | :--- | :--- | :--- |
 | `value`（默认属性） | 指定要启用的 `@ConfigurationProperties` 类型；Spring Boot 将其注册为 Bean，并按该类上的 `prefix` 完成配置绑定 | `MybatisProperties.class` |
 
-- 注册完成后，自动配置类可通过 [`@Autowired`](#di-annotations) 注入 `MybatisProperties`，读取如 `dmybatis.type-aliases-package` 等配置项。业务工程内也可直接给属性类加 `@Component`（见 [5.4.2](#542-configurationproperties-批量绑定)）；
+- 注册完成后，自动配置类可通过 `[@Autowired](#di-annotations)` 注入 `MybatisProperties`，读取如 `dmybatis.type-aliases-package` 等配置项。业务工程内也可直接给属性类加 `@Component`（见 [5.4.2](#542-configurationproperties-批量绑定)）；
 - Starter / 自动配置场景更常用本注解，使属性类保持纯 POJO，注册时机由自动配置类统一控制。
 
 #### 4. 创建自动配置文件 (AutoConfiguration.imports)
@@ -1269,7 +1270,7 @@ dmybatis:
 
 
 
-Spring Boot 提供了 `spring-boot-starter-validation` 起步依赖，基于 Jakarta Bean Validation（JSR-380）规范，通过声明式注解实现优雅的参数校验。当校验失败时，系统会抛出异常。通过结合 [`@RestControllerAdvice`](#97-全局异常统一处理-global-exception-handling) 与 [`@ExceptionHandler`](#97-全局异常统一处理-global-exception-handling)，可以实现全局异常的统一捕获与友好响应。
+Spring Boot 提供了 `spring-boot-starter-validation` 起步依赖，基于 Jakarta Bean Validation（JSR-380）规范，通过声明式注解实现优雅的参数校验。当校验失败时，系统会抛出异常。通过结合 `[@RestControllerAdvice](#97-全局异常统一处理-global-exception-handling)` 与 `[@ExceptionHandler](#97-全局异常统一处理-global-exception-handling)`，可以实现全局异常的统一捕获与友好响应。
 
 ## 9.1 引入 Validation 起步依赖 (pom.xml)
 
@@ -1291,7 +1292,7 @@ Spring Boot 提供了 `spring-boot-starter-validation` 起步依赖，基于 Jak
 在用户注册与登录接口中，需要校验前端传入的用户名 `username` 和密码 `password` 必须为 5 到 16 位的非空字符。
 
 ### 9.2.2 核心步骤
-1. 在 Controller 类上添加 [`@Validated`](#92-基础校验实战简单参数校验) 注解，开启方法参数校验。
+1. 在 Controller 类上添加 `[@Validated](#92-基础校验实战简单参数校验)` 注解，开启方法参数校验。
 2. 在方法参数前添加校验注解（如 `@Pattern(regexp = "^\\S{5,16}$")`），指定正则表达式校验规则。
 
 ### 9.2.3 代码示例
@@ -1392,7 +1393,7 @@ public class User {
 ### 9.4.2 核心步骤
 1. 在实体类中定义表示不同校验分组的标识接口（如 `Add` 和 `Update`），并继承 `jakarta.validation.groups.Default`。
 2. 在校验注解上通过 `groups` 属性指定该校验项属于哪个分组（如 `@NotNull(groups = Update.class)`）。
-3. 在 Controller 方法中，通过 [`@Validated(Category.Add.class)`](#92-基础校验实战简单参数校验) 或 [`@Validated(Category.Update.class)`](#92-基础校验实战简单参数校验) 指定当前校验生效的分组。
+3. 在 Controller 方法中，通过 `[@Validated(Category.Add.class)](#92-基础校验实战简单参数校验)` 或 `[@Validated(Category.Update.class)](#92-基础校验实战简单参数校验)` 指定当前校验生效的分组。
 
 ### 9.4.3 代码示例
 
@@ -1400,7 +1401,8 @@ public class User {
 
 ```java 11:35:SpringBoot/big-event/src/main/java/com/itheima/pojo/Category.java
 public class Category {
-    @NotNull(groups = Update.class)
+    @NotNull(groups = Update.class) //标明分组- Update 
+    // ↓其他没有标明的属于Default 分组
     private Integer id;//主键ID
     @NotEmpty
     private String categoryName;//分类名称
@@ -1411,17 +1413,14 @@ public class Category {
     private LocalDateTime createTime;//创建时间
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime updateTime;//更新时间
-
+    
+    // 创建分组
     //如果说某个校验项没有指定分组,默认属于Default分组
     //分组之间可以继承, A extends B  那么A中拥有B中所有的校验项
-
-
     public interface Add extends Default {
-
     }
 
     public interface Update extends Default{
-
     }
 }
 ```
@@ -1461,6 +1460,9 @@ public class Category {
 - **自定义注解定义**：
 
 ```java 17:29:SpringBoot/big-event/src/main/java/com/itheima/anno/State.java
+
+// 开发自定义@State 注解
+
 @Documented//元注解
 @Target({FIELD})// 限定自定义注解允许标注的程序元素位置
 @Retention(RUNTIME)// 限定自定义注解的保留阶段
@@ -1517,11 +1519,13 @@ public class Article {
     @NotEmpty
     @URL
     private String coverImg;// 封面图像
-
+    
+    //使用自定义校验
     @State
     private String state;// 发布状态 已发布|草稿
     @NotNull
-    private Integer categoryId;// 文章分类id
+    private Integer categoryId; 
+
     private Integer createUser;// 创建人ID
     private LocalDateTime createTime;// 创建时间
     private LocalDateTime updateTime;// 更新时间
@@ -1534,8 +1538,8 @@ public class Article {
 
 ### 9.6.1 工作机制
 - 当参数校验失败时，Spring Boot 会抛出校验异常。
-- 通过在类上添加 [`@RestControllerAdvice`](#97-全局异常统一处理-global-exception-handling) 注解，声明该类为全局异常处理器。
-- 通过在方法上添加 [`@ExceptionHandler(Exception.class)`](#97-全局异常统一处理-global-exception-handling) 注解，指定该方法捕获并处理所有类型的异常，从而避免将原始的异常堆栈信息暴露给前端，实现统一、友好的 JSON 数据响应。
+- 通过在类上添加 `[@RestControllerAdvice](#97-全局异常统一处理-global-exception-handling)` 注解，声明该类为全局异常处理器。
+- 通过在方法上添加 `[@ExceptionHandler(Exception.class)](#97-全局异常统一处理-global-exception-handling)` 注解，指定该方法捕获并处理所有类型的异常，从而避免将原始的异常堆栈信息暴露给前端，实现统一、友好的 JSON 数据响应。
 
 ### 9.6.2 代码示例
 
@@ -1582,7 +1586,7 @@ public class GlobalExceptionHandler {
 
 ### 10.2.2 核心步骤
 1. 自定义类 `LoginInterceptor` 并实现 `HandlerInterceptor` 接口。
-2. 标注 `@Component` 注解，使其受 Spring 容器管理，以便能够通过 `@Autowired` 自动注入 [`StringRedisTemplate`](#113-通用-apistringredistemplate-与-valueoperations)。
+2. 标注 `@Component` 注解，使其受 Spring 容器管理，以便能够通过 `@Autowired` 自动注入 `[StringRedisTemplate](#113-通用-apistringredistemplate-与-valueoperations)`。
 3. 在 `preHandle` 方法中：
    - 从 HTTP 请求头的 `Authorization` 字段中获取 Token。
    - 用 `ValueOperations.get(token)` 查询 Redis：不存在则令牌已失效，抛出异常；存在则再解析 JWT 获取 Claims。
@@ -1725,7 +1729,7 @@ public class WebConfig implements WebMvcConfigurer {
 | **规范来源** | 基于 **Servlet** 规范，是 Java Web 容器级别的组件。 | 基于 **Spring** 框架，是 Spring MVC 控制器层面的组件。 |
 | **依赖与管理** | 无法直接享受 Spring 容器的便利依赖注入（需要手动获取 Bean），主要运行于 Servlet 容器中。 | 自身由 Spring 容器管理（可直接使用 `@Autowired` 等注入 IOC 容器中的 Bean，例如 `StringRedisTemplate`）。 |
 | **执行时机** | 处于最外层。在请求进入 `DispatcherServlet` **之前**和响应离开 `DispatcherServlet` **之后**执行。 | 处于内部。在请求通过 `DispatcherServlet` 后，但在到达具体的 **Controller 之前**和**之后**执行。 |
-| **拦截范围** | 基于 URL 匹配（如 `/*`），几乎可以过滤所有请求（包括静态资源、JSP、Servlet 等）。 | 主要拦截针对 Controller 的动态请求。可以通过配置细粒度地指定拦截哪些 Controller 映射（如特定 `Path`）。 |
+| **拦截范围** | 基于 URL 匹配（如 `/`*），几乎可以过滤所有请求（包括静态资源、JSP、Servlet 等）。 | 主要拦截针对 Controller 的动态请求。可以通过配置细粒度地指定拦截哪些 Controller 映射（如特定 `Path`）。 |
 | **核心机制** | 基于**函数回调**（`FilterChain.doFilter`）实现。 | 基于 **Java 反射机制**（AOP 思想）实现。 |
 | **访问控制能力** | 只能拿到原始的 `HttpServletRequest` 和 `HttpServletResponse`，无法获取请求将被分发到哪个具体的 Controller 方法。 | 可以通过参数 `Object handler` 获取即将执行的 Controller 方法的详细信息（如方法名、注解、类信息等），控制粒度更细。 |
 
@@ -1824,7 +1828,7 @@ Token 在 Redis 中的完整生命周期如下（键、值均使用 Token 字符
 
 ### 11.5.2 请求拦截：读取校验是否仍有效
 
-[`LoginInterceptor`](#102-自定义拦截器实现-logininterceptor) 在解析 JWT 之前先查 Redis：`get` 为 `null` 表示令牌已过期被清理，或已被主动删除（如改密），请求返回 401。
+`[LoginInterceptor](#102-自定义拦截器实现-logininterceptor)` 在解析 JWT 之前先查 Redis：`get` 为 `null` 表示令牌已过期被清理，或已被主动删除（如改密），请求返回 401。
 
 ```java 26:33:SpringBoot/big-event/src/main/java/com/itheima/interceptors/LoginInterceptor.java
             //从redis中获取相同的token
