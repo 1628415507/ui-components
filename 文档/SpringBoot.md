@@ -354,7 +354,7 @@ server:
 ### 5.5.3 多文件配置
 
 - 将各环境配置拆到独立文件，命名约定为 `application-{环境名称}.yml`；
-- 在主文件 `application.yml` 中通过 `[spring.profiles.active](#51-通用配置属性)` 激活目标环境，Spring Boot 会自动加载对应的 `application-{环境名称}.yml`。
+- 在主文件 `application.yml` 中通过 `[spring.profiles.active](#51-通用配置属性)` 激活目标环境，Spring Boot 会**自动加载**对应的 `application-{环境名称}.yml`。
 - 主文件激活示例见 `SpringBoot/springboot-profiles/src/main/resources/temp2/application.yml.bak`：
 
 ```yaml
