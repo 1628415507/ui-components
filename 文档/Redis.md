@@ -1,4 +1,4 @@
-# Redis 知识梳理
+#  [Redis 知识梳理](https://www.bilibili.com/video/BV1cr4y1671t/?spm_id_from=333.337.search-card.all.click)
 
 Redis (Remote Dictionary Server) 诞生于 2009 年，是一个**基于内存**的键值型 NoSQL 数据库。
 
@@ -40,11 +40,78 @@ Redis 以其极高的读写速度和丰富的数据类型成为最受欢迎的�
 
 ---
 
-## 三、 Spring Boot 整合 Redis
+## 三、 Redis 安装
+
+- 先安装linux
+- 安装redis
+- 修改启动配置文件；开机自启
+
+## 四、 Redis 通用命令 <a id="redis-generic-commands"></a>
+
+与具体 Value 类型无关、多数场景均可使用的命令。在 `redis-cli` 中可用 `help [command]` 查看用法摘要，例如 `help keys` 会输出 `KEYS pattern` 及说明。
+
+| 命令 | 作用 | 示例 / 注意 |
+| :--- | :--- | :--- |
+| **KEYS** | 按模式列出匹配的 key | `KEYS *` 列出全部；`KEYS a*` 匹配前缀；**生产环境不建议使用**（全库扫描可能阻塞） |
+| **DEL** | 删除指定 key | `DEL key [key ...]`；`help del` 可查语法 |
+| **EXISTS** | 判断 key 是否存在 | `EXISTS key` |
+| **EXPIRE** | 为 key 设置过期时间（秒），到期自动删除 | `EXPIRE key seconds` |
+| **TTL** | 查看 key 剩余存活时间（秒） | 无过期或 key 不存在时返回值语义以 `help ttl` 为准 |
+
+```text
+127.0.0.1:6379> help keys
+KEYS pattern
+summary: Find all keys matching the given pattern
+
+127.0.0.1:6379> KEYS *
+1) "age"
+2) "name"
+
+127.0.0.1:6379> KEYS a*
+1) "age"
+```
+
+## 五、 String 类型与 key 规范 <a id="redis-string"></a>
+
+Redis 中最基础的 Value 类型；value 虽为字符串，按内容可分为三类。无论哪种形态，底层均以**字节数组**存储（编码方式不同）；单个 String 值最大 **512MB**。
+
+| 形态 | 说明 | 示例（key → value） |
+| :--- | :--- | :--- |
+| **string** | 普通字符串 | `msg` → `hello world` |
+| **int** | 整数，可做自增、自减 | `num` → `10` |
+| **float** | 浮点数，可按步长自增、自减 | `score` → `92.5` |
+
+### 5.1 key 的结构
+
+- key 可由多段英文单词组成，段间用冒号 `:` 分隔，形成层级，便于区分业务。
+- 推荐形态为 `项目名:业务名:类型:id`，段数可按需要增减。
+
+| KEY | VALUE |
+| :--- | :--- |
+| `heima:user:1` | `{"id":1, "name": "Jack", "age": 21}` |
+| `heima:product:1` | `{"id":1, "name": "小米11", "price": 4999}` |
+
+值为 Java 对象时，先序列化为 **JSON 字符串**再写入 Redis；应用侧存取见 [Spring Boot 整合 Redis](#spring-boot-redis) 中的 `StringRedisTemplate`。
+
+### 5.2 String 常见命令 <a id="redis-string-commands"></a>
+
+| 命令 | 作用 | 示例 / 说明 |
+| :--- | :--- | :--- |
+| **SET** | 添加或修改 String 键值对 | `SET msg "hello world"` |
+| **GET** | 按 key 获取 value | `GET msg` |
+| **MSET** | 批量添加多个键值对 | `MSET name Jack age 21` |
+| **MGET** | 按多个 key 批量获取 value | `MGET name age` |
+| **INCR** | 整型 value 自增 1 | `INCR num`；要求 value 为整数形态 |
+| **INCRBY** | 整型 value 按步长自增 | `INCRBY num 2` |
+| **INCRBYFLOAT** | 浮点 value 按步长自增 | `INCRBYFLOAT score 0.5` |
+| **SETNX** | 仅当 key 不存在时写入 | 否则不执行 |
+| **SETEX** | 写入 String 并指定过期时间（秒） | 等价于 SET 后配合 [EXPIRE](#redis-generic-commands) |
+
+## 六、 Spring Boot 整合 Redis <a id="spring-boot-redis"></a>
 
 在 Java 项目中，通常使用 `spring-boot-starter-data-redis` 快速集成（参考 `SpringBoot/big-event/pom.xml`）。
 
-### 3.1 环境配置
+### 6.1 环境配置
 
 在 `application.yml` 中配置连接信息：
 
@@ -56,9 +123,9 @@ spring:
       port: 6379
 ```
 
-### 3.2 核心工具类：StringRedisTemplate
+### 6.2 核心工具类：StringRedisTemplate
 
-项目首选使用 `StringRedisTemplate` 进行操作，它已预设 String 序列化器，有效避免乱码问题。
+项目首选使用 `StringRedisTemplate` 进行操作，它已预设 String 序列化器，有效避免乱码问题。`opsForValue()` 的 `set` / `get` 及带过期参数的 `set` 分别对应 [String 常见命令](#redis-string-commands) 中的 SET、GET、SETEX（或 SET + EXPIRE）。
 
 | 方法 | 作用 | 示例 |
 | :--- | :--- | :--- |
@@ -66,34 +133,29 @@ spring:
 | `opsForHash()` | 操作哈希类型数据 | `ops.put(key, hashKey, value)` |
 | `delete(key)` | 删除指定的 Key | `redisTemplate.delete(key)` |
 
-#### 3.2.1 实战示例：存取与过期控制
+#### 6.2.1 实战示例：存取与过期控制
 
 ```java
-@Autowired
-private StringRedisTemplate stringRedisTemplate;
+// SpringBoot/big-event/src/test/java/com/itheima/RedisTest.java
 
-public void redisDemo() {
-    ValueOperations<String, String> operations = stringRedisTemplate.opsForValue();
-    
-    // 存储键值对并设置 15 秒过期
-    operations.set("id", "1", 15, TimeUnit.SECONDS);
-    
-    // 获取键值
-    String val = operations.get("id");
-}
+ValueOperations<String, String> operations = stringRedisTemplate.opsForValue();
+operations.set("username","zhangsan");
+operations.set("id","1",15, TimeUnit.SECONDS);//15秒后过期,过期后会被redis删除，就无法获取到了
+
+System.out.println(operations.get("id"));
 ```
 
-## 四、 业务实战：基于 Redis 的 Token 会话管控
+## 七、 业务实战：基于 Redis 的 Token 会话管控
 
 在无状态的 JWT 架构中，Redis 常用于实现 Token 的主动失效（如退出登录、改密）。
 
-### 4.1 核心流程
+### 7.1 核心流程
 
 1. **登录成功**：生成 JWT 后，将其作为 Key（或 Value）存入 Redis，并设置与 JWT 一致的过期时间。
 2. **拦截校验**：[登录拦截器](#login-interceptor) 从请求头获取 Token 后，需在 Redis 中查询是否存在，不存在则视为已失效。
 3. **状态变更**：用户退出登录或修改密码时，从 Redis 中删除对应的 Token，实现强制下线。
 
-### 4.2 拦截器逻辑实现 <a id="login-interceptor"></a>
+### 7.2 拦截器逻辑实现 <a id="login-interceptor"></a>
 
 在 `LoginInterceptor.java` 中，通过 Redis 校验 Token 有效性：
 
@@ -122,7 +184,7 @@ public boolean preHandle(HttpServletRequest request, HttpServletResponse respons
 }
 ```
 
-### 4.3 登录与登出管理
+### 7.3 登录与登出管理
 
 在 `UserController.java` 中管理 Token 的生命周期：
 
