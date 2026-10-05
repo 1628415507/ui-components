@@ -81,7 +81,7 @@ Redis 中最基础的 Value 类型；value 虽为字符串，按内容可分为�
 | **int** | 整数，可做自增、自减 | `num` → `10` |
 | **float** | 浮点数，可按步长自增、自减 | `score` → `92.5` |
 
-### 5.1 key 的结构
+### 5.1 key 的结构 <a id="redis-key-structure"></a>
 
 - key 可由多段英文单词组成，段间用冒号 `:` 分隔，形成层级，便于区分业务。
 - 推荐形态为 `项目名:业务名:类型:id`，段数可按需要增减。
@@ -95,17 +95,81 @@ Redis 中最基础的 Value 类型；value 虽为字符串，按内容可分为�
 
 ### 5.2 String 常见命令 <a id="redis-string-commands"></a>
 
-| 命令 | 作用 | 示例 / 说明 |
-| :--- | :--- | :--- |
-| **SET** | 添加或修改 String 键值对 | `SET msg "hello world"` |
-| **GET** | 按 key 获取 value | `GET msg` |
-| **MSET** | 批量添加多个键值对 | `MSET name Jack age 21` |
-| **MGET** | 按多个 key 批量获取 value | `MGET name age` |
-| **INCR** | 整型 value 自增 1 | `INCR num`；要求 value 为整数形态 |
-| **INCRBY** | 整型 value 按步长自增 | `INCRBY num 2` |
-| **INCRBYFLOAT** | 浮点 value 按步长自增 | `INCRBYFLOAT score 0.5` |
-| **SETNX** | 仅当 key 不存在时写入 | 否则不执行 |
-| **SETEX** | 写入 String 并指定过期时间（秒） | 等价于 SET 后配合 [EXPIRE](#redis-generic-commands) |
+| 命令 | 作用 | 语法 | 示例 |
+| :--- | :--- | :--- | :--- |
+| **SET** | 添加或修改 String 键值对 | `SET key value` | `SET msg "hello world"` |
+| **GET** | 按 key 获取 value | `GET key` | `GET msg` |
+| **MSET** | 批量添加多个键值对 | `MSET key value [key value ...]` | `MSET name Jack age 21` |
+| **MGET** | 按多个 key 批量获取 value | `MGET key [key ...]` | `MGET name age` |
+| **INCR** | 整型 value 自增 1 | `INCR key` | `INCR num`（value 须为整数形态） |
+| **INCRBY** | 整型 value 按步长自增 | `INCRBY key increment` | `INCRBY num 2` |
+| **INCRBYFLOAT** | 浮点 value 按步长自增 | `INCRBYFLOAT key increment` | `INCRBYFLOAT score 0.5` |
+| **SETNX** | 仅当 key 不存在时写入，否则不执行 | `SETNX key value` | `SETNX lock 1` |
+| **SETEX** | 写入 String 并指定过期时间（秒） | `SETEX key seconds value` | `SETEX token 3600 abc`；等价于 SET 后配合 [EXPIRE](#redis-generic-commands) |
+
+### 5.3 Hash 类型与常见命令 <a id="redis-hash-commands"></a>
+
+Hash（哈希）在单个 key 下保存多组 **field-value**，适合同一实体的多个属性；field 与 value 均为字符串。key 命名仍遵循 [key 结构](#redis-key-structure)，例如 `heima:user:1`、`heima:user:2` 各自包含 `name`、`age` 等 field（与 [String](#redis-string) 存整段 JSON 是不同建模方式）。
+
+| 命令 | 作用 | 语法 | 示例 |
+| :--- | :--- | :--- | :--- |
+| **HSET** | 添加或修改指定 field | `HSET key field value` | `HSET heima:user:1 name Jack` |
+| **HGET** | 获取指定 field 的 value | `HGET key field` | `HGET heima:user:1 name` |
+| **HMSET** | 批量设置多个 field | `HMSET key field value [field value ...]` | `HMSET heima:user:1 name Jack age 21` |
+| **HMGET** | 批量获取多个 field | `HMGET key field [field ...]` | `HMGET heima:user:1 name age` |
+| **HGETALL** | 获取 key 下全部 field 与 value | `HGETALL key` | `HGETALL heima:user:1` |
+| **HKEYS** | 获取 key 下全部 field | `HKEYS key` | `HKEYS heima:user:1` |
+| **HVALS** | 获取 key 下全部 value | `HVALS key` | `HVALS heima:user:1` |
+| **HINCRBY** | 指定 field 按步长自增（整型） | `HINCRBY key field increment` | `HINCRBY heima:user:1 age 1` |
+| **HSETNX** | 仅当 field 不存在时写入，否则不执行 | `HSETNX key field value` | `HSETNX heima:user:1 phone 13800000000` |
+
+### 5.4 List 类型与常见命令 <a id="redis-list-commands"></a>
+
+List（列表）可视为双向链表结构（类似 Java 的 `LinkedList`），支持从两端插入与弹出，也可按索引区间读取。特征：**有序**、**元素可重复**、**头尾插入/删除快**、**按位置查询需遍历，速度一般**。
+
+| 命令 | 作用 | 语法 | 示例 |
+| :--- | :--- | :--- | :--- |
+| **LPUSH** | 从列表左侧插入一个或多个元素 | `LPUSH key element [element ...]` | `LPUSH heima:queue:msg a b` |
+| **LPOP** | 移除并返回左侧第一个元素；列表为空时返回 nil | `LPOP key` | `LPOP heima:queue:msg` |
+| **RPUSH** | 从列表右侧插入一个或多个元素 | `RPUSH key element [element ...]` | `RPUSH heima:queue:msg c` |
+| **RPOP** | 移除并返回右侧第一个元素 | `RPOP key` | `RPOP heima:queue:msg` |
+| **LRANGE** | 返回下标区间内全部元素（含两端） | `LRANGE key start stop` | `LRANGE heima:queue:msg 0 -1`（`-1` 表示最后一个） |
+| **BLPOP** | 同 LPOP，列表为空时阻塞等待，超时仍无元素则返回 nil | `BLPOP key [key ...] timeout` | `BLPOP heima:queue:msg 10`（最多等待 10 秒） |
+| **BRPOP** | 同 RPOP，列表为空时阻塞等待 | `BRPOP key [key ...] timeout` | `BRPOP heima:queue:msg 10` |
+
+### 5.5 Set 类型与常见命令 <a id="redis-set-commands"></a>
+
+Set（集合）结构与 Java 的 `HashSet` 类似，可看作 value 恒为 null 的 HashMap；底层为哈希表。特征：**无序**、**元素不可重复**、**查找快**、支持**交集、并集、差集**等集合运算。
+
+| 命令 | 作用 | 语法 | 示例 |
+| :--- | :--- | :--- | :--- |
+| **SADD** | 向 set 添加一个或多个 member | `SADD key member [member ...]` | `SADD heima:tags:1 java redis` |
+| **SREM** | 移除 set 中的指定 member | `SREM key member [member ...]` | `SREM heima:tags:1 redis` |
+| **SCARD** | 返回 set 中 member 个数 | `SCARD key` | `SCARD heima:tags:1` |
+| **SISMEMBER** | 判断 member 是否在 set 中 | `SISMEMBER key member` | `SISMEMBER heima:tags:1 java` |
+| **SMEMBERS** | 返回 set 中全部 member | `SMEMBERS key` | `SMEMBERS heima:tags:1` |
+| **SINTER** | 求多个 key 对应 set 的交集 | `SINTER key [key ...]` | `SINTER heima:set:s1 heima:set:s2` |
+| **SDIFF** | 求多个 key 对应 set 的差集（以第一个 key 为基准） | `SDIFF key [key ...]` | `SDIFF heima:set:s1 heima:set:s2` |
+| **SUNION** | 求多个 key 对应 set 的并集 | `SUNION key [key ...]` | `SUNION heima:set:s1 heima:set:s2` |
+
+### 5.6 SortedSet（ZSet）类型与常见命令 <a id="redis-zset-commands"></a>
+
+SortedSet（有序集合，Redis 中常称 **ZSet**）是带 **score** 的有序 set：每个 member 唯一，按 score 排序。概念上类似 Java 的 `TreeSet`，但底层一般为 **跳表 + 哈希表** 组合实现。特征：**可排序**、**member 不重复**、**查询快**；常用于**排行榜**等场景。
+
+| 命令 | 作用 | 语法 | 示例 |
+| :--- | :--- | :--- | :--- |
+| **ZADD** | 添加 member 并指定 score；已存在则更新 score | `ZADD key score member [score member ...]` | `ZADD heima:rank:game 100 jack 95 rose` |
+| **ZREM** | 删除指定 member | `ZREM key member [member ...]` | `ZREM heima:rank:game rose` |
+| **ZSCORE** | 获取 member 的 score | `ZSCORE key member` | `ZSCORE heima:rank:game jack` |
+| **ZRANK** | 获取 member 按 score 升序的排名（从 0 起） | `ZRANK key member` | `ZRANK heima:rank:game jack` |
+| **ZCARD** | 返回 member 个数 | `ZCARD key` | `ZCARD heima:rank:game` |
+| **ZCOUNT** | 统计 score 落在闭区间内的 member 个数 | `ZCOUNT key min max` | `ZCOUNT heima:rank:game 90 100` |
+| **ZINCRBY** | 将 member 的 score 增加指定步长 | `ZINCRBY key increment member` | `ZINCRBY heima:rank:game 5 jack` |
+| **ZRANGE** | 按 score 升序，取下标区间内的 member | `ZRANGE key start stop` | `ZRANGE heima:rank:game 0 2` |
+| **ZRANGEBYSCORE** | 按 score 升序，取 score 区间内的 member | `ZRANGEBYSCORE key min max` | `ZRANGEBYSCORE heima:rank:game 90 100` |
+| **ZDIFF / ZINTER / ZUNION** | 对多个 ZSet 求差集、交集、并集 | `ZDIFF numkeys key [key ...]` 等 | `ZINTER 2 heima:zset:s1 heima:zset:s2` |
+
+默认按 score **升序**排名与区间；需要**降序**时在命令的 `Z` 后插入 `REV`（如 `ZREVRANK`、`ZREVRANGE`），例如 `ZREVRANGE heima:rank:game 0 0` 可取排行榜第一名。
 
 ## 六、 Spring Boot 整合 Redis <a id="spring-boot-redis"></a>
 
@@ -125,7 +189,7 @@ spring:
 
 ### 6.2 核心工具类：StringRedisTemplate
 
-项目首选使用 `StringRedisTemplate` 进行操作，它已预设 String 序列化器，有效避免乱码问题。`opsForValue()` 的 `set` / `get` 及带过期参数的 `set` 分别对应 [String 常见命令](#redis-string-commands) 中的 SET、GET、SETEX（或 SET + EXPIRE）。
+项目首选使用 `StringRedisTemplate` 进行操作，它已预设 String 序列化器，有效避免乱码问题。`opsForValue()` 的 `set` / `get` 及带过期参数的 `set` 分别对应 [String 常见命令](#redis-string-commands) 中的 SET、GET、SETEX（或 SET + EXPIRE）；`opsForHash()` 的 `put` / `get` 对应 [Hash 常见命令](#redis-hash-commands) 中的 HSET、HGET。
 
 | 方法 | 作用 | 示例 |
 | :--- | :--- | :--- |
