@@ -171,11 +171,64 @@ SortedSet（有序集合，Redis 中常称 **ZSet**）是带 **score** 的有序
 
 默认按 score **升序**排名与区间；需要**降序**时在命令的 `Z` 后插入 `REV`（如 `ZREVRANK`、`ZREVRANGE`），例如 `ZREVRANGE heima:rank:game 0 0` 可取排行榜第一名。
 
-## 六、 Spring Boot 整合 Redis <a id="spring-boot-redis"></a>
+## 六、 Java 客户端：Jedis <a id="redis-jedis"></a>
+
+[Jedis](https://github.com/redis/jedis) 是常用的 Java Redis 客户端：创建 `Jedis` 实例后，**方法名与 Redis 命令一致**（如 `set` 对应 SET、`get` 对应 GET），便于对照 [String 常见命令](#redis-string-commands) 等 CLI 小节。基本步骤：**引入依赖 → 建立连接 → 调用 API → 释放资源**。
+
+### 6.1 Maven 依赖
+
+```xml
+<dependency>
+    <groupId>redis.clients</groupId>
+    <artifactId>jedis</artifactId>
+    <version>3.7.0</version>
+</dependency>
+```
+
+### 6.2 连接、操作与释放
+
+| 步骤 | 语法 | 示例 |
+| :--- | :--- | :--- |
+| 建立连接 | `new Jedis(host, port)` | `jedis = new Jedis("192.168.150.101", 6379);` |
+| 认证（若服务端开启） | `jedis.auth(password)` | `jedis.auth("123321");` |
+| 选择逻辑库 | `jedis.select(index)` | `jedis.select(0);` |
+| 写入 String | `jedis.set(key, value)` | `jedis.set("name", "张三");` |
+| 读取 String | `jedis.get(key)` | `jedis.get("name");` |
+| 释放连接 | `jedis.close()` | 在 `@AfterEach` 中 `if (jedis != null) jedis.close();` |
+
+```java
+private Jedis jedis;
+
+@BeforeEach
+void setUp() {
+    jedis = new Jedis("192.168.150.101", 6379); // 连接虚拟机中的redis库
+    jedis.auth("123321");
+    jedis.select(0);
+}
+
+@Test
+void testString() {
+    String result = jedis.set("name", "张三");
+    System.out.println("result = " + result);
+    String name = jedis.get("name");
+    System.out.println("name = " + name);
+}
+
+@AfterEach
+void tearDown() {
+    if (jedis != null) {
+        jedis.close(); //关闭redis连接
+    }
+}
+```
+
+> 本仓库业务模块采用 Spring Data Redis，见下一节；Jedis 多用于学习或对连接生命周期的直接控制。
+
+## 七、 Spring Boot 整合 Redis <a id="spring-boot-redis"></a>
 
 在 Java 项目中，通常使用 `spring-boot-starter-data-redis` 快速集成（参考 `SpringBoot/big-event/pom.xml`）。
 
-### 6.1 环境配置
+### 7.1 环境配置
 
 在 `application.yml` 中配置连接信息：
 
@@ -187,7 +240,7 @@ spring:
       port: 6379
 ```
 
-### 6.2 核心工具类：StringRedisTemplate
+### 7.2 核心工具类：StringRedisTemplate
 
 项目首选使用 `StringRedisTemplate` 进行操作，它已预设 String 序列化器，有效避免乱码问题。`opsForValue()` 的 `set` / `get` 及带过期参数的 `set` 分别对应 [String 常见命令](#redis-string-commands) 中的 SET、GET、SETEX（或 SET + EXPIRE）；`opsForHash()` 的 `put` / `get` 对应 [Hash 常见命令](#redis-hash-commands) 中的 HSET、HGET。
 
@@ -197,7 +250,7 @@ spring:
 | `opsForHash()` | 操作哈希类型数据 | `ops.put(key, hashKey, value)` |
 | `delete(key)` | 删除指定的 Key | `redisTemplate.delete(key)` |
 
-#### 6.2.1 实战示例：存取与过期控制
+#### 7.2.1 实战示例：存取与过期控制
 
 ```java
 // SpringBoot/big-event/src/test/java/com/itheima/RedisTest.java
@@ -209,17 +262,17 @@ operations.set("id","1",15, TimeUnit.SECONDS);//15秒后过期,过期后会被re
 System.out.println(operations.get("id"));
 ```
 
-## 七、 业务实战：基于 Redis 的 Token 会话管控
+## 八、 业务实战：基于 Redis 的 Token 会话管控
 
 在无状态的 JWT 架构中，Redis 常用于实现 Token 的主动失效（如退出登录、改密）。
 
-### 7.1 核心流程
+### 8.1 核心流程
 
 1. **登录成功**：生成 JWT 后，将其作为 Key（或 Value）存入 Redis，并设置与 JWT 一致的过期时间。
 2. **拦截校验**：[登录拦截器](#login-interceptor) 从请求头获取 Token 后，需在 Redis 中查询是否存在，不存在则视为已失效。
 3. **状态变更**：用户退出登录或修改密码时，从 Redis 中删除对应的 Token，实现强制下线。
 
-### 7.2 拦截器逻辑实现 <a id="login-interceptor"></a>
+### 8.2 拦截器逻辑实现 <a id="login-interceptor"></a>
 
 在 `LoginInterceptor.java` 中，通过 Redis 校验 Token 有效性：
 
@@ -248,7 +301,7 @@ public boolean preHandle(HttpServletRequest request, HttpServletResponse respons
 }
 ```
 
-### 7.3 登录与登出管理
+### 8.3 登录与登出管理
 
 在 `UserController.java` 中管理 Token 的生命周期：
 
