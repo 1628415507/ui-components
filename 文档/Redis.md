@@ -173,7 +173,7 @@ SortedSet（有序集合，Redis 中常称 **ZSet**）是带 **score** 的有序
 
 ## 六、 Java 客户端：Jedis <a id="redis-jedis"></a>
 
-[Jedis](https://github.com/redis/jedis) 是常用的 Java Redis 客户端：创建 `Jedis` 实例后，**方法名与 Redis 命令一致**（如 `set` 对应 SET、`get` 对应 GET），便于对照 [String 常见命令](#redis-string-commands) 等 CLI 小节。基本步骤：**引入依赖 → 建立连接 → 调用 API → 释放资源**。
+[Jedis](https://github.com/redis/jedis) 是常用的 Java Redis 客户端：创建 `Jedis` 实例后，**方法名与 Redis 命令一致**（如 `set` 对应 SET、`get` 对应 GET），便于对照 [String 常见命令](#redis-string-commands) 等 CLI 小节。基本步骤：**引入依赖 → 建立连接 → 调用 API → 释放资源**；生产环境更推荐 [连接池](#redis-jedis-pool) 替代频繁直连。
 
 ### 6.1 Maven 依赖
 
@@ -185,7 +185,7 @@ SortedSet（有序集合，Redis 中常称 **ZSet**）是带 **score** 的有序
 </dependency>
 ```
 
-### 6.2 连接、操作与释放
+### 6.2 连接、操作与释放 <a id="redis-jedis-direct"></a>
 
 | 步骤 | 语法 | 示例 |
 | :--- | :--- | :--- |
@@ -218,6 +218,43 @@ void testString() {
 void tearDown() {
     if (jedis != null) {
         jedis.close(); //关闭redis连接
+    }
+}
+```
+
+### 6.3 Jedis 连接池 <a id="redis-jedis-pool"></a>
+
+`Jedis` 实例**线程不安全**，频繁 `new Jedis` / `close` 也有性能损耗，推荐使用 **JedisPool** 统一管理连接。从池中 `getResource()` 得到的 `Jedis`，用完后仍调用 `close()`，连接会**归还池**而非物理断开（用法与 [6.2](#redis-jedis-direct) 中释放资源一致）。
+
+| 配置项 | 语法 | 示例 |
+| :--- | :--- | :--- |
+| 最大连接数 | `JedisPoolConfig#setMaxTotal(int)` | `jedisPoolConfig.setMaxTotal(8);` |
+| 最大空闲连接 | `setMaxIdle(int)` | `jedisPoolConfig.setMaxIdle(8);` |
+| 最小空闲连接 | `setMinIdle(int)` | `jedisPoolConfig.setMinIdle(0);` |
+| 获取连接最大等待（毫秒） | `setMaxWaitMillis(long)` | `jedisPoolConfig.setMaxWaitMillis(200);` |
+
+| 步骤 | 语法 | 示例 |
+| :--- | :--- | :--- |
+| 创建连接池 | `new JedisPool(config, host, port, timeout, password)` | `new JedisPool(jedisPoolConfig, "192.168.150.101", 6379, 1000, "123321");` |
+| 借用连接 | `jedisPool.getResource()` | `Jedis jedis = JedisConnectionFactory.getJedis();` |
+| 归还连接 | `jedis.close()` | 在 `finally` 或 `@AfterEach` 中关闭 |
+
+```java
+public class JedisConnectionFactory {
+    private static final JedisPool jedisPool;
+
+    static {
+        JedisPoolConfig jedisPoolConfig = new JedisPoolConfig();
+        jedisPoolConfig.setMaxTotal(8);
+        jedisPoolConfig.setMaxIdle(8);
+        jedisPoolConfig.setMinIdle(0);
+        jedisPoolConfig.setMaxWaitMillis(200);
+        jedisPool = new JedisPool(jedisPoolConfig, "192.168.150.101", 6379,
+                1000, "123321");
+    }
+
+    public static Jedis getJedis() {
+        return jedisPool.getResource();
     }
 }
 ```

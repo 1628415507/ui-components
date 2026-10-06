@@ -1,4 +1,4 @@
-# SQL 知识梳理
+# [SQL 知识梳理](https://www.bilibili.com/video/BV1wa15BoEDQ/?spm_id_from=333.337.search-card.all.click)
 
 ## 一、DDL（数据定义语言）
 
@@ -566,7 +566,7 @@ CROSS JOIN departments;
 
 若列名相同但数据类型不同，使用 `NATURAL JOIN` 会报错。
 
-### 6.5 内连接-交集 (INNER JOIN)
+### 6.5 内连接 (INNER JOIN)
 
 `[INNER JOIN](#六表连接)` 连接两个表，仅返回匹配的行（**交集**），`INNER` 关键字可省略：
 
