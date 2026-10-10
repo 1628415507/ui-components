@@ -1,6 +1,6 @@
 #  [Redis 知识梳理](https://www.bilibili.com/video/BV1cr4y1671t/?spm_id_from=333.337.search-card.all.click)
 
-Redis (Remote Dictionary Server) 诞生于 2009 年，是一个**基于内存**的键值型 NoSQL 数据库。
+> Redis (Remote Dictionary Server) 诞生于 2009 年，是一个**基于内存**的键值型 NoSQL 数据库。
 
 ## 一、 SQL vs NoSQL 核心对比
 
@@ -31,7 +31,7 @@ Redis 以其极高的读写速度和丰富的数据类型成为最受欢迎的�
 
 | 特性 | 说明 |
 | :--- | :--- |
-| **键值型** | 以 Key-Value 形式存储，Value 支持 String, List, Set, Hash, ZSet 等多种数据结构 |
+| **键值型** | 以 Key-Value 形式存储，Value 支持 String, **List, Set, Hash, ZSet** 等多种数据结构 |
 | **单线程** | 核心网络 IO 与键值读写由单线程完成，每个命令具备原子性，避免了多线程竞争 |
 | **低延迟/快** | 基于内存操作，使用 IO 多路复用模型，具备良好的底层数据结构编码优化 |
 | **持久化** | 支持 RDB (内存快照) 和 AOF (追加文件) 两种方式，平衡性能与数据安全性 |
@@ -263,31 +263,113 @@ public class JedisConnectionFactory {
 
 ## 七、 Spring Boot 整合 Redis <a id="spring-boot-redis"></a>
 
-在 Java 项目中，通常使用 `spring-boot-starter-data-redis` 快速集成（参考 `SpringBoot/big-event/pom.xml`）。
+[Spring Data Redis](https://spring.io/projects/spring-data-redis) 是 Spring Data 中面向 Redis 的集成模块：默认基于 **Lettuce** 客户端（亦可选 Jedis），通过 **RedisTemplate** 统一 API，并支持发布订阅、Sentinel/Cluster、序列化等能力。Java 侧整合步骤：**引入依赖 → 配置 `application.yml` → 注入 Template 使用**。
 
-### 7.1 环境配置
+### 7.1 Maven 依赖
 
-在 `application.yml` 中配置连接信息：
+本仓库 `SpringBoot/big-event/pom.xml` 已引入：
+
+```xml
+<!--redis坐标-->
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-data-redis</artifactId>
+</dependency>
+```
+
+启用 **Lettuce 连接池**时还需 `commons-pool2`（课件示例；本仓库未显式声明，使用默认连接方式）：
+
+```xml
+<!--连接池依赖-->
+<dependency>
+    <groupId>org.apache.commons</groupId>
+    <artifactId>commons-pool2</artifactId>
+</dependency>
+```
+
+### 7.2 环境配置
+
+Spring Boot **3.x** 使用 `spring.data.redis` 前缀。本仓库 `application.yml` 片段：
 
 ```yaml
 spring:
   data:
     redis:
       host: localhost
-      port: 6379
+      port: 6379 #redis的默认端口号
 ```
 
-### 7.2 核心工具类：StringRedisTemplate
+课件中常见写法（Boot 2.x 为 `spring.redis`；Boot 3 请将同级项移到 `spring.data.redis` 下）含密码与 Lettuce 连接池，与 [Jedis 连接池](#redis-jedis-pool) 中 `maxTotal` / `maxIdle` / `minIdle` / `maxWaitMillis` 含义对应：
 
-项目首选使用 `StringRedisTemplate` 进行操作，它已预设 String 序列化器，有效避免乱码问题。`opsForValue()` 的 `set` / `get` 及带过期参数的 `set` 分别对应 [String 常见命令](#redis-string-commands) 中的 SET、GET、SETEX（或 SET + EXPIRE）；`opsForHash()` 的 `put` / `get` 对应 [Hash 常见命令](#redis-hash-commands) 中的 HSET、HGET。
+| 配置项 | 作用 | 课件示例值 |
+| :--- | :--- | :--- |
+| `lettuce.pool.max-active` | 连接池最大连接数（在用 + 空闲） | `8` |
+| `lettuce.pool.max-idle` | 池中最多保留的空闲连接数 | `8` |
+| `lettuce.pool.min-idle` | 池中至少维持的空闲连接数 | `0` |
+| `lettuce.pool.max-wait` | 获取连接的最大等待时间（毫秒） | `100` |
+
+```yaml
+spring:
+  data:
+    redis:
+      host: 192.168.150.101
+      port: 6379
+      password: 123321
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+          max-wait: 100
+```
+
+### 7.3 RedisTemplate 与数据类型 API
+
+`RedisTemplate` 封装各类 Redis 命令；不同 Value 类型的 API 分属不同 `*Operations`，与第五节 CLI 小节对应关系如下。
+
+| API | 返回值类型 | 说明 |
+| :--- | :--- | :--- |
+| `redisTemplate.opsForValue()` | `ValueOperations` | [String](#redis-string-commands) |
+| `redisTemplate.opsForHash()` | `HashOperations` | [Hash](#redis-hash-commands) |
+| `redisTemplate.opsForList()` | `ListOperations` | [List](#redis-list-commands) |
+| `redisTemplate.opsForSet()` | `SetOperations` | [Set](#redis-set-commands) |
+| `redisTemplate.opsForZSet()` | `ZSetOperations` | [ZSet](#redis-zset-commands) |
+| `redisTemplate` 自身 | — | 通用命令（如 `delete`） |
+
+注入与 String 测试（课件写法）：
+
+```java
+@Autowired
+private RedisTemplate redisTemplate;
+
+@Test
+void testString() {
+    redisTemplate.opsForValue().set("name", "李四");
+    Object name = redisTemplate.opsForValue().get("name");
+    System.out.println("name = " + name);
+}
+```
+
+### 7.4 StringRedisTemplate 与序列化 <a id="string-redis-template"></a>
+
+为节省空间、避免默认 JSON 序列化带来的可读性与工具兼容问题，本仓库业务与测试统一使用 **`StringRedisTemplate`**：key、value 默认均为 **String 序列化**；存 Java 对象时需**手动** JSON 序列化/反序列化（与 [key 结构](#redis-key-structure) 中 JSON 字符串建模一致）。
 
 | 方法 | 作用 | 示例 |
 | :--- | :--- | :--- |
-| `opsForValue()` | 操作字符串类型数据 (ValueOperations) | `ops.set(key, value, timeout, unit)` |
-| `opsForHash()` | 操作哈希类型数据 | `ops.put(key, hashKey, value)` |
-| `delete(key)` | 删除指定的 Key | `redisTemplate.delete(key)` |
+| `opsForValue()` | 操作 String 类型 | `ops.set(key, value, timeout, unit)` |
+| `opsForHash()` | 操作 Hash 类型 | `ops.put(key, hashKey, value)` |
+| `delete(key)` | 删除 key | `stringRedisTemplate.delete(key)` |
 
-#### 7.2.1 实战示例：存取与过期控制
+`opsForValue()` 的 `set` / `get` 及带过期参数的 `set` 分别对应 [String 常见命令](#redis-string-commands) 中的 SET、GET、SETEX（或 SET + EXPIRE）；`opsForHash()` 的 `put` / `get` 对应 [Hash 常见命令](#redis-hash-commands) 中的 HSET、HGET。
+
+**RedisTemplate 序列化常见两种做法**（二选一，勿混用同一 key）：
+
+| 方案 | 做法 |
+| :--- | :--- |
+| **方案一** | 自定义 `RedisTemplate`，将序列化器改为 `GenericJackson2JsonRedisSerializer`，由框架读写对象 |
+| **方案二（本仓库）** | 使用 `StringRedisTemplate`，写入前 `ObjectMapper` 等转为 JSON 字符串，读取后再反序列化为对象 |
+
+#### 7.4.1 实战示例：存取与过期控制
 
 ```java
 // SpringBoot/big-event/src/test/java/com/itheima/RedisTest.java
@@ -300,6 +382,10 @@ System.out.println(operations.get("id"));
 ```
 
 ## 八、 业务实战：基于 Redis 的 Token 会话管控
+- 实战功能
+![alt text](redis-image-9.png)
+- 实战表
+![alt text](redis-image-7.png)
 
 在无状态的 JWT 架构中，Redis 常用于实现 Token 的主动失效（如退出登录、改密）。
 
