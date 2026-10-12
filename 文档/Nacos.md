@@ -5,7 +5,7 @@ Nacos（Dynamic Naming and Configuration Service）是一个更易于构建云�
 1. **配置管理**：动态管理所有微服务的配置，支持配置热更新（如数据库连接池、业务开关等）。
 2. **服务发现与治理**：管理服务实例的注册与发现，支持健康检查、权重配置及路由转发。
 
-![alt text](image-1.png)
+![alt text](img/image-1.png)
 
 ## 核心注解汇总
 

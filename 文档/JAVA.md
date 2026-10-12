@@ -212,7 +212,7 @@
 > **注意**：这两个关键字都不能单独书写（即不能脱离循环或 `switch` 结构单独使用）。
 
 ### 7.4.2 实战示例
-![alt text](image.png)
+![alt text](img/image.png)
 
 # 八、数组
 
