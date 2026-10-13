@@ -598,10 +598,8 @@ public boolean preHandle(HttpServletRequest request, HttpServletResponse respons
 - **先删缓存还是先写库？**
   - **先删缓存、再写库**：另一线程可能在库未更新前回源，把 **旧值** 写回缓存，随后写库完成，导致缓存长期为旧数据（不一致窗口大）。
   - **先写库、再删缓存（推荐）**：仍可能出现「写库并删缓存之后，另有读请求把旧值写回缓存」的极小概率竞态，但写库通常远慢于写缓存，该窗口极短；课件与生产实践均优先此顺序。
-
-读路径（与 [9.1](#redis-cache-model) 一致）：命中则返回；未命中则查库、写入缓存并设置 TTL（`CacheClient#queryWithPassThrough` 使用 `CACHE_SHOP_TTL`）。
-
-写路径（本仓库）：`updateById` 后 `stringRedisTemplate.delete(CACHE_SHOP_KEY + id)`。
+- 读路径（与 [9.1](#redis-cache-model) 一致）：命中则返回；未命中则查库、写入缓存并设置 TTL（`CacheClient#queryWithPassThrough` 使用 `CACHE_SHOP_TTL`）。
+- 写路径（本仓库）：`updateById` 后 `stringRedisTemplate.delete(CACHE_SHOP_KEY + id)`。
 
 ```java
 // hm-dianping/src/main/java/com/hmdp/service/impl/ShopServiceImpl.java
@@ -620,9 +618,79 @@ public boolean preHandle(HttpServletRequest request, HttpServletResponse respons
     }
 ```
 
+
+
 ### 9.4 缓存穿透 {#redis-cache-penetration}
 
+[9.2](#redis-cache-concepts) 汇总表中的 **缓存穿透** 指：请求的数据在 **缓存与数据库都不存在**，持续发起此类请求会反复绕过缓存访问 DB。治理通常 **缓存层 + 接口/风控层** 组合；本仓库读路径以 `CacheClient#queryWithPassThrough` 为主（`ShopServiceImpl#queryById`）。
 
+#### 9.4.1 解决方案归纳
+
+![alt text](img/cache-penetration.png)
+
+
+| 手段 | 要点 | 本仓库（hm-dianping） |
+| --- | --- | --- |
+| **缓存 null 值** | 库无结果时写入短 TTL 占位，后续不再打库 | **采用**（见 [9.4.2](#redis-cache-penetration-null)） |
+| **布隆过滤** | 先判 key 是否可能存在，不存在则直接拒绝 | 未实现 |
+| **增强 id 复杂度** | 降低遍历、猜测 id 规律的风险 | 商铺 `id` 为自增 `Long`，未单独做雪花等改造 |
+| **基础格式校验** | 入口拒绝非法参数，减少无效回源 | `ShopController`：`@PathVariable Long id` |
+| **用户权限校验** | 读接口鉴权，缩小可被滥用的访问面 | 商铺详情查询未单独演示 |
+| **热点参数限流** | 限制异常或高频访问，保护 DB | 未单独演示 |
+
+上图两种 **纯缓存层** 手段对比如下（与表中前两行对应）：
+
+
+| 方案 | 优点 | 缺点 |
+| --- | --- | --- |
+| **缓存空对象** | 实现简单、易维护 | 占少量内存；占位期内新建同 id 可能短暂读不到（删缓存或等 TTL） |
+| **布隆过滤器** | 内存占用低、不产生大量空 key | 需与数据同步；存在「可能存在」误判 |
+
+#### 9.4.2 本仓库：缓存空对象读路径 {#redis-cache-penetration-null}
+
+流程与 [9.1](#redis-cache-model) 类似，差异在 **库也无数据** 时仍写缓存，避免恶意或高频的非法 id 打穿 DB：
+
+1. 读 Redis：`get` 到非空 JSON → 反序列化返回。
+2. `get` 到 **空字符串**（`""`）→ 视为已缓存的「不存在」，**不再查库**，返回 `null`（业务层转失败提示）。
+3. `get` 为 `null`（真正未命中）→ 查库；若仍为 `null`，`set(key, "", CACHE_NULL_TTL, MINUTES)` 后返回 `null`；若有数据则按正常 TTL 回写（`CACHE_SHOP_TTL`）。
+
+空值与有效 JSON 的区分依赖：`StrUtil.isNotBlank(json)` 为真才当命中；`json != null` 且非 blank 时即为空值占位（Redis 中存的是 `""`，`get` 非 `null`）。
+
+```java
+// hm-dianping/src/main/java/com/hmdp/service/impl/ShopServiceImpl.java
+
+@Override
+public Result queryById(Long id) {
+    // 解决缓存穿透
+    Shop shop = cacheClient
+            .queryWithPassThrough(CACHE_SHOP_KEY, id, Shop.class, this::getById, CACHE_SHOP_TTL, TimeUnit.MINUTES);
+    if (shop == null) {
+        return Result.fail("店铺不存在！");
+    }
+    return Result.ok(shop);
+}
+```
+
+```java
+// hm-dianping/src/main/java/com/hmdp/utils/CacheClient.java（queryWithPassThrough 核心片段）
+
+String json = stringRedisTemplate.opsForValue().get(key);
+if (StrUtil.isNotBlank(json)) {
+    return JSONUtil.toBean(json, type);
+}
+if (json != null) {
+    return null;
+}
+R r = dbFallback.apply(id);
+if (r == null) {
+    stringRedisTemplate.opsForValue().set(key, "", CACHE_NULL_TTL, TimeUnit.MINUTES);
+    return null;
+}
+this.set(key, r, time, unit);
+return r;
+```
+
+`RedisConstants.CACHE_NULL_TTL` 为 **2**（分钟），故意短于商铺正常缓存 TTL，减轻「后来新增了该 id 却仍被空值挡住」的时间窗口；商铺 **更新/删除** 时仍应删 `cache:shop:{id}`（见 [9.3](#redis-cache-update)）。互斥锁、逻辑过期模板中的空值处理与上一致，见 [9.5](#redis-cache-breakdown)、[9.6](#redis-cache-client)。
 
 ### 9.5 缓存击穿 {#redis-cache-breakdown}
 
