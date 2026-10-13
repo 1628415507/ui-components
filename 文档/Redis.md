@@ -554,9 +554,9 @@ public boolean preHandle(HttpServletRequest request, HttpServletResponse respons
 | **Cache-Aside** | 业务代码负责读缓存、回写缓存、写库后维护缓存        | `ShopServiceImpl#queryById` 经 `CacheClient` 查询；`update` 后 `delete` 商铺 key |
 | **缓存更新策略**      | 写库与写/删缓存的先后顺序                 | 商铺更新采用 **先更新数据库，再删除缓存**（见 [9.3](#redis-cache-update)）                     |
 | **缓存穿透**        | 查询不存在的数据，缓存与库均无，请求反复打到 DB     | **空值缓存**：`CACHE_NULL_TTL` + 空字符串占位（见 [9.4](#redis-cache-penetration)）     |
-| **缓存雪崩**        | 大量 key 在同一时刻过期，DB 瞬时承压        | 课件常见手段：TTL 加随机偏移、集群与限流降级；`hm-dianping` 片段未单独演示                            |
-| **缓存击穿**        | 热点 key 过期瞬间，并发同时查库            | **互斥锁重建**或**逻辑过期 + 异步重建**（见 [9.5](#redis-cache-breakdown)）                |
-| **工具封装**        | 将「查缓存 → 回源 → 写缓存」与治理逻辑收敛到组件   | `CacheClient` 提供三种查询模板（见 [9.6](#redis-cache-client)）                      |
+| **缓存雪崩**        | 大量 key 在同一时刻过期，或 Redis 不可用，请求集中打 DB | 课件手段见 [9.5](#redis-cache-avalanche)；`hm-dianping` 未单独演示                         |
+| **缓存击穿**        | 热点 key 过期瞬间，并发同时查库            | **互斥锁重建**或**逻辑过期 + 异步重建**（见 [9.6](#redis-cache-breakdown)）                |
+| **工具封装**        | 将「查缓存 → 回源 → 写缓存」与治理逻辑收敛到组件   | `CacheClient` 提供三种查询模板（见 [9.7](#redis-cache-client)）                      |
 
 
 
@@ -690,11 +690,29 @@ this.set(key, r, time, unit);
 return r;
 ```
 
-`RedisConstants.CACHE_NULL_TTL` 为 **2**（分钟），故意短于商铺正常缓存 TTL，减轻「后来新增了该 id 却仍被空值挡住」的时间窗口；商铺 **更新/删除** 时仍应删 `cache:shop:{id}`（见 [9.3](#redis-cache-update)）。互斥锁、逻辑过期模板中的空值处理与上一致，见 [9.5](#redis-cache-breakdown)、[9.6](#redis-cache-client)。
+`RedisConstants.CACHE_NULL_TTL` 为 **2**（分钟），故意短于商铺正常缓存 TTL，减轻「后来新增了该 id 却仍被空值挡住」的时间窗口；商铺 **更新/删除** 时仍应删 `cache:shop:{id}`（见 [9.3](#redis-cache-update)）。互斥锁、逻辑过期模板中的空值处理与上一致，见 [9.6](#redis-cache-breakdown)、[9.7](#redis-cache-client)。
 
-### 9.5 缓存击穿 {#redis-cache-breakdown}
+### 9.5 缓存雪崩 {#redis-cache-avalanche}
+
+[9.2](#redis-cache-concepts) 汇总表中的 **缓存雪崩** 指：在同一时段内，**大量缓存 key 同时过期** 导致读请求集体未命中，或 **Redis 服务宕机/不可用** 导致请求绕过缓存，数据库在短时间内承受极高并发。与 [9.6 缓存击穿](#redis-cache-breakdown) 不同：击穿针对 **单个热点 key** 过期瞬间的并发回源，雪崩强调 **规模性失效** 或 **缓存层整体故障**。
+
+![alt text](img/cache-avalanche.png)
+
+#### 9.5.1 常见解决方案
+
+
+| 手段 | 要点 | 本仓库（hm-dianping） |
+| --- | --- | --- |
+| **TTL 加随机值** | 写入缓存时在基础过期时间上叠加随机偏移，避免批量预热/同时写入的 key 同一时刻集体过期 | `CacheClient#set` 使用入参固定 TTL（如 `CACHE_SHOP_TTL = 30` 分钟），**未**做随机偏移 |
+| **Redis 集群提高可用性** | 主从、哨兵或分片集群，降低单点宕机导致全量打库的概率 | 第二节特性表 **高可用与扩展**；工程为单机 Redis 接入，**未**配置集群 |
+| **降级与限流** | 缓存不可用或回源压力过大时，接口限流、熔断或返回兜底数据，保护 DB | **未**单独演示 |
+| **多级缓存** | 业务侧增加本地缓存（如 Caffeine）再访问 Redis，分担热点与故障流量 | **未**单独演示 |
+
+读路径仍依赖 [9.1](#redis-cache-model) 的 TTL 兜底；写路径删缓存见 [9.3](#redis-cache-update)。热点 key 并发重建见 [9.6](#redis-cache-breakdown)。
+
+### 9.6 缓存击穿 {#redis-cache-breakdown}
 
 
 
-### 9.6 缓存工具封装 {#redis-cache-client}
+### 9.7 缓存工具封装 {#redis-cache-client}
 
