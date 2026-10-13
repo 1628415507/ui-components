@@ -33,9 +33,11 @@
 
 
 
-## 二、 Redis 核心特征 
+## 二、 Redis 核心特征
 
-Redis 以其极高的读写速度和丰富的数据类型成为最受欢迎的键值存储系统。
+Redis 以其极高的**读写速度**和丰富的数据类型成为最受欢迎的键值存储系统。
+
+- 查询Redis缓存比查询SQL的速度更快
 
 
 | 特性         | 说明                                                                  |
@@ -60,14 +62,14 @@ Redis 以其极高的读写速度和丰富的数据类型成为最受欢迎的�
 
 
 
-## 四、 Redis 通用命令 
+## 四、 Redis 通用命令
 
 与具体 Value 类型无关、多数场景均可使用的命令。在 `redis-cli` 中可用 `help [command]` 查看用法摘要，例如 `help keys` 会输出 `KEYS pattern` 及说明。
 
 
 | 命令         | 作用                     | 示例 / 注意                                              |
 | ---------- | ---------------------- | ---------------------------------------------------- |
-| **KEYS**   | 按模式列出匹配的 key           | `KEYS `* 列出全部；`KEYS a*` 匹配前缀；**生产环境不建议使用**（全库扫描可能阻塞） |
+| **KEYS**   | 按模式列出匹配的 key           | `KEYS` * 列出全部；`KEYS a`* 匹配前缀；**生产环境不建议使用**（全库扫描可能阻塞） |
 | **DEL**    | 删除指定 key               | `DEL key [key ...]`；`help del` 可查语法                  |
 | **EXISTS** | 判断 key 是否存在            | `EXISTS key`                                         |
 | **EXPIRE** | 为 key 设置过期时间（秒），到期自动删除 | `EXPIRE key seconds`                                 |
@@ -91,7 +93,7 @@ summary: Find all keys matching the given pattern
 
 
 
-## 五、 String 类型与 key 规范 
+## 五、 String 类型与 key 规范
 
 Redis 中最基础的 Value 类型；value 虽为字符串，按内容可分为三类。无论哪种形态，底层均以**字节数组**存储（编码方式不同）；单个 String 值最大 **512MB**。
 
@@ -105,7 +107,7 @@ Redis 中最基础的 Value 类型；value 虽为字符串，按内容可分为�
 
 
 
-### 5.1 key 的结构 
+### 5.1 key 的结构
 
 - key 可由多段英文单词组成，段间用冒号 `:` 分隔，形成层级，便于区分业务。
 - 推荐形态为 `项目名:业务名:类型:id`，段数可按需要增减。
@@ -119,7 +121,7 @@ Redis 中最基础的 Value 类型；value 虽为字符串，按内容可分为�
 
 值为 Java 对象时，先序列化为 **JSON 字符串**再写入 Redis；应用侧存取见 [Spring Boot 整合 Redis](#spring-boot-redis) 中的 `StringRedisTemplate`。
 
-### 5.2 String 常见命令 
+### 5.2 String 常见命令
 
 
 | 命令              | 作用                   | 语法                               | 示例                                                                   |
@@ -137,7 +139,7 @@ Redis 中最基础的 Value 类型；value 虽为字符串，按内容可分为�
 
 
 
-### 5.3 Hash 类型与常见命令 
+### 5.3 Hash 类型与常见命令
 
 - Hash（哈希）在单个 key 下保存多组 **field-value**，**适合同一实体的多个属性**；
 - field 与 value 均为字符串。
@@ -159,7 +161,7 @@ Redis 中最基础的 Value 类型；value 虽为字符串，按内容可分为�
 
 
 
-### 5.4 List 类型与常见命令 
+### 5.4 List 类型与常见命令
 
 List（列表）可视为双向链表结构（类似 Java 的 `LinkedList`），支持从两端插入与弹出，也可按索引区间读取。特征：**有序**、**元素可重复**、**头尾插入/删除快**、**按位置查询需遍历，速度一般**。
 
@@ -177,7 +179,7 @@ List（列表）可视为双向链表结构（类似 Java 的 `LinkedList`），
 
 
 
-### 5.5 Set 类型与常见命令 
+### 5.5 Set 类型与常见命令
 
 Set（集合）结构与 Java 的 `HashSet` 类似，可看作 value 恒为 null 的 HashMap；底层为哈希表。特征：**无序**、**元素不可重复**、**查找快**、支持**交集、并集、差集**等集合运算。
 
@@ -196,7 +198,7 @@ Set（集合）结构与 Java 的 `HashSet` 类似，可看作 value 恒为 null
 
 
 
-### 5.6 SortedSet（ZSet）类型与常见命令 
+### 5.6 SortedSet（ZSet）类型与常见命令
 
 SortedSet（有序集合，Redis 中常称 **ZSet**）是带 **score** 的有序 set：每个 member 唯一，按 score 排序。概念上类似 Java 的 `TreeSet`，但底层一般为 **跳表 + 哈希表** 组合实现。特征：**可排序**、**member 不重复**、**查询快**；常用于**排行榜**等场景。
 
@@ -217,7 +219,7 @@ SortedSet（有序集合，Redis 中常称 **ZSet**）是带 **score** 的有序
 
 默认按 score **升序**排名与区间；需要**降序**时在命令的 `Z` 后插入 `REV`（如 `ZREVRANK`、`ZREVRANGE`），例如 `ZREVRANGE heima:rank:game 0 0` 可取排行榜第一名。
 
-## 六、 Java 客户端：Jedis 
+## 六、 Java 客户端：Jedis
 
 [Jedis](https://github.com/redis/jedis) 是常用的 Java Redis 客户端：创建 `Jedis` 实例后，**方法名与 Redis 命令一致**（如 `set` 对应 SET、`get` 对应 GET），便于对照 [String 常见命令](#redis-string-commands) 等 CLI 小节。基本步骤：**引入依赖 → 建立连接 → 调用 API → 释放资源**；生产环境更推荐 [连接池](#redis-jedis-pool) 替代频繁直连。
 
@@ -233,7 +235,7 @@ SortedSet（有序集合，Redis 中常称 **ZSet**）是带 **score** 的有序
 
 
 
-### 6.2 连接、操作与释放 
+### 6.2 连接、操作与释放
 
 
 | 步骤         | 语法                      | 示例                                                   |
@@ -274,7 +276,7 @@ void tearDown() {
 
 
 
-### 6.3 Jedis 连接池 
+### 6.3 Jedis 连接池
 
 `Jedis` 实例**线程不安全**，频繁 `new Jedis` / `close` 也有性能损耗，推荐使用 **JedisPool** 统一管理连接。从池中 `getResource()` 得到的 `Jedis`，用完后仍调用 `close()`，连接会**归还池**而非物理断开（用法与 [6.2](#redis-jedis-direct) 中释放资源一致）。
 
@@ -319,7 +321,7 @@ public class JedisConnectionFactory {
 
 
 
-## 七、 Spring Boot 整合 Redis 
+## 七、 Spring Boot 整合 Redis
 
 [Spring Data Redis](https://spring.io/projects/spring-data-redis) 是 Spring Data 中面向 Redis 的集成模块：默认基于 **Lettuce** 客户端（亦可选 Jedis），通过 **RedisTemplate** 统一 API，并支持发布订阅、Sentinel/Cluster、序列化等能力。Java 侧整合步骤：**引入依赖 → 配置** `application.yml` **→ 注入 Template 使用**。
 
@@ -418,9 +420,12 @@ void testString() {
 
 
 
-### 7.4 StringRedisTemplate 与序列化 
+### 7.4 StringRedisTemplate 与序列化
 
-为节省空间、避免默认 JSON 序列化带来的可读性与工具兼容问题，本仓库业务与测试统一使用 `StringRedisTemplate`：key、value 默认均为 **String 序列化**；存 Java 对象时需**手动** JSON 序列化/反序列化（与 [key 结构](#redis-key-structure) 中 JSON 字符串建模一致）。
+为节省空间、避免默认 JSON 序列化带来的可读性与工具兼容问题，本仓库业务与测试统一使用 `StringRedisTemplate`：
+
+- key、value 默认均为 **String 序列化**；
+- 存 Java 对象时需**手动** JSON 序列化/反序列化（与 [key 结构](#redis-key-structure) 中 JSON 字符串建模一致）。
 
 
 | 方法              | 作用           | 示例                                   |
@@ -430,7 +435,8 @@ void testString() {
 | `delete(key)`   | 删除 key       | `stringRedisTemplate.delete(key)`    |
 
 
-`opsForValue()` 的 `set` / `get` 及带过期参数的 `set` 分别对应 [String 常见命令](#redis-string-commands) 中的 SET、GET、SETEX（或 SET + EXPIRE）；`opsForHash()` 的 `put` / `get` 对应 [Hash 常见命令](#redis-hash-commands) 中的 HSET、HGET。
+- `opsForValue()` 的 `set` / `get` 及带过期参数的 `set` 分别对应 [String 常见命令](#redis-string-commands) 中的 SET、GET、SETEX（或 SET + EXPIRE）；
+- `opsForHash()` 的 `put` / `get` 对应 [Hash 常见命令](#redis-hash-commands) 中的 HSET、HGET。
 
 **RedisTemplate 序列化常见两种做法**（二选一，勿混用同一 key）：
 
@@ -439,6 +445,9 @@ void testString() {
 | ------------ | ------------------------------------------------------------------------ |
 | **方案一**      | 自定义 `RedisTemplate`，将序列化器改为 `GenericJackson2JsonRedisSerializer`，由框架读写对象 |
 | **方案二（本仓库）** | 使用 `StringRedisTemplate`，写入前 `ObjectMapper` 等转为 JSON 字符串，读取后再反序列化为对象     |
+
+
+
 
 #### 7.4.1 实战示例：存取与过期控制
 
@@ -455,7 +464,10 @@ System.out.println(operations.get("id"));
 
 
 ## 八、 业务实战：基于 Redis 的 Token 会话管控
-![alt text](img/image-7.png)
+
+alt text
+alt text
+
 - 实战功能
 alt text
 - 实战表
@@ -471,7 +483,7 @@ alt text
 
 
 
-### 8.2 拦截器逻辑实现 
+### 8.2 拦截器逻辑实现
 
 在 `LoginInterceptor.java` 中，通过 Redis 校验 Token 有效性：
 
@@ -512,4 +524,109 @@ public boolean preHandle(HttpServletRequest request, HttpServletResponse respons
 | **登录**    | `operations.set(token, token, 1, TimeUnit.HOURS)` | 记录在线会话，同步过期时间 |
 | **改密/退出** | `operations.getOperations().delete(token)`        | 强制失效当前 Token  |
 
+
+
+
+## 九、 Redis 缓存实战 {#redis-cache-chapter}
+
+应用侧将热点数据放入 [Redis](#redis)，用 [Spring Boot 整合 Redis](#spring-boot-redis) 中的 `StringRedisTemplate` 读写 JSON 字符串，是典型的 **Cache-Aside（旁路缓存）**：读时先查缓存，未命中再查库并回写；写库后通过删缓存或更新缓存保持与数据库一致。商铺查询与更新见本节 [CacheClient](#redis-cache-client) 与 [缓存更新](#redis-cache-update)。
+
+### 9.1 缓存作用模型 {#redis-cache-model}
+
+
+| 步骤      | 说明                                                                 |
+| ------- | ------------------------------------------------------------------ |
+| **请求**  | 客户端先访问 Redis                                                       |
+| **命中**  | key 存在且为有效数据，直接返回                                                  |
+| **未命中** | Redis 无数据，查询数据库                                                    |
+| **写缓存** | 将库中结果写入 Redis（常配合 [EXPIRE / SETEX](#redis-string-commands) 设置 TTL） |
+| **响应**  | 将数据返回客户端                                                           |
+
+
+
+
+### 9.2 概念与问题汇总 {#redis-cache-concepts}
+
+
+| 主题              | 含义                            | 本仓库实战要点                                                                   |
+| --------------- | ----------------------------- | ------------------------------------------------------------------------- |
+| **缓存**          | 将高频访问数据放在内存型存储，降低数据库压力、缩短响应时间 | 与第二节「低延迟」一致；key 形态见 [key 结构](#redis-key-structure)                        |
+| **Cache-Aside** | 业务代码负责读缓存、回写缓存、写库后维护缓存        | `ShopServiceImpl#queryById` 经 `CacheClient` 查询；`update` 后 `delete` 商铺 key |
+| **缓存更新策略**      | 写库与写/删缓存的先后顺序                 | 商铺更新采用 **先更新数据库，再删除缓存**（见 [9.3](#redis-cache-update)）                     |
+| **缓存穿透**        | 查询不存在的数据，缓存与库均无，请求反复打到 DB     | **空值缓存**：`CACHE_NULL_TTL` + 空字符串占位（见 [9.4](#redis-cache-penetration)）     |
+| **缓存雪崩**        | 大量 key 在同一时刻过期，DB 瞬时承压        | 课件常见手段：TTL 加随机偏移、集群与限流降级；`hm-dianping` 片段未单独演示                            |
+| **缓存击穿**        | 热点 key 过期瞬间，并发同时查库            | **互斥锁重建**或**逻辑过期 + 异步重建**（见 [9.5](#redis-cache-breakdown)）                |
+| **工具封装**        | 将「查缓存 → 回源 → 写缓存」与治理逻辑收敛到组件   | `CacheClient` 提供三种查询模板（见 [9.6](#redis-cache-client)）                      |
+
+
+
+
+### 9.3 缓存更新策略 {#redis-cache-update}
+
+[9.2](#redis-cache-concepts) 汇总表已说明本仓库写路径采用 **先更新数据库、再删除缓存**；本节从「如何维护缓存与库的一致性」展开，并落到 `hm-dianping` 商铺更新代码。
+
+#### 9.3.1 三种维护方式（按一致性需求选型）
+
+
+| 方式       | 机制                                                              | 一致性 | 维护成本 | 典型场景                                                   |
+| -------- | --------------------------------------------------------------- | --- | ---- | ------------------------------------------------------ |
+| **内存淘汰** | 不主动维护；内存紧张时由 Redis 淘汰 key，下次读再回源建缓存                             | 差   | 无    | 低一致性，如店铺类型等变更不频繁、可容忍短暂旧数据                              |
+| **超时剔除** | 写入缓存时设置 TTL（见 [EXPIRE / SETEX](#redis-string-commands)），到期自动删除  | 一般  | 低    | 作兜底：即使主动删缓存失败，过期后仍会回源                                  |
+| **主动更新** | 业务在写库时同步删缓存或更新缓存（见下文 [Cache-Aside](#redis-cache-aside-pattern)） | 好   | 高    | 高一致性，如商铺详情（本仓库 `CACHE_SHOP_TTL` 与 `update` 删 key 组合使用） |
+
+
+高一致性场景常见组合：**主动更新 + TTL 兜底**（读路径回写时带过期时间，见 [9.1](#redis-cache-model) 与 `RedisConstants.CACHE_SHOP_TTL`）。
+
+#### 9.3.2 主动更新：三种架构模式 {#redis-cache-aside-pattern}
+
+
+| 模式                     | 谁维护一致性                     | 特点                                                         |
+| ---------------------- | -------------------------- | ---------------------------------------------------------- |
+| **Cache-Aside（旁路缓存）**  | 调用方（业务代码）读缓存、回写缓存，写库后删/改缓存 | 与 [第九章](#redis-cache-chapter) 及 `CacheClient` 一致；**本仓库采用** |
+| **Read/Write Through** | 缓存组件作为统一入口，内部同步写库与缓存       | 对调用方透明，需专用缓存中间件或封装层                                        |
+| **Write Behind**       | 调用方只写缓存，异步线程批量落库           | 吞吐高，库与缓存为最终一致，适合日志、计数等非强一致场景                               |
+
+
+
+
+#### 9.3.3 Cache-Aside 写路径的三点取舍
+
+- **删缓存还是改缓存？**  
+写库后 **删除缓存**（让下次读触发回源再写入），而不是每次把新值写入缓存。直接「更新缓存」会产生大量无效写，且并发下容易写入中间态。
+- **库与缓存如何一起成功或失败？**  
+单体可在同一 **本地事务** 内先写库再删缓存（删缓存失败可重试或依赖 TTL）；跨服务需分布式事务或补偿（如 TCC），本仓库 `ShopServiceImpl#update` 使用 `@Transactional` 保证库更新在同一事务边界内。
+- **先删缓存还是先写库？**
+  - **先删缓存、再写库**：另一线程可能在库未更新前回源，把 **旧值** 写回缓存，随后写库完成，导致缓存长期为旧数据（不一致窗口大）。
+  - **先写库、再删缓存（推荐）**：仍可能出现「写库并删缓存之后，另有读请求把旧值写回缓存」的极小概率竞态，但写库通常远慢于写缓存，该窗口极短；课件与生产实践均优先此顺序。
+
+读路径（与 [9.1](#redis-cache-model) 一致）：命中则返回；未命中则查库、写入缓存并设置 TTL（`CacheClient#queryWithPassThrough` 使用 `CACHE_SHOP_TTL`）。
+
+写路径（本仓库）：`updateById` 后 `stringRedisTemplate.delete(CACHE_SHOP_KEY + id)`。
+
+```java
+// hm-dianping/src/main/java/com/hmdp/service/impl/ShopServiceImpl.java
+    @Override
+    @Transactional // 事务注解，保证数据库和缓存的一致性
+    public Result update(Shop shop) {
+        Long id = shop.getId(); // 店铺id   
+        if (id == null) {
+            return Result.fail("店铺id不能为空");
+        }
+        // 1.更新数据库
+        updateById(shop); // 更新数据库
+        // 2.删除缓存
+        stringRedisTemplate.delete(CACHE_SHOP_KEY + id); // 更新数据后，删除缓存防止缓存与数据库不一致
+        return Result.ok();
+    }
+```
+
+### 9.4 缓存穿透 {#redis-cache-penetration}
+
+
+
+### 9.5 缓存击穿 {#redis-cache-breakdown}
+
+
+
+### 9.6 缓存工具封装 {#redis-cache-client}
 
