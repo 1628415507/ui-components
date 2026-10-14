@@ -712,7 +712,53 @@ return r;
 
 ### 9.6 缓存击穿 {#redis-cache-breakdown}
 
+[9.2](#redis-cache-concepts) 中的 **缓存击穿**（热点 key 问题）：**高并发访问** 的 key 在 **物理过期或逻辑过期** 且 **回源重建成本较高** 时，大量线程同时未命中并查库，DB 瞬时承压。与 [9.5 雪崩](#redis-cache-avalanche) 不同，击穿强调 **单个热点**；与 [9.4 穿透](#redis-cache-penetration) 不同，穿透是 **数据本身不存在**。
+
+![alt text](img/cache-breakdown-epx.png)
+
+常见两类方案对比如下；`CacheClient` 分别提供 `queryWithMutex`、`queryWithLogicalExpire`（空值防穿透逻辑与 [9.4.2](#redis-cache-penetration-null) 一致）。`ShopServiceImpl#queryById` 默认仍用 `queryWithPassThrough`，击穿方案在源码中为 **注释切换**。
 
 
+| 方案 | 优点 | 缺点 |
+| --- | --- | --- |
+| **互斥锁** | 无额外包装结构、实现相对简单、回源后写入的缓存与 DB 一致 | 未抢到锁的线程需等待重试，吞吐受影响；锁超时与重试策略需设计，否则存在长时间自旋或异常场景 |
+| **逻辑过期** | 命中后 **直接返回**（过期则返回旧数据），线程无需同步等待回源，性能好 | 短期内可能读到过期数据；需 `RedisData` 等包装与线程池异步重建，实现更复杂、占一定内存 |
+
+锁 key 前缀：`RedisConstants.LOCK_SHOP_KEY`（`lock:shop:` + id）；`tryLock` 使用 `SET key NX` 并设 **10 秒** 过期（`LOCK_SHOP_TTL`），避免进程异常导致死锁。
+
+#### 9.6.1 互斥锁：`queryWithMutex` {#redis-cache-breakdown-mutex}
+
+1. 读缓存：有有效 JSON → 返回；空字符串占位 → 按穿透处理返回 `null`。
+2. 未命中 → `tryLock(lock:shop:{id})`；**失败**则 `Thread.sleep(50)` 后 **递归重试** 整个查询。
+3. **成功** → 查库；无数据则写空值缓存；有数据则 `set` 带 TTL 回写，最后在 `finally` 中 `delete` 释放锁。
+
+```java
+// hm-dianping/src/main/java/com/hmdp/utils/CacheClient.java（互斥锁核心）
+
+boolean isLock = tryLock(lockKey);
+if (!isLock) {
+    Thread.sleep(50);
+    return queryWithMutex(keyPrefix, id, type, dbFallback, time, unit); // 递归重新执行
+}
+r = dbFallback.apply(id);
+// ... 空值 / 写缓存 ...
+```
+
+```java
+// hm-dianping/src/main/java/com/hmdp/utils/CacheClient.java
+
+private boolean tryLock(String key) {
+    // 获取锁，setIfAbsent：如果key不存在，则设置值为1，并返回true，如果key存在，则返回false
+    Boolean flag = stringRedisTemplate.opsForValue().setIfAbsent(key, "1", 10, TimeUnit.SECONDS);
+    return BooleanUtil.isTrue(flag);
+}
+```
+
+```java
+// hm-dianping/src/main/java/com/hmdp/service/impl/ShopServiceImpl.java（切换示例，默认未启用）
+
+// Shop shop = cacheClient
+//         .queryWithMutex(CACHE_SHOP_KEY, id, Shop.class, this::getById, CACHE_SHOP_TTL, TimeUnit.MINUTES);
+```
 ### 9.7 缓存工具封装 {#redis-cache-client}
 
