@@ -71,13 +71,13 @@
             <artifactId>mybatis-plus-boot-starter</artifactId>
             <version>3.4.3</version>
         </dependency>
-        <!--hutool-->
+        <!--hutool：工具类，用于简化代码-->
         <dependency>
             <groupId>cn.hutool</groupId>
             <artifactId>hutool-all</artifactId>
             <version>5.7.17</version>
         </dependency>
-        <!--redisson-->
+        <!--redisson：分布式锁-->
         <dependency>
             <groupId>org.redisson</groupId>
             <artifactId>redisson</artifactId>
