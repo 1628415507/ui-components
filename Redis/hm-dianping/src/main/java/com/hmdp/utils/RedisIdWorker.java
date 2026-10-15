@@ -27,16 +27,16 @@ public class RedisIdWorker {
     public long nextId(String keyPrefix) {
         // 1.生成时间戳
         LocalDateTime now = LocalDateTime.now();
-        long nowSecond = now.toEpochSecond(ZoneOffset.UTC);
-        long timestamp = nowSecond - BEGIN_TIMESTAMP;
+        long nowSecond = now.toEpochSecond(ZoneOffset.UTC); // 当前时间戳
+        long timestamp = nowSecond - BEGIN_TIMESTAMP; // 时间戳
 
         // 2.生成序列号
         // 2.1.获取当前日期，精确到天
         String date = now.format(DateTimeFormatter.ofPattern("yyyy:MM:dd"));
         // 2.2.自增长
-        long count = stringRedisTemplate.opsForValue().increment("icr:" + keyPrefix + ":" + date);
+        long count = stringRedisTemplate.opsForValue().increment("icr:" + keyPrefix + ":" + date);// 自增长:拼上日期，避免超过key的自增长范围
 
         // 3.拼接并返回
-        return timestamp << COUNT_BITS | count;
+        return timestamp << COUNT_BITS | count; // 拼接:时间戳左移32位，然后与序列号进行或运算
     }
 }

@@ -38,26 +38,26 @@ class HmDianPingApplicationTests {
     @Resource
     private StringRedisTemplate stringRedisTemplate;
 
-    private ExecutorService es = Executors.newFixedThreadPool(500);
+    private ExecutorService es = Executors.newFixedThreadPool(500); // 创建一个固定大小的线程池
 
     @Test
     void testIdWorker() throws InterruptedException {
-        CountDownLatch latch = new CountDownLatch(300);
-
+        CountDownLatch latch = new CountDownLatch(300); // 创建一个计数器，用于等待所有线程完成
+        // Runnable: 一个接口，用于定义一个任务，run方法中定义任务的内容。无返回值，无参数。
         Runnable task = () -> {
             for (int i = 0; i < 100; i++) {
                 long id = redisIdWorker.nextId("order");
                 System.out.println("id = " + id);
             }
-            latch.countDown();
+            latch.countDown(); // 计数器减1
         };
-        long begin = System.currentTimeMillis();
+        long begin = System.currentTimeMillis(); // 开始时间
         for (int i = 0; i < 300; i++) {
             es.submit(task);
         }
-        latch.await();
-        long end = System.currentTimeMillis();
-        System.out.println("time = " + (end - begin));
+        latch.await(); // 等待所有线程完成
+        long end = System.currentTimeMillis(); // 结束时间
+        System.out.println("time = " + (end - begin)); // 打印时间差
     }
 
     @Test
