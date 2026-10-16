@@ -63,16 +63,17 @@ Redis 以其极高的**读写速度**和丰富的数据类型成为最受欢迎�
 
 # 四、 Redis 通用命令
 
-与具体 Value 类型无关、多数场景均可使用的命令。在 `redis-cli` 中可用 `help [command]` 查看用法摘要，例如 `help keys` 会输出 `KEYS pattern` 及说明。
+- 与具体 Value 类型无关、多数场景均可使用的命令。
+- 在 `redis-cli` 中可用 `help [command]` 查看用法摘要，例如 `help keys` 会输出 `KEYS pattern` 及说明。
 
 
-| 命令         | 作用                     | 示例 / 注意                                              |
-| ---------- | ---------------------- | ---------------------------------------------------- |
-| **KEYS**   | 按模式列出匹配的 key           | `KEYS` * 列出全部；`KEYS a`* 匹配前缀；**生产环境不建议使用**（全库扫描可能阻塞） |
-| **DEL**    | 删除指定 key               | `DEL key [key ...]`；`help del` 可查语法                  |
-| **EXISTS** | 判断 key 是否存在            | `EXISTS key`                                         |
-| **EXPIRE** | 为 key 设置过期时间（秒），到期自动删除 | `EXPIRE key seconds`                                 |
-| **TTL**    | 查看 key 剩余存活时间（秒）       | 无过期或 key 不存在时返回值语义以 `help ttl` 为准                    |
+| 命令         | 作用                     | 示例 / 注意                                               |
+| ---------- | ---------------------- | ----------------------------------------------------- |
+| **KEYS**   | 按模式列出匹配的 key           | `KEYS` * 列出全部；`KEYS a`* 匹配前缀； **生产环境不建议使用**（全库扫描可能阻塞） |
+| **DEL**    | 删除指定 key               | `DEL key [key ...]`；`help del` 可查语法                   |
+| **EXISTS** | 判断 key 是否存在            | `EXISTS key`                                          |
+| **EXPIRE** | 为 key 设置过期时间（秒），到期自动删除 | `EXPIRE key seconds`                                  |
+| **TTL**    | 查看 key 剩余存活时间（秒）       | 无过期或 key 不存在时返回值语义以 `help ttl` 为准                     |
 
 
 ```text
@@ -94,7 +95,8 @@ summary: Find all keys matching the given pattern
 
 # 五、 String 类型与 key 规范
 
-Redis 中最基础的 Value 类型；value 虽为字符串，按内容可分为三类。无论哪种形态，底层均以**字节数组**存储（编码方式不同）；单个 String 值最大 **512MB**。
+- Redis 中最基础的 Value 类型；value 虽为字符串，按内容可分为三类。
+- 无论哪种形态，底层均以**字节数组**存储（编码方式不同）；单个 String 值最大 **512MB**。
 
 
 | 形态         | 说明            | 示例（key → value）       |
@@ -123,17 +125,17 @@ Redis 中最基础的 Value 类型；value 虽为字符串，按内容可分为�
 ## 5.2 String 常见命令
 
 
-| 命令              | 作用                   | 语法                               | 示例                                                                   |
-| --------------- | -------------------- | -------------------------------- | -------------------------------------------------------------------- |
-| **SET**         | 添加或修改 String 键值对     | `SET key value`                  | `SET msg "hello world"`                                              |
-| **GET**         | 按 key 获取 value       | `GET key`                        | `GET msg`                                                            |
-| **MSET**        | 批量添加多个键值对            | `MSET key value [key value ...]` | `MSET name Jack age 21`                                              |
-| **MGET**        | 按多个 key 批量获取 value   | `MGET key [key ...]`             | `MGET name age`                                                      |
-| **INCR**        | 整型 value 自增 1        | `INCR key`                       | `INCR num`（value 须为整数形态）                                             |
-| **INCRBY**      | 整型 value 按步长自增       | `INCRBY key increment`           | `INCRBY num 2`                                                       |
-| **INCRBYFLOAT** | 浮点 value 按步长自增       | `INCRBYFLOAT key increment`      | `INCRBYFLOAT score 0.5`                                              |
-| **SETNX**       | 仅当 key 不存在时写入，否则不执行  | `SETNX key value`                | `SETNX lock 1`                                                       |
-| **SETEX**       | 写入 String 并指定过期时间（秒） | `SETEX key seconds value`        | `SETEX token 3600 abc`；等价于 SET 后配合 [EXPIRE](#redis-generic-commands) |
+| 命令              | 作用                            | 语法                               | 示例                                                                   |
+| --------------- | ----------------------------- | -------------------------------- | -------------------------------------------------------------------- |
+| **SET**         | 添加或修改 String 键值对              | `SET key value`                  | `SET msg "hello world"`                                              |
+| **GET**         | 按 key 获取 value                | `GET key`                        | `GET msg`                                                            |
+| **MSET**        | 批量添加多个键值对                     | `MSET key value [key value ...]` | `MSET name Jack age 21`                                              |
+| **MGET**        | 按多个 key 批量获取 value            | `MGET key [key ...]`             | `MGET name age`                                                      |
+| **INCR**        | 整型 value 自增 1                 | `INCR key`                       | `INCR num`（value 须为整数形态）                                             |
+| **INCRBY**      | 整型 value 按步长自增                | `INCRBY key increment`           | `INCRBY num 2`                                                       |
+| **INCRBYFLOAT** | 浮点 value 按步长自增                | `INCRBYFLOAT key increment`      | `INCRBYFLOAT score 0.5`                                              |
+| **SETNX**       | 仅当 key 不存在时写入，否则不执行(常用于实现互斥锁) | `SETNX key value`                | `SETNX lock 1`                                                       |
+| **SETEX**       | 写入 String 并指定过期时间（秒）          | `SETEX key seconds value`        | `SETEX token 3600 abc`；等价于 SET 后配合 [EXPIRE](#redis-generic-commands) |
 
 
 
@@ -435,11 +437,14 @@ void testString() {
 | 方法              | 作用           | 示例                                   |
 | --------------- | ------------ | ------------------------------------ |
 | `opsForValue()` | 操作 String 类型 | `ops.set(key, value, timeout, unit)` |
+| `setIfAbsent`   | 仅当 key 不存在时写入（可选 TTL） | `ops.setIfAbsent(key, value, timeout, unit)` |
 | `opsForHash()`  | 操作 Hash 类型   | `ops.put(key, hashKey, value)`       |
 | `delete(key)`   | 删除 key       | `stringRedisTemplate.delete(key)`    |
 
 
 - `opsForValue()` 的 `set` / `get` 及带过期参数的 `set` 分别对应 [String 常见命令](#redis-string-commands) 中的 SET、GET、SETEX（或 SET + EXPIRE）；
+- `setIfAbsent(key, value)` 对应 **SETNX**；`setIfAbsent(key, value, timeout, unit)` 在 Redis 侧等价于 **SET key value NX** 并带上 **EX/PX** 过期（一次命令完成「不存在才写 + 过期」，避免 SETNX 后再 EXPIRE 的非原子窗口）；
+- `setIfAbsent` 返回 `Boolean`：`true` 表示本次写入成功（原 key 不存在），`false` 表示 key 已存在未写入；连接异常等场景可能为 `null`，判断成功须用 `Boolean.TRUE.equals(flag)` 或 Hutool `BooleanUtil.isTrue(flag)`，勿直接 `if (flag)`；
 - `opsForHash()` 的 `put` / `get` 对应 [Hash 常见命令](#redis-hash-commands) 中的 HSET、HGET。
 
 **RedisTemplate 序列化常见两种做法**（二选一，勿混用同一 key）：
@@ -749,11 +754,20 @@ alt text
 | **逻辑过期** | 命中后 **直接返回**（过期则返回旧数据），线程无需同步等待回源，性能好 | 短期内可能读到过期数据；需 `RedisData` 等包装与线程池异步重建，实现更复杂、占一定内存；逻辑过期的本质是永久有效，自行根据保存的时间判断 |
 
 
-锁 key 前缀：`RedisConstants.LOCK_SHOP_KEY`（`lock:shop:` + id）；`tryLock` 使用 `SET key NX` 并设 **10 秒** 过期（`LOCK_SHOP_TTL`），避免进程异常导致死锁。
+锁 key 前缀：`RedisConstants.LOCK_SHOP_KEY`（`lock:shop:` + id）；`tryLock` 通过 `setIfAbsent` 实现 **SET key NX + 过期**，过期时间 **10 秒**（`LOCK_SHOP_TTL`），避免进程异常未 `delete` 导致死锁。
+
+**`ValueOperations#setIfAbsent`（互斥锁场景）**
+
+| 重载 | 说明 |
+| ---- | ---- |
+| `setIfAbsent(K key, V value)` | key 不存在则写入 value，无过期时间 |
+| `setIfAbsent(K key, V value, long timeout, TimeUnit unit)` | key 不存在则写入 value，并设置 TTL（本仓库 `CacheClient#tryLock`、`SimpleRedisLock#tryLock` 使用此重载） |
+
+- **语义**：与 [SETNX](#redis-string-commands) 一致，在 Redis 单线程模型下 **整条命令原子**；带 TTL 的重载适合分布式互斥，避免只抢到锁、进程崩溃后 key 永不过期。
+- **返回值**：`Boolean`，非 `boolean`；仅当返回值为 `true` 时表示抢锁成功。`false` 表示已有其他客户端持有该 key；`null` 应按失败处理。
+- **value 取值**：`CacheClient` 占位写 `"1"`，释放锁时 `delete` 即可；秒杀等跨 JVM 场景见 `SimpleRedisLock`，value 为 **线程唯一标识**（`UUID + threadId`），释放时用 Lua 校验后再删，防止误删他人锁（见 [库存超卖 · 悲观锁](#seckill-oversell) 与 `SimpleRedisLock`）。
 
 #### 9.6.1 互斥锁：`queryWithMutex` {#redis-cache-breakdown-mutex}
-
-alt text
 
 1. 读缓存：有有效 JSON → 返回；空字符串占位 → 按穿透处理返回 `null`。
 2. 未命中 → `tryLock(lock:shop:{id})`；**失败**则 `Thread.sleep(50)` 后 **递归重试** 整个查询。
@@ -775,9 +789,13 @@ r = dbFallback.apply(id);
 // Redis/hm-dianping/src/main/java/com/hmdp/utils/CacheClient.java
 
 private boolean tryLock(String key) {
-    // 获取锁，setIfAbsent：如果key不存在，则设置值为1，并返回true，如果key存在，则返回false
+    // setIfAbsent：key 不存在则写入 "1" 并设 10s TTL，返回 true；已存在则返回 false
     Boolean flag = stringRedisTemplate.opsForValue().setIfAbsent(key, "1", 10, TimeUnit.SECONDS);
     return BooleanUtil.isTrue(flag);
+}
+
+private void unlock(String key) {
+    stringRedisTemplate.delete(key);
 }
 ```
 
@@ -792,7 +810,6 @@ private boolean tryLock(String key) {
 
 #### 9.6.2 逻辑过期：`queryWithLogicalExpire` {#redis-cache-breakdown-logical}
 
-alt text
 Redis 中 **不设 key 的 TTL**（或长期存在），在 value 内嵌 **逻辑过期时间**：
 
 ```java
@@ -858,7 +875,7 @@ cacheClient.setWithLogicalExpire(CACHE_SHOP_KEY + 1L, shop, 10L, TimeUnit.SECOND
 
 
 
-### 实现订单自增id
+### 1. 实现订单自增id
 
 用户抢购优惠券时会生成订单并写入 `tb_voucher_order`（`id` 为 `bigint` 主键，DDL 未使用自增，见 `Redis/hm-dianping/src/main/resources/db/hmdp.sql`）。若订单主键仍依赖数据库自增，在秒杀等高并发场景下常见问题是：
 
@@ -879,7 +896,7 @@ cacheClient.setWithLogicalExpire(CACHE_SHOP_KEY + 1L, shop, 10L, TimeUnit.SECOND
 
 
 
-### 全局 ID 生成器：`RedisIdWorker` {#redis-id-worker}
+#### 1.1 全局 ID 生成器：`RedisIdWorker` {#redis-id-worker}
 
 发号逻辑（`nextId(String keyPrefix)`）：
 
@@ -911,7 +928,7 @@ public long nextId(String keyPrefix) {
 
 
 
-#### 并发压测：`testIdWorker`
+#### 1.2 并发压测：`testIdWorker`
 
 `HmDianPingApplicationTests#testIdWorker` 使用 **500** 线程池提交 **300** 个任务，每个任务循环 **100** 次调用 `nextId("order")`（合计 **3 万** 次发号），`CountDownLatch` 等待全部结束后打印耗时，用于观察 Redis 发号在高并发下的性能。
 
@@ -938,4 +955,54 @@ void testIdWorker() throws InterruptedException {
     System.out.println("time = " + (end - begin)); // 打印时间差
 }
 ```
+
+
+
+### 2. 库存超卖问题 {#seckill-oversell}
+
+秒杀扣减 `tb_seckill_voucher.stock` 时，若多个线程 **先查库存再写回**（见 `VoucherOrderServiceImpl` 注释掉的 `getById` + `if (stock < 1)` 流程），会出现「都读到 stock=1、都通过校验、最终扣成负数」的 **超卖**。这是典型的多线程安全问题，常见思路是 **加锁** 或在 **更新时校验数据是否仍满足条件**。
+
+#### 2.1 悲观锁与乐观锁
+
+
+| 类型      | 思路                             | 代表实现                                                                             | 优点         | 缺点                                 |
+| ------- | ------------------------------ | -------------------------------------------------------------------------------- | ---------- | ---------------------------------- |
+| **悲观锁** | 认为冲突一定会发生，**先加锁** 再读写，线程串行     | `synchronized`、`Lock`；分布式场景下 Redis 锁（如 `SimpleRedisLock`、Redisson `RLock`，见注释演进） | 思路直接       | 性能一般，锁粒度不当易成为瓶颈                    |
+| **乐观锁** | 认为冲突不必然发生，**更新时** 再判断是否被别的线程改过 | 版本号法、`CAS` 条件更新                                                                  | 不加互斥等待，性能好 | 冲突时更新失败，需重试或返回失败，高并发下 **成功率** 可能偏低 |
+
+
+课件归纳：**悲观锁** = 同步锁让线程串行，简单粗暴；**乐观锁** = 更新时判断是否被修改，性能好但存在失败重试问题。
+
+#### 2.2 乐观锁：版本号法与 CAS 法
+
+两者核心都是：**以更新时的条件判断，替代「读—改—写」之间的裸奔窗口**。
+
+
+| 方式        | 更新条件（示例）                                                                               | 本仓库                                                               |
+| --------- | -------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| **版本号法**  | `UPDATE ... SET stock = stock - 1, version = version + 1 WHERE id = ? AND version = ?` | `tb_seckill_voucher` **无** `version` 字段，未采用                       |
+| **CAS 法** | `UPDATE ... SET stock = stock - 1 WHERE voucher_id = ? AND stock > 0`                  | **采用**：MyBatis-Plus `update().setSql(...).eq(...).gt("stock", 0)` |
+
+
+并发下两线程均读到 `stock = 1` 时，只有第一条 `WHERE stock > 0` 能成功；第二条影响行数为 0，`update()` 返回 `false`，从而避免超卖。
+
+```java
+// Redis/hm-dianping/src/main/java/com/hmdp/service/impl/VoucherOrderServiceImpl.java（createVoucherOrder 扣库存）
+
+boolean success = seckillVoucherService.update()
+        .setSql("stock = stock - 1") // set stock = stock - 1
+        .eq("voucher_id", voucherId) // where id = ?
+        .gt("stock", 0) // and stock > 0 // 库存>0
+        .update();
+if (!success) {
+    log.error("库存不足！");
+    return;
+}
+```
+
+
+
+### 3. [一人一单](https://www.bilibili.com/video/BV1cr4y1671t/?spm_id_from=333.788.player.switch&vd_source=9d75580d0b23d1137d56e03a996ac726&p=56)
+
+> 知识点：集群模式（多JVM）、分布式锁
 

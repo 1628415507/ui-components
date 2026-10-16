@@ -10,8 +10,8 @@ import java.util.concurrent.TimeUnit;
 
 public class SimpleRedisLock implements ILock {
 
-    private String name;
-    private StringRedisTemplate stringRedisTemplate;
+    private String name;// 锁的名称。不同业务，不同的锁名称
+    private StringRedisTemplate stringRedisTemplate;// 操作redis的工具
 
     public SimpleRedisLock(String name, StringRedisTemplate stringRedisTemplate) {
         this.name = name;
@@ -19,7 +19,7 @@ public class SimpleRedisLock implements ILock {
     }
 
     private static final String KEY_PREFIX = "lock:";
-    private static final String ID_PREFIX = UUID.randomUUID().toString(true) + "-";
+    private static final String ID_PREFIX = UUID.randomUUID().toString(true) + "-";// 锁的唯一标识。不同线程，不同的锁标识
     private static final DefaultRedisScript<Long> UNLOCK_SCRIPT;
     static {
         UNLOCK_SCRIPT = new DefaultRedisScript<>();

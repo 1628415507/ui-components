@@ -38,7 +38,7 @@ import java.util.concurrent.Executors;
 @Slf4j
 @Service
 public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, VoucherOrder> implements IVoucherOrderService {
-
+ 
     @Resource
     private ISeckillVoucherService seckillVoucherService;
 
@@ -171,7 +171,8 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
             // 6.扣减库存
             boolean success = seckillVoucherService.update()
                     .setSql("stock = stock - 1") // set stock = stock - 1
-                    .eq("voucher_id", voucherId).gt("stock", 0) // where id = ? and stock > 0
+                    .eq("voucher_id", voucherId)// where id = ? 
+                    .gt("stock", 0) // and stock > 0
                     .update();
             if (!success) {
                 // 扣减失败
@@ -264,7 +265,7 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
 
     @Transactional
     public Result createVoucherOrder(Long voucherId) {
-        // 5.一人一单
+        // 5.一人一单：优惠券id+用户id唯一
         Long userId = UserHolder.getUser().getId();
 
         // 创建锁对象
@@ -373,7 +374,7 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
     public Result createVoucherOrder(Long voucherId) {
         // 5.一人一单
         Long userId = UserHolder.getUser().getId();
-
+        // 使用synchronized锁住用户id,同一用户id只能用一次，防止同一用户多次购买
         synchronized (userId.toString().intern()) {
             // 5.1.查询订单
             int count = query().eq("user_id", userId).eq("voucher_id", voucherId).count();

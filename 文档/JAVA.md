@@ -7,6 +7,60 @@
 
 ## 1.2 [安装IDEA](https://www.bilibili.com/video/BV1TJxCzSEEZ?spm_id_from=333.788.player.switch&vd_source=9d75580d0b23d1137d56e03a996ac726&p=6)
 
+## 1.3 JVM（Java 虚拟机）
+
+- **JVM**（Java Virtual Machine）是运行 **Java 字节码**（`.class`）的**运行时环境**。
+- 源码 `.java` 经 `javac` 编译成字节码后，由 JVM 负责加载类、分配内存、执行指令、垃圾回收等，从而在 Windows、Linux、macOS 等不同平台上实现 **「一次编写，到处运行」**。
+
+### 1.3.1 JDK、JRE 与 JVM
+
+| 名称 | 含义 | 典型内容 |
+| :--- | :--- | :--- |
+| **JDK** | Java Development Kit，**开发**工具包 | `javac` 编译器、调试工具、**JRE** |
+| **JRE** | Java Runtime Environment，**运行**环境 | **JVM** + 标准类库（`java.lang`、`java.util` 等） |
+| **JVM** | 真正执行字节码的虚拟机 | 类加载、内存管理、执行引擎、GC 等 |
+
+日常「装 Java」一般指安装 **JDK**（开发）或 **JRE**（仅运行）；[1.1 安装 JDK](#11-安装jdk) 装的是完整 JDK。
+
+### 1.3.2 从源码到运行
+
+```text
+.java 源码  →  javac（JDK）  →  .class 字节码  →  JVM 加载并执行  →  操作系统 / 硬件
+```
+
+程序从 [main 方法](#1015-重新认识-main-方法) 开始执行时，是 **JVM** 在调用 `public static void main(String[] args)`，而不是你自己 `new` 出来的对象在调用入口。
+
+### 1.3.3 JVM 主要职责
+
+| 职责 | 说明 |
+| :--- | :--- |
+| **类加载** | 按类路径找到 `.class`，经加载、链接、初始化后供程序使用 |
+| **内存管理** | 为对象、方法调用等划分堆、栈、方法区等区域 |
+| **执行字节码** | 解释执行；热点代码可由 **JIT** 编译为本地机器码以提速 |
+| **垃圾回收（GC）** | 自动回收不再被引用的对象，减轻手动释放内存的负担 |
+| **规范与安全** | 校验字节码、类加载与访问控制等，保证语言语义一致 |
+
+### 1.3.4 运行时内存（入门视角）
+
+| 区域 | 谁在用 | 记什么 |
+| :--- | :--- | :--- |
+| **堆（Heap）** | 几乎所有 **对象实例**、`new` 出来的数组 | 对象数据；**GC 主要工作区域** |
+| **虚拟机栈（Stack）** | 每个 **线程** 一份 | 方法调用栈帧：局部变量、部分运算中间结果 |
+| **方法区（Method Area）** | 全进程共享（实现因 JDK 版本而异） | 类元信息、常量、静态变量等 |
+
+> **和写代码的对应关系**：局部变量、方法参数在**栈**；`new` 的对象在**堆**；`static` 成员与类信息关联**方法区**。多线程各自有栈，共享堆与方法区，因此并发要格外注意共享可变状态（见 [十一、多线程](#十一多线程基础与-synchronized)）。
+
+### 1.3.5 与后续章节的关联
+
+| 笔记位置 | JVM 相关点 |
+| :--- | :--- |
+| [10.1.5 main 方法](#1015-重新认识-main-方法) | 入口由 JVM 识别并调用 |
+| [10.9.3 多态成员访问](#1093-多态中成员的访问特点) | 成员方法在运行期由 JVM **动态绑定**到实际子类 |
+| [11.1 synchronized](#111-synchronized-同步关键字) | JVM 提供的**内置互斥锁**，默认只保证**同一 JVM 进程内**互斥 |
+| Redis 秒杀笔记 | 多机部署时需 **Redis 分布式锁** 等，不能单靠单机 JVM 锁 |
+
+**语言 vs 虚拟机**：Java **语法**由编译器检查；只要能编译成合法字节码，也可由 JVM 运行（如 Kotlin）。深入调优（堆大小 `-Xmx`、GC 选型、类加载排查）属于 JVM 专题，可在掌握 OOP 与并发后再系统学习。
+
 
 # 二、关键字
 | 关键字 | 作用 | 示例 |
@@ -21,6 +75,7 @@
 | [enum](#107-枚举-enum) | 用于定义枚举类，表示一种特殊的、包含固定常量的类 | `public enum OrderState { ... }` |
 | [interface](#1011-接口-interface) | **声明**接口的关键字 | `public interface MyInter { ... }` |
 | [implements](#1011-接口-interface) | 用于类**实现**接口的关键字 | `public class MyInterImpl implements MyInter { ... }` |
+| [synchronized](#111-synchronized-同步关键字) | 同步关键字，用于多线程互斥，保证同一锁上只有一个线程执行临界区 | `synchronized (lock) { ... }` |
 
 # 三、数据类型
 
@@ -397,6 +452,7 @@ public class ArrayUitl {
 ```java
 public static void main(String[] args) { ... }
 ```
+
 - **public**：被 JVM 调用，访问权限必须最大。
 - **static**：被 JVM 调用，通过类名访问，无需创建对象。
 - **void**：不需要给 JVM 返回值。
@@ -827,7 +883,7 @@ public class Student {
 | 成员类型 | 编译期间特点 (左边) | 运行期间特点 (左边/右边) | 核心机制与原因 |
 | :--- | :--- | :--- | :--- |
 | **成员变量** (变量调用) | **看左边**<br>（父类中必须存在该变量，否则编译报错） | **看左边**<br>（实际获取的是父类的成员变量值） | **成员变量不支持重写**。多态对象在编译期和运行期均绑定到声明类型（左边父类）的变量上。 |
-| **成员方法** (方法调用) | **看左边**<br>（父类中必须存在该方法，否则编译报错） | **看右边**<br>（实际执行的是子类重写后的方法） | **成员方法支持重写**。在运行期，JVM 通过**动态绑定**（Dynamic Binding）机制，根据具体指向的实际子类对象来调用其重写后的方法。 |
+| **成员方法** (方法调用) | **看左边**<br>（父类中必须存在该方法，否则编译报错） | **看右边**<br>（实际执行的是子类重写后的方法） | **成员方法支持重写**。在运行期，JVM 通过**动态绑定**（Dynamic Binding）机制，根据具体指向的实际子类对象来调用其重写后的方法（见 [1.3 JVM](#13-jvmjava-虚拟机)）。 |
 
 ---
 
@@ -1718,4 +1774,128 @@ Arrays.sort(arr, (o1, o2) -> o1 - o2);
 | **简化目标** | 用于简化匿名内部类的写法。 |
 | **接口约束** | 只能简化函数式接口的匿名内部类。 |
 | **函数式判定** | 接口有且仅有一个抽象方法；可用 `@FunctionalInterface` 标记。 |
+
+---
+
+# 十一、多线程基础与 synchronized
+
+- 多线程环境下，多个线程可能同时读写同一份数据，出现**竞态条件**（例如两次请求都判断「尚未下单」，从而违反「一人一单」）。
+- `synchronized` 是 JVM 提供的**内置互斥锁**，默认只保证**同一 JVM 进程内**互斥，用来把「查订单 → 扣库存 → 建订单」等**临界区**串行化执行。
+
+## 11.1 synchronized 同步关键字
+
+`synchronized` **不是方法**，不能写成 `xxx.synchronized()`；它是**关键字**，只能用于修饰方法或配合代码块使用。
+
+### 11.1.1 作用
+
+| 要点 | 说明 |
+| :--- | :--- |
+| **互斥** | 同一时刻，只有一个线程能进入被 `synchronized` 保护的代码。 |
+| **锁对象** | 线程竞争的是**锁对象**（monitor），进入前加锁，离开后释放。 |
+| **可见性** | 解锁时会把工作内存中的修改刷新到主内存（配合 JMM 语义，便于理解「为何能避免部分并发问题」）。 |
+
+### 11.1.2 三种用法
+
+#### 1. 同步实例方法
+
+锁对象是**当前实例** `this`（每个对象各有一把锁）。
+
+```java
+public synchronized void createOrder() {
+    // 临界区：同一对象上，多线程串行
+}
+```
+
+#### 2. 同步静态方法
+
+锁对象是**当前类的 Class 对象**（全 JVM 内该类的静态同步方法共抢一把锁）。
+
+```java
+public static synchronized void globalCounter() {
+    // 临界区
+}
+```
+
+#### 3. 同步代码块（最灵活）
+
+显式指定锁对象，可缩小加锁范围、按业务粒度加锁（如「按用户 id」一人一单）。
+
+```java
+Object lock = ...;
+synchronized (lock) {
+    // 临界区：所有使用同一 lock 引用的线程互斥
+}
+```
+
+### 11.1.3 锁对象怎么选
+
+| 写法 | 锁的范围 | 典型场景 |
+| :--- | :--- | :--- |
+| `synchronized (this)` 或同步实例方法 | 当前对象 | 保护该实例上的状态 |
+| `synchronized (Xxx.class)` 或同步静态方法 | 整个类 | 类级别的计数、配置 |
+| `synchronized (userId.toString().intern())` | **相同用户 id** 对应同一字符串常量 | 单机下「同一用户」串行下单 |
+| `synchronized (new Object())` | **无意义** | 每次 `new` 都是新锁，无法互斥 |
+
+> **`intern()` 说明**：`userId.toString()` 每次可能产生不同 `String` 对象，锁不住同一用户；`intern()` 让相同内容的字符串进入常量池，从而多个线程对同一 `userId` 使用同一把锁。更稳妥的做法是使用 `Long` 等类型的专用锁池，或直接使用分布式锁（见 Redis 秒杀笔记）。
+
+### 11.1.4 实战示例：秒杀「一人一单」
+
+业务顺序：先根据 `user_id`、`voucher_id` 查是否已有订单 → 无则扣库存 → 创建订单。高并发下必须把整段逻辑放在同一把锁内。
+
+```java
+@Transactional
+public Result createVoucherOrder(Long voucherId) {
+    Long userId = UserHolder.getUser().getId();
+
+    synchronized (userId.toString().intern()) {
+        int count = query()
+                .eq("user_id", userId)
+                .eq("voucher_id", voucherId)
+                .count();
+        if (count > 0) {
+            return Result.fail("用户已经购买过一次！");
+        }
+
+        boolean success = seckillVoucherService.update()
+                .setSql("stock = stock - 1")
+                .eq("voucher_id", voucherId)
+                .gt("stock", 0)
+                .update();
+        if (!success) {
+            return Result.fail("库存不足！");
+        }
+
+        VoucherOrder voucherOrder = new VoucherOrder();
+        long orderId = redisIdWorker.nextId("order");
+        voucherOrder.setId(orderId);
+        voucherOrder.setUserId(userId);
+        voucherOrder.setVoucherId(voucherId);
+        save(voucherOrder);
+
+        return Result.ok(orderId);
+    }
+}
+```
+
+若 `synchronized` 加在**事务方法外层**的调用链上需注意：`@Transactional` 代理对象与「在方法体内加锁」的配合方式会影响是否真正防重；课程演进中常将锁放在独立方法并由代理调用，或改用 Redis 锁 / Lua 脚本做分布式互斥。
+
+### 11.1.5 注意点与局限
+
+| 注意点 | 说明 |
+| :--- | :--- |
+| **非公平锁** | `synchronized` 不保证等待线程的先后顺序。 |
+| **不可中断、不可限时** | 阻塞直到拿到锁；需要 `tryLock`、超时时常用 `ReentrantLock` 或 Redis 锁。 |
+| **粒度** | 锁范围越大，并发度越低；只锁「必须原子」的代码块。 |
+| **单机有效** | 只保证**同一 JVM 进程内**的互斥；多台服务器部署时，各节点各有一套锁，**无法**单独靠 `synchronized` 实现集群级一人一单，需 Redis 分布式锁、`SETNX`、Lua 原子脚本等。 |
+| **与 `volatile` 区别** | `volatile` 保证可见性与禁止部分重排序，**不**保证复合操作的原子性；「判断再插入」仍需锁或数据库唯一约束等。 |
+
+### 11.1.6 与后续方案的对应关系
+
+| 方案 | 适用 |
+| :--- | :--- |
+| `synchronized` | 学习并发、单机演示、按用户细粒度锁 |
+| `SimpleRedisLock` / `Redisson` | 多实例部署下的分布式互斥 |
+| `seckill.lua` | 在 Redis 侧原子完成判库存、判重复、扣减 |
+
+详细秒杀链路见项目内 `Redis.md` 与 `VoucherOrderServiceImpl` 中的演进实现。
 
