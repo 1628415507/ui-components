@@ -1,8 +1,14 @@
-# LangChain 常用语法梳理
+# [LangChain 常用语法梳理](https://www.bilibili.com/video/BV1yjz5BLEoY/?spm_id_from=333.788.player.switch&vd_source=9d75580d0b23d1137d56e03a996ac726&p=47)
 
 - 这份文档基于 当前项目目录 下的实战代码，为你梳理了 LangChain 的核心组件用法。
 - 使用前需先配置电脑的环境变量： `OPENAI_API_KEY`和`DASHSCOPE_API_KEY`（电脑需重启）
 ---
+## 前置准备
+> 参考docs\index.md
+
+client.chat.completions.create:调用模型
+
+
 
 ## 1. 模型接入 (Models)
 
@@ -11,11 +17,13 @@
 
 - **通义千问 (Tongyi)**：
   LangChain 通过 `langchain_community` 提供了对通义千问的支持。
+  
   ```python
   from langchain_community.llms.tongyi import Tongyi
   model = Tongyi(model="qwen-max")
   ```
 - **Ollama (本地)**：
+  
   ```python
   from langchain_ollama import OllamaLLM
   model = OllamaLLM(model="qwen3:4b")
@@ -44,6 +52,7 @@
   # 默认模型为 text-embeddings-v1，实战推荐使用 v4
   model = DashScopeEmbeddings(model="text-embedding-v4") 
   ```
+  
 - **Ollama (本地)**：
   ```python
   from langchain_ollama import OllamaEmbeddings
@@ -52,8 +61,11 @@
 
 - **方法** 
   嵌入模型**不使用** `invoke` 或 `stream`。
-  - **embed_query(text)**：将**单个**查询字符串转化为向量。
-  - **embed_documents(list)**：将一组文档字符串**批量**转化为向量列表。
+  
+  | 方法                    | 作用                                       |
+  | ----------------------- | ------------------------------------------ |
+  | `embed_query(text)`     | 将**单个**查询字符串转化为向量             |
+  | `embed_documents(list)` | 将**一组**文档字符串**批量**转化为向量列表 |
 
 ```python
 vector = model.embed_query("我喜欢你")
@@ -139,7 +151,7 @@ model = ChatTongyi(model=os.getenv("MODEL_CHAT"))
 
 ## 4. 提示词模板 (Prompts)
 
-在 LangChain 中，将变量注入提示词并调用模型主要有两种常见模式。
+> 在 LangChain 中，将**变量**注入提示词并调用模型主要有两种常见模式。
 
 ### 4.1 定义提示词模板 (PromptTemplate)
 首先，我们需要定义一个包含变量（用 `{}` 包裹）的模板。
@@ -151,21 +163,31 @@ from langchain_core.prompts import PromptTemplate
 prompt_template = PromptTemplate.from_template("我的邻居姓{lastname}, 刚生了{gender}")
 ```
 
-#### 4.1.1 模板方法：format vs invoke
+#### 4.1.1 模板方法：`format` vs `invoke`
 
 `PromptTemplate` 继承 `Runnable`，注入变量有两种常用方式：
 
 | 方法 | 输入值类型 | 返回值类型 | 典型用途 |
 | :--- | :--- | :--- | :--- |
-| **`.format(**kwargs)      | `str`          | `str` | 手动生成最终字符串，再传给 `model.invoke(input=prompt_text)` |
-| **`.invoke(input=dict)`** | 字典（`dict`） | `PromptValue`（如 `StringPromptValue`） | 作为 Runnable 调用；需字符串时配合 [4.1.2](#412-promptvalue-转换) 的 `.to_string()`，或接入 [§5 LCEL](#5-lcel-chains--composition) 链 |
+| `.format(kwargs)` | `str`          | `str` | 手动生成最终字符串，再传给 `model.invoke(input=prompt_text)` |
+| `.invoke(input=dict)` | 字典（`dict`） | `PromptValue`（如 `StringPromptValue`） | 作为 Runnable 调用；需字符串时配合 [4.1.2](#412-promptvalue-转换) 的 `.to_string()`，或接入 [§5 LCEL](#5-lcel-chains--composition) 链 |
+
+- 方式1：format
 
 ```python
+# 创建模板
 template = PromptTemplate.from_template("我的邻居是：{lastname}，最喜欢：{hobby}")
-
+# 传入值，获取组装的模板结果
 res = template.format(lastname="张大明", hobby="钓鱼")
 print(res, type(res))  # str
+```
 
+- 方式2：invoke
+
+```python
+# 创建模板
+template = PromptTemplate.from_template("我的邻居是：{lastname}，最喜欢：{hobby}")
+# 传入参数
 res2 = template.invoke({"lastname": "周杰轮", "hobby": "唱歌"})
 print(res2, type(res2))  # PromptValue（如 StringPromptValue）
 ```
@@ -175,9 +197,10 @@ print(res2, type(res2))  # PromptValue（如 StringPromptValue）
 对模板调用 `.invoke()` 后得到 `PromptValue` 对象，可进一步转换为字符串或消息列表：
 
 - **to_string()**：
-  - **功能**：将提示词对象转换为纯文本字符串。
+  - **功能**：将提示词对象转换为**纯文本字符串**。
   - **使用场景**：查看最终提示词内容，或手动将提示词传给 `model.invoke(input=prompt_text)`。
   - **示例**：
+    
     ```python
     text = prompt_template.invoke({"var": "value"}).to_string()
     print(text)
@@ -277,7 +300,7 @@ print(res.content, type(res))
 
 ## 5. LCEL (Chains & Composition)
 
-LCEL (LangChain Expression Language) 是 LangChain 推荐的构建复杂链条的方式，通过 `|` 管道将 Prompt、Model、Parser 等 Runnable 组件串联为可执行链。
+LCEL (LangChain Expression Language) 是 LangChain 推荐的**构建复杂链条**的方式，通过 `|` 管道将 Prompt、Model、Parser 等 Runnable 组件串联为可执行链。
 
 ### 5.1 管道语法 (`|`)
 
@@ -651,7 +674,9 @@ def get_history(session_id):
 
 ## RAG (Retrieval-Augmented Generation) 简介
 
-**RAG (检索增强生成)** 是一种通过**从外部知识库中检索相关信息**来增强大语言模型（LLM）回答能力的技术。
+- **RAG (检索增强生成)** 是一种通过**从外部知识库中检索相关信息**来增强大语言模型（LLM）回答能力的技术。
+
+- 分为离线和在线流程
 
 ### 为什么需要 RAG？
 1. **解决幻觉问题**：LLM 可能会生成虚假信息，RAG 通过提供真实依据来减少“幻觉”。
@@ -1172,7 +1197,7 @@ print(res)
 
 ## 11.5 RAG 实战优化
 
-在实际 RAG 项目中，为了提高知识库质量和管理效率，通常需要引入**去重校验**与**元数据注入**。
+![alt text](image-1.png)在实际 RAG 项目中，为了提高知识库质量和管理效率，通常需要引入**去重校验**与**元数据注入**。
 
 #### 11.5.1 MD5 去重校验
 **解决问题**：避免同一份文件或相同内容被重复灌入向量库，造成冗余检索。
@@ -1216,7 +1241,6 @@ self.chroma.add_texts(
 ---
 
 ## 12. Web 集成 (Streamlit-UI框架)
-
 在实战中，常使用 Streamlit 快速构建 LangChain 的 Web 交互界面。
 
 ### 12.1 基础特性与运行

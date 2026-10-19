@@ -43,8 +43,8 @@ def get_string_md5(input_str: str, encoding='utf-8'):
 
     # 创建md5对象
     md5_obj = hashlib.md5()     # 得到md5对象
-    md5_obj.update(str_bytes)   # 更新内容（传入即将要转换的字节数组）
-    md5_hex = md5_obj.hexdigest()       # 得到md5的十六进制字符串
+    md5_obj.update(str_bytes)   # md5_obj.update：更新内容（传入即将要转换的字节数组）
+    md5_hex = md5_obj.hexdigest()       # md5_obj.hexdigest：得到md5的十六进制字符串
 
     return md5_hex
 
@@ -54,6 +54,7 @@ class KnowledgeBaseService(object):
     def __init__(self): 
         # 如果文件夹不存在则创建，如果存在则跳过
         os.makedirs(config.persist_directory, exist_ok=True)
+        # 存储实例
         # 注册 Chroma（持久化存储）
         self.chroma = Chroma(
             collection_name=config.collection_name,     # 数据库的表名
@@ -76,7 +77,7 @@ class KnowledgeBaseService(object):
         if check_md5(md5_hex):
             return "[跳过]内容已经存在知识库中"
         # 超长分割文本
-        if len(data) > config.max_split_char_number:
+        if len(data) > config.max_split_char_number: #文本分割的阈值
             knowledge_chunks: list[str] = self.spliter.split_text(data)
         else:
             knowledge_chunks = [data]
@@ -94,15 +95,15 @@ class KnowledgeBaseService(object):
             metadatas=[metadata for _ in knowledge_chunks],
         )
 
-        #
-        save_md5(md5_hex)
+        # 存md5，表明数据已处理
+        save_md5(md5_hex) 
 
         return "[成功]，"+ data +"已经成功载入向量库"
 
 # 运行当前文件
 if __name__ == '__main__':
     service = KnowledgeBaseService()
-    # 1.测试字符串转md5（不论长短，结果都为32位）
+    # 1.测试字符串转md5（不论长短，结果都为32位，方便做向量知识库记录）
     for str in ['周杰轮', '周杰轮', '周杰轮222']:
         print(str, get_string_md5(str)) # 不论长短，md5的结果都为32位
     # 存入向量

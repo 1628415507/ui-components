@@ -4,12 +4,12 @@ from typing import Sequence
 from langchain_core.chat_history import BaseChatMessageHistory
 from langchain_core.messages import BaseMessage, message_to_dict, messages_from_dict
 
-
+# 核心作用-获取存储的实例
 def get_history(session_id):
     # 获取当前文件所在的目录，确保 chat_history 文件夹在 example2 目录下
     base_dir = os.path.dirname(__file__)
     storage_path = os.path.join(base_dir, "chat_history")
-    return FileChatMessageHistory(session_id, storage_path)
+    return FileChatMessageHistory(session_id, storage_path) 
 
 
 class FileChatMessageHistory(BaseChatMessageHistory):

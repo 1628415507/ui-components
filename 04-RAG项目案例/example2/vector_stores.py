@@ -11,7 +11,7 @@ class VectorStoreService(object):
         :param embedding: 嵌入模型的传入
         """
         self.embedding = embedding
-
+        # 向量存储实例
         self.vector_store = Chroma(
             collection_name=config.collection_name,
             embedding_function=self.embedding,

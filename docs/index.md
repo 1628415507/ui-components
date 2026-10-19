@@ -11,9 +11,10 @@ https://gemini.google.com/
 
 ## 01 ApiKey调用
 
-- Python安装openai： `pip install openai -i  https://pypi.tuna.tsinghua.edu.cn/simple`
+- Python安装openai：
+  打开cmd，运行 `pip install openai -i  https://pypi.tuna.tsinghua.edu.cn/simple`
 - [pycharm安装](https://www.runoob.com/w3cnote/pycharm-windows-install.html)
-
+- 在电脑本地配置apiKey
 ------------------------------
 
 ## [02 Ollama](https://www.bilibili.com/video/BV1yjz5BLEoY?spm_id_from=333.788.player.switch&vd_source=9d75580d0b23d1137d56e03a996ac726&p=5)
