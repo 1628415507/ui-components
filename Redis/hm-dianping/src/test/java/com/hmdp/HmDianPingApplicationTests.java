@@ -33,7 +33,7 @@ class HmDianPingApplicationTests {
     private ShopServiceImpl shopService;
 
     @Resource
-    private RedisIdWorker redisIdWorker;
+    private RedisIdWorker redisIdWorker; // 雪花算法生成id
 
     @Resource
     private StringRedisTemplate stringRedisTemplate;
@@ -46,14 +46,14 @@ class HmDianPingApplicationTests {
         // Runnable: 一个接口，用于定义一个任务，run方法中定义任务的内容。无返回值，无参数。
         Runnable task = () -> {
             for (int i = 0; i < 100; i++) {
-                long id = redisIdWorker.nextId("order");
+                long id = redisIdWorker.nextId("order"); // 生成id
                 System.out.println("id = " + id);
             }
             latch.countDown(); // 计数器减1
         };
         long begin = System.currentTimeMillis(); // 开始时间
         for (int i = 0; i < 300; i++) {
-            es.submit(task);
+            es.submit(task); // 提交任务到线程池
         }
         latch.await(); // 等待所有线程完成
         long end = System.currentTimeMillis(); // 结束时间

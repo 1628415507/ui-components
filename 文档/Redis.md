@@ -17,41 +17,21 @@
 | **使用场景** | 数据结构固定、相关业务对安全性/一致性要求高   | 数据结构不固定、对一致性/安全性要求不高、对性能要求高 |
 
 
+# 二、 Redis 核心特征 {#redis-core-features}
 
-
-## 1.1 NoSQL 常见分类
-
-
-| 类型           | 代表产品            | 核心特点                 |
-| ------------ | --------------- | -------------------- |
-| **键值类型**     | [Redis](#redis) | 极高性能，常用于缓存、会话管理      |
-| **文档类型**     | MongoDB         | 灵活的 JSON 结构，适合复杂嵌套数据 |
-| **列类型**      | HBase           | 适合海量数据存储与随机查询        |
-| **Graph 类型** | Neo4j           | 擅长处理复杂的社交关系或路径搜索     |
-
-
-
-
-# 二、 Redis 核心特征
-
-Redis 以其极高的**读写速度**和丰富的数据类型成为最受欢迎的键值存储系统。
-
+- Redis 以其极高的**读写速度**和丰富的数据类型成为最受欢迎的**键值存储系统**。
 - 查询Redis缓存比查询SQL的速度更快
 
-
-| 特性         | 说明                                                                  |
-| ---------- | ------------------------------------------------------------------- |
-| **键值型**    | 以 Key-Value 形式存储，Value 支持 String, **List, Set, Hash, ZSet** 等多种数据结构 |
-| **单线程**    | 核心网络 IO 与键值读写由单线程完成，每个命令具备原子性，避免了多线程竞争                              |
-| **低延迟/快**  | 基于内存操作，使用 IO 多路复用模型，具备良好的底层数据结构编码优化                                 |
-| **持久化**    | 支持 RDB (内存快照) 和 AOF (追加文件) 两种方式，平衡性能与数据安全性                          |
-| **高可用与扩展** | 支持主从集群、分片集群，可实现高可用与水平扩展                                             |
-| **多语言支持**  | 提供丰富的多语言客户端 SDK，方便各类应用集成                                            |
-
+| 特性             | 说明                                                         |
+| ---------------- | ------------------------------------------------------------ |
+| **键值型**       | 以 `Key-Value` 形式存储，Value 支持 **String, List, Set, Hash, ZSet** 等多种数据结构 |
+| **单线程**       | 核心网络 IO 与键值读写由单线程完成，每个命令**具备原子性，避免了多线程竞争** |
+| **低延迟/快**    | 基于内存操作，使用 IO 多路复用模型，具备良好的底层数据结构编码优化 |
+| **持久化**       | 支持 RDB (内存快照) 和 AOF (追加文件) 两种方式，平衡性能与数据安全性 |
+| **高可用与扩展** | 支持主从集群、分片集群，可实现高可用与水平扩展               |
+| **多语言支持**   | 提供丰富的多语言客户端 SDK，方便各类应用集成                 |
 
 ---
-
-
 
 # 三、 Redis 安装
 
@@ -59,21 +39,19 @@ Redis 以其极高的**读写速度**和丰富的数据类型成为最受欢迎�
 - 安装redis
 - 修改启动配置文件；开机自启
 
-
-
 # 四、 Redis 通用命令
 
 - 与具体 Value 类型无关、多数场景均可使用的命令。
 - 在 `redis-cli` 中可用 `help [command]` 查看用法摘要，例如 `help keys` 会输出 `KEYS pattern` 及说明。
 
 
-| 命令         | 作用                     | 示例 / 注意                                               |
-| ---------- | ---------------------- | ----------------------------------------------------- |
-| **KEYS**   | 按模式列出匹配的 key           | `KEYS` * 列出全部；`KEYS a`* 匹配前缀； **生产环境不建议使用**（全库扫描可能阻塞） |
-| **DEL**    | 删除指定 key               | `DEL key [key ...]`；`help del` 可查语法                   |
-| **EXISTS** | 判断 key 是否存在            | `EXISTS key`                                          |
-| **EXPIRE** | 为 key 设置过期时间（秒），到期自动删除 | `EXPIRE key seconds`                                  |
-| **TTL**    | 查看 key 剩余存活时间（秒）       | 无过期或 key 不存在时返回值语义以 `help ttl` 为准                     |
+| 命令       | 作用                                    | 示例 / 注意                                                  |
+| ---------- | --------------------------------------- | ------------------------------------------------------------ |
+| **KEYS**   | 按模式列出匹配的 key                    | `KEYS` * 列出全部；`KEYS a`* 匹配前缀；<br/> **生产环境不建议使用**（全库扫描可能阻塞） |
+| **DEL**    | 删除指定 key                            | `DEL key [key ...]`；`help del` 可查语法                     |
+| **EXISTS** | 判断 key 是否存在                       | `EXISTS key`                                                 |
+| **EXPIRE** | 为 key 设置过期时间（秒），到期自动删除 | `EXPIRE key seconds`                                         |
+| **TTL**    | 查看 key 剩余存活时间（秒）             | 无过期或 key 不存在时返回值语义以 `help ttl` 为准            |
 
 
 ```text
@@ -93,7 +71,7 @@ summary: Find all keys matching the given pattern
 
 
 
-# 五、 String 类型与 key 规范
+# 五、 Redis 数据类型与 key 规范
 
 - Redis 中最基础的 Value 类型；value 虽为字符串，按内容可分为三类。
 - 无论哪种形态，底层均以**字节数组**存储（编码方式不同）；单个 String 值最大 **512MB**。
@@ -105,12 +83,9 @@ summary: Find all keys matching the given pattern
 | **int**    | 整数，可做自增、自减    | `num` → `10`          |
 | **float**  | 浮点数，可按步长自增、自减 | `score` → `92.5`      |
 
-
-
-
 ## 5.1 key 的结构
 
-- key 可由多段英文单词组成，段间用冒号 `:` 分隔，形成层级，便于区分业务。
+- key 可由**多段英文单词**组成，段间用冒号 `:` 分隔，形成**层级**，便于区分业务。
 - 推荐形态为 `项目名:业务名:类型:id`，段数可按需要增减。
 
 
@@ -125,104 +100,107 @@ summary: Find all keys matching the given pattern
 ## 5.2 String 常见命令
 
 
-| 命令              | 作用                            | 语法                               | 示例                                                                   |
-| --------------- | ----------------------------- | -------------------------------- | -------------------------------------------------------------------- |
-| **SET**         | 添加或修改 String 键值对              | `SET key value`                  | `SET msg "hello world"`                                              |
-| **GET**         | 按 key 获取 value                | `GET key`                        | `GET msg`                                                            |
-| **MSET**        | 批量添加多个键值对                     | `MSET key value [key value ...]` | `MSET name Jack age 21`                                              |
-| **MGET**        | 按多个 key 批量获取 value            | `MGET key [key ...]`             | `MGET name age`                                                      |
-| **INCR**        | 整型 value 自增 1                 | `INCR key`                       | `INCR num`（value 须为整数形态）                                             |
-| **INCRBY**      | 整型 value 按步长自增                | `INCRBY key increment`           | `INCRBY num 2`                                                       |
-| **INCRBYFLOAT** | 浮点 value 按步长自增                | `INCRBYFLOAT key increment`      | `INCRBYFLOAT score 0.5`                                              |
-| **SETNX**       | 仅当 key 不存在时写入，否则不执行(常用于实现互斥锁) | `SETNX key value`                | `SETNX lock 1`                                                       |
-| **SETEX**       | 写入 String 并指定过期时间（秒）          | `SETEX key seconds value`        | `SETEX token 3600 abc`；等价于 SET 后配合 [EXPIRE](#redis-generic-commands) |
+| 命令            | 作用                                                    | 语法                             | 示例                                                         |
+| --------------- | ------------------------------------------------------- | -------------------------------- | ------------------------------------------------------------ |
+| **SET**         | 添加或修改 String 键值对                                | `SET key value`                  | `SET msg "hello world"`                                      |
+| **GET**         | 按 key 获取 value                                       | `GET key`                        | `GET msg`                                                    |
+| **MSET**        | 批量添加多个键值对                                      | `MSET key value [key value ...]` | `MSET name Jack age 21`                                      |
+| **MGET**        | 按多个 key 批量获取 value                               | `MGET key [key ...]`             | `MGET name age`                                              |
+| **INCR**        | 整型 value 自增 1                                       | `INCR key`                       | `INCR num`（value 须为整数形态）                             |
+| **INCRBY**      | 整型 value 按步长自增                                   | `INCRBY key increment`           | `INCRBY num 2`                                               |
+| **INCRBYFLOAT** | 浮点 value 按步长自增                                   | `INCRBYFLOAT key increment`      | `INCRBYFLOAT score 0.5`                                      |
+| **SETNX**       | 仅当 key **不存在时写入**，否则不执行(常用于实现互斥锁) | `SETNX key value`                | `SETNX lock 1`                                               |
+| **SETEX**       | 写入 String 并指定过期时间（秒）                        | `SETEX key seconds value`        | `SETEX token 3600 abc`；等价于 SET 后配合 [EXPIRE](#redis-generic-commands) |
 
 
 
 
 ## 5.3 Hash 类型与常见命令
 
-- Hash（哈希）在单个 key 下保存多组 **field-value**，**适合同一实体的多个属性**；
+- Hash（哈希）在**单个 key 下保存多组 `field-value`**，**适合同一实体的多个属性**；
 - field 与 value 均为字符串。
 - key 命名仍遵循 [key 结构](#redis-key-structure)，例如 `heima:user:1`、`heima:user:2` 各自包含 `name`、`age` 等 field（与 [String](#redis-string) 存整段 JSON 是不同建模方式）。
 
 
-| 命令          | 作用                       | 语法                                        | 示例                                      |
-| ----------- | ------------------------ | ----------------------------------------- | --------------------------------------- |
-| **HSET**    | 添加或修改指定 field            | `HSET key field value`                    | `HSET heima:user:1 name Jack`           |
-| **HGET**    | 获取指定 field 的 value       | `HGET key field`                          | `HGET heima:user:1 name`                |
-| **HMSET**   | 批量设置多个 field             | `HMSET key field value [field value ...]` | `HMSET heima:user:1 name Jack age 21`   |
-| **HMGET**   | 批量获取多个 field             | `HMGET key field [field ...]`             | `HMGET heima:user:1 name age`           |
-| **HGETALL** | 获取 key 下全部 field 与 value | `HGETALL key`                             | `HGETALL heima:user:1`                  |
-| **HKEYS**   | 获取 key 下全部 field         | `HKEYS key`                               | `HKEYS heima:user:1`                    |
-| **HVALS**   | 获取 key 下全部 value         | `HVALS key`                               | `HVALS heima:user:1`                    |
-| **HINCRBY** | 指定 field 按步长自增（整型）       | `HINCRBY key field increment`             | `HINCRBY heima:user:1 age 1`            |
-| **HSETNX**  | 仅当 field 不存在时写入，否则不执行    | `HSETNX key field value`                  | `HSETNX heima:user:1 phone 13800000000` |
-
-
+| 命令        | 作用                                    | 语法                                      | 示例                                    |
+| ----------- | --------------------------------------- | ----------------------------------------- | --------------------------------------- |
+| **HSET**    | 添加或修改指定 field                    | `HSET key field value`                    | `HSET heima:user:1 `**`name Jack`**     |
+| **HGET**    | 获取指定 field 的 value                 | `HGET key field`                          | `HGET heima:user:1 name`                |
+| **HMSET**   | 批量设置多个 field                      | `HMSET key field value [field value ...]` | `HMSET heima:user:1 name Jack age 21`   |
+| **HMGET**   | 批量获取多个 field                      | `HMGET key field [field ...]`             | `HMGET heima:user:1 name age`           |
+| **HGETALL** | 获取 key 下全部 field 与 value          | `HGETALL key`                             | `HGETALL heima:user:1`                  |
+| **HKEYS**   | 获取 key 下**全部 field**               | `HKEYS key`                               | `HKEYS heima:user:1`                    |
+| **HVALS**   | 获取 key 下**全部 value**               | `HVALS key`                               | `HVALS heima:user:1`                    |
+| **HINCRBY** | 指定 field 按步长自增（整型）           | `HINCRBY key field increment`             | `HINCRBY heima:user:1 age 1`            |
+| **HSETNX**  | 仅当 field **不存在时写入**，否则不执行 | `HSETNX key field value`                  | `HSETNX heima:user:1 phone 13800000000` |
 
 
 ## 5.4 List 类型与常见命令
 
-List（列表）可视为双向链表结构（类似 Java 的 `LinkedList`），支持从两端插入与弹出，也可按索引区间读取。特征：**有序**、**元素可重复**、**头尾插入/删除快**、**按位置查询需遍历，速度一般**。
+- List（列表）可视为双向链表结构（类似 Java 的 `LinkedList`），支持从两端插入与弹出，也可按索引区间读取。
+- 特征：**有序**、**元素可重复**、**头尾插入/删除快**、**按位置查询需遍历，速度一般**。
 
 
-| 命令         | 作用                             | 语法                                | 示例                                         |
-| ---------- | ------------------------------ | --------------------------------- | ------------------------------------------ |
-| **LPUSH**  | 从列表左侧插入一个或多个元素                 | `LPUSH key element [element ...]` | `LPUSH heima:queue:msg a b`                |
-| **LPOP**   | 移除并返回左侧第一个元素；列表为空时返回 nil       | `LPOP key`                        | `LPOP heima:queue:msg`                     |
-| **RPUSH**  | 从列表右侧插入一个或多个元素                 | `RPUSH key element [element ...]` | `RPUSH heima:queue:msg c`                  |
-| **RPOP**   | 移除并返回右侧第一个元素                   | `RPOP key`                        | `RPOP heima:queue:msg`                     |
-| **LRANGE** | 返回下标区间内全部元素（含两端）               | `LRANGE key start stop`           | `LRANGE heima:queue:msg 0 -1`（`-1` 表示最后一个） |
-| **BLPOP**  | 同 LPOP，列表为空时阻塞等待，超时仍无元素则返回 nil | `BLPOP key [key ...] timeout`     | `BLPOP heima:queue:msg 10`（最多等待 10 秒）      |
-| **BRPOP**  | 同 RPOP，列表为空时阻塞等待               | `BRPOP key [key ...] timeout`     | `BRPOP heima:queue:msg 10`                 |
+| 命令       | 作用                                                   | 语法                              | 示例                                                     |
+| ---------- | ------------------------------------------------------ | --------------------------------- | -------------------------------------------------------- |
+| **LPUSH**  | 从列表**左侧**插入一个或多个元素                       | `LPUSH key element [element ...]` | `LPUSH heima:queue:msg` **`a b`**                        |
+| **LPOP**   | 移除并返回**左侧**第一个元素；**列表为空时返回 `nil`** | `LPOP key`                        | `LPOP heima:queue:msg`                                   |
+| **RPUSH**  | 从列表**右侧**插入一个或多个元素                       | `RPUSH key element [element ...]` | `RPUSH heima:queue:msg `**`c`**                          |
+| **RPOP**   | 移除并返回**右侧**第一个元素                           | `RPOP key`                        | `RPOP heima:queue:msg`                                   |
+| **LRANGE** | 返回下标区间内全部元素（含两端）                       | `LRANGE key start stop`           | `LRANGE heima:queue:msg `**`0 -1`**（`-1` 表示最后一个） |
+| **BLPOP**  | 同 LPOP，列表为空时阻塞等待，超时仍无元素则返回 nil    | `BLPOP key [key ...] timeout`     | `BLPOP heima:queue:msg 10`（最多等待 10 秒）             |
+| **BRPOP**  | 同 RPOP，列表为空时阻塞等待                            | `BRPOP key [key ...] timeout`     | `BRPOP heima:queue:msg 10`                               |
 
 
 
 
 ## 5.5 Set 类型与常见命令
 
-Set（集合）结构与 Java 的 `HashSet` 类似，可看作 value 恒为 null 的 HashMap；底层为哈希表。特征：**无序**、**元素不可重复**、**查找快**、支持**交集、并集、差集**等集合运算。
+- Set（集合）结构与 Java 的 `HashSet` 类似，可看作 value 恒为 null 的 HashMap；底层为哈希表。
+- 特征：**无序**、**元素不可重复**、**查找快**、支持**交集、并集、差集**等集合运算。
 
 
-| 命令            | 作用                               | 语法                             | 示例                                 |
-| ------------- | -------------------------------- | ------------------------------ | ---------------------------------- |
-| **SADD**      | 向 set 添加一个或多个 member             | `SADD key member [member ...]` | `SADD heima:tags:1 java redis`     |
-| **SREM**      | 移除 set 中的指定 member               | `SREM key member [member ...]` | `SREM heima:tags:1 redis`          |
-| **SCARD**     | 返回 set 中 member 个数               | `SCARD key`                    | `SCARD heima:tags:1`               |
-| **SISMEMBER** | 判断 member 是否在 set 中              | `SISMEMBER key member`         | `SISMEMBER heima:tags:1 java`      |
-| **SMEMBERS**  | 返回 set 中全部 member                | `SMEMBERS key`                 | `SMEMBERS heima:tags:1`            |
-| **SINTER**    | 求多个 key 对应 set 的交集               | `SINTER key [key ...]`         | `SINTER heima:set:s1 heima:set:s2` |
-| **SDIFF**     | 求多个 key 对应 set 的差集（以第一个 key 为基准） | `SDIFF key [key ...]`          | `SDIFF heima:set:s1 heima:set:s2`  |
-| **SUNION**    | 求多个 key 对应 set 的并集               | `SUNION key [key ...]`         | `SUNION heima:set:s1 heima:set:s2` |
+| 命令          | 作用                                                  | 语法                           | 示例                               |
+| ------------- | ----------------------------------------------------- | ------------------------------ | ---------------------------------- |
+| **SADD**      | 向 set 添加一个或多个 member                          | `SADD key member [member ...]` | `SADD heima:tags:1 java redis`     |
+| **SREM**      | 移除 set 中的指定 member                              | `SREM key member [member ...]` | `SREM heima:tags:1 redis`          |
+| **SCARD**     | 返回 set 中 member 个数                               | `SCARD key`                    | `SCARD heima:tags:1`               |
+| **SISMEMBER** | 判断 member 是否在 set 中                             | `SISMEMBER key member`         | `SISMEMBER heima:tags:1 java`      |
+| **SMEMBERS**  | 返回 set 中全部 member                                | `SMEMBERS key`                 | `SMEMBERS heima:tags:1`            |
+| **SINTER**    | 求多个 key 对应 set 的**交集**                        | `SINTER key [key ...]`         | `SINTER heima:set:s1 heima:set:s2` |
+| **SDIFF**     | 求多个 key 对应 set 的**差集**（以第一个 key 为基准） | `SDIFF key [key ...]`          | `SDIFF heima:set:s1 heima:set:s2`  |
+| **SUNION**    | 求多个 key 对应 set 的**并集**                        | `SUNION key [key ...]`         | `SUNION heima:set:s1 heima:set:s2` |
 
 
 
 
 ## 5.6 SortedSet（ZSet）类型与常见命令
 
-SortedSet（有序集合，Redis 中常称 **ZSet**）是带 **score** 的有序 set：每个 member 唯一，按 score 排序。概念上类似 Java 的 `TreeSet`，但底层一般为 **跳表 + 哈希表** 组合实现。特征：**可排序**、**member 不重复**、**查询快**；常用于**排行榜**等场景。
+- SortedSet（有序集合，Redis 中常称 **ZSet**）是带 **score** 的**有序** set：每个 member 唯一，按 score 排序。概念上类似 Java 的 `TreeSet`，但底层一般为 **跳表 + 哈希表** 组合实现。
+- 特征：**可排序**、**member 不重复**、**查询快**；常用于**排行榜**等场景。
 
 
-| 命令                          | 作用                               | 语法                                         | 示例                                      |
-| --------------------------- | -------------------------------- | ------------------------------------------ | --------------------------------------- |
+| 命令                        | 作用                                         | 语法                                       | 示例                                    |
+| --------------------------- | -------------------------------------------- | ------------------------------------------ | --------------------------------------- |
 | **ZADD**                    | 添加 member 并指定 score；已存在则更新 score | `ZADD key score member [score member ...]` | `ZADD heima:rank:game 100 jack 95 rose` |
-| **ZREM**                    | 删除指定 member                      | `ZREM key member [member ...]`             | `ZREM heima:rank:game rose`             |
-| **ZSCORE**                  | 获取 member 的 score                | `ZSCORE key member`                        | `ZSCORE heima:rank:game jack`           |
+| **ZREM**                    | 删除指定 member                              | `ZREM key member [member ...]`             | `ZREM heima:rank:game rose`             |
+| **ZSCORE**                  | 获取 member 的 score                         | `ZSCORE key member`                        | `ZSCORE heima:rank:game jack`           |
 | **ZRANK**                   | 获取 member 按 score 升序的排名（从 0 起）   | `ZRANK key member`                         | `ZRANK heima:rank:game jack`            |
-| **ZCARD**                   | 返回 member 个数                     | `ZCARD key`                                | `ZCARD heima:rank:game`                 |
-| **ZCOUNT**                  | 统计 score 落在闭区间内的 member 个数       | `ZCOUNT key min max`                       | `ZCOUNT heima:rank:game 90 100`         |
-| **ZINCRBY**                 | 将 member 的 score 增加指定步长          | `ZINCRBY key increment member`             | `ZINCRBY heima:rank:game 5 jack`        |
-| **ZRANGE**                  | 按 score 升序，取下标区间内的 member        | `ZRANGE key start stop`                    | `ZRANGE heima:rank:game 0 2`            |
-| **ZRANGEBYSCORE**           | 按 score 升序，取 score 区间内的 member   | `ZRANGEBYSCORE key min max`                | `ZRANGEBYSCORE heima:rank:game 90 100`  |
-| **ZDIFF / ZINTER / ZUNION** | 对多个 ZSet 求差集、交集、并集               | `ZDIFF numkeys key [key ...]` 等            | `ZINTER 2 heima:zset:s1 heima:zset:s2`  |
+| **ZCARD**                   | 返回 member 个数                             | `ZCARD key`                                | `ZCARD heima:rank:game`                 |
+| **ZCOUNT**                  | 统计 score 落在闭区间内的 member 个数        | `ZCOUNT key min max`                       | `ZCOUNT heima:rank:game 90 100`         |
+| **ZINCRBY**                 | 将 member 的 score 增加指定步长              | `ZINCRBY key increment member`             | `ZINCRBY heima:rank:game 5 jack`        |
+| **ZRANGE**                  | 按 score 升序，取下标区间内的 member         | `ZRANGE key start stop`                    | `ZRANGE heima:rank:game 0 2`            |
+| **ZRANGEBYSCORE**           | 按 score 升序，取 score 区间内的 member      | `ZRANGEBYSCORE key min max`                | `ZRANGEBYSCORE heima:rank:game 90 100`  |
+| **ZDIFF / ZINTER / ZUNION** | 对多个 ZSet 求差集、交集、并集               | `ZDIFF numkeys key [key ...]` 等           | `ZINTER 2 heima:zset:s1 heima:zset:s2`  |
 
 
 默认按 score **升序**排名与区间；需要**降序**时在命令的 `Z` 后插入 `REV`（如 `ZREVRANK`、`ZREVRANGE`），例如 `ZREVRANGE heima:rank:game 0 0` 可取排行榜第一名。
 
-# 六、 Java 客户端：Jedis
+# 六、 Java 客户端：Jedis（了解）
 
-[Jedis](https://github.com/redis/jedis) 是常用的 Java Redis 客户端：创建 `Jedis` 实例后，**方法名与 Redis 命令一致**（如 `set` 对应 SET、`get` 对应 GET），便于对照 [String 常见命令](#redis-string-commands) 等 CLI 小节。基本步骤：**引入依赖 → 建立连接 → 调用 API → 释放资源**；生产环境更推荐 [连接池](#redis-jedis-pool) 替代频繁直连。
+- [Jedis](https://github.com/redis/jedis) 是常用的 Java Redis 客户端：创建 `Jedis` 实例后，**方法名与 Redis 命令一致**（如 `set` 对应 SET、`get` 对应 GET），便于对照 [String 常见命令](#redis-string-commands) 等 CLI 小节。
+- 基本步骤：**引入依赖 → 建立连接 → 调用 API → 释放资源**；
+- 生产环境更推荐 [连接池](#redis-jedis-pool) 替代频繁直连。
 
 ## 6.1 Maven 依赖
 
@@ -234,8 +212,6 @@ SortedSet（有序集合，Redis 中常称 **ZSet**）是带 **score** 的有序
 </dependency>
 ```
 
-
-
 ## 6.2 连接、操作与释放
 
 
@@ -246,7 +222,7 @@ SortedSet（有序集合，Redis 中常称 **ZSet**）是带 **score** 的有序
 | 选择逻辑库      | `jedis.select(index)`   | `jedis.select(0);`                                   |
 | 写入 String  | `jedis.set(key, value)` | `jedis.set("name", "张三");`                           |
 | 读取 String  | `jedis.get(key)`        | `jedis.get("name");`                                 |
-| 释放连接       | `jedis.close()`         | 在 `@AfterEach` 中 `if (jedis != null) jedis.close();` |
+| 释放连接(物理断开)       | `jedis.close()`         | 在 `@AfterEach` 中 `if (jedis != null) jedis.close();` |
 
 
 ```java
@@ -256,14 +232,14 @@ private Jedis jedis;
 void setUp() {
     jedis = new Jedis("192.168.150.101", 6379); // 连接虚拟机中的redis库
     jedis.auth("123321");
-    jedis.select(0);
+    jedis.select(0);//选择逻辑库
 }
 
 @Test
 void testString() {
-    String result = jedis.set("name", "张三");
+    String result = jedis.set("name", "张三"); // 存到redis
     System.out.println("result = " + result);
-    String name = jedis.get("name");
+    String name = jedis.get("name"); // 从redis取
     System.out.println("name = " + name);
 }
 
@@ -278,8 +254,10 @@ void tearDown() {
 
 
 ## 6.3 Jedis 连接池
+> 连接池可以理解为：应用和 Redis 之间**预先建好一批 TCP 连接**，放在“池子”里复用，而不是每次访问都 new Jedis、用完再真正断开。
 
-`Jedis` 实例**线程不安全**，频繁 `new Jedis` / `close` 也有性能损耗，推荐使用 **JedisPool** 统一管理连接。从池中 `getResource()` 得到的 `Jedis`，用完后仍调用 `close()`，连接会**归还池**而非物理断开（用法与 [6.2](#redis-jedis-direct) 中释放资源一致）。
+- ` Jedis` 实例**线程不安全**，频繁 `new Jedis` / `close` 也有性能损耗，推荐使用 **JedisPool** 连接池统一管理连接。
+- 从池中 `getResource()` 得到的 `Jedis`，用完后仍调用 `close()`，连接会**归还池**而非物理断开，不是每次都拆掉 TCP。
 
 
 | 配置项          | 语法                                 | 示例                                       |
@@ -289,7 +267,7 @@ void tearDown() {
 | 最小空闲连接       | `setMinIdle(int)`                  | `jedisPoolConfig.setMinIdle(0);`         |
 | 获取连接最大等待（毫秒） | `setMaxWaitMillis(long)`           | `jedisPoolConfig.setMaxWaitMillis(200);` |
 
-
+- 步骤：
 
 | 步骤    | 语法                                                     | 示例                                                                         |
 | ----- | ------------------------------------------------------ | -------------------------------------------------------------------------- |
@@ -318,19 +296,28 @@ public class JedisConnectionFactory {
 }
 ```
 
+## 和 6.2「直连」对比
+
+> 像 共享单车停车点：车（连接）停在那，你扫码骑走（getResource()），骑完停回桩（close() 归还），而不是每骑一次都买一辆新车、骑完报废.
+
+| 方式| 每次请求大致做什么 |
+| ----- | ------------------------------------------------------ |
+|6.2 直连|new Jedis → 建连、认证 → 执行命令 → close() → 物理断开|
+|6.3 连接池|getResource() → 从池里借一条已有连接 → 执行命令 → close() → 还回池里，连接通常不断开|
+
 > 本仓库业务模块采用 Spring Data Redis，见下一节；Jedis 多用于学习或对连接生命周期的直接控制。
 
+# 七、 Spring Boot 整合 Redis（RedisTemplate ）
 
-
-# 七、 Spring Boot 整合 Redis
-
-[Spring Data Redis](https://spring.io/projects/spring-data-redis) 是 Spring Data 中面向 Redis 的集成模块：默认基于 **Lettuce** 客户端（亦可选 Jedis），通过 **RedisTemplate** 统一 API，并支持发布订阅、Sentinel/Cluster、序列化等能力。Java 侧整合步骤：**引入依赖 → 配置** `[Redis/hm-dianping](../Redis/hm-dianping)` 下 `application.yaml` **→ 注入 Template 使用**。
+- [Spring Data Redis](https://spring.io/projects/spring-data-redis) 是 Spring Data 中面向 Redis 的集成模块：默认基于 **Lettuce** 客户端（亦可选 Jedis），通过 **RedisTemplate** 统一 API，并支持发布订阅、Sentinel/Cluster、序列化等能力。
+- Java 侧整合步骤：**引入依赖 → 配置 `application.yaml` → 注入 Template 使用**（本仓库 **hm-dianping** 模块）。
 
 ## 7.1 Maven 依赖
 
-本仓库 `[Redis/hm-dianping/pom.xml](../Redis/hm-dianping/pom.xml)` 已引入：
+本仓库 **hm-dianping** 模块已引入：
 
 ```xml
+<!-- Redis/hm-dianping/pom.xml -->
 <!--redis坐标-->
 <dependency>
     <groupId>org.springframework.boot</groupId>
@@ -338,9 +325,10 @@ public class JedisConnectionFactory {
 </dependency>
 ```
 
-启用 **Lettuce 连接池**时还需 `commons-pool2`（课件示例；`[Redis/hm-dianping/pom.xml](../Redis/hm-dianping/pom.xml)` 已声明）：
+启用 **Lettuce 连接池**时还需 `commons-pool2`（课件示例；本仓库 **hm-dianping** 已声明）：
 
 ```xml
+<!-- Redis/hm-dianping/pom.xml -->
 <!--连接池依赖-->
 <dependency>
     <groupId>org.apache.commons</groupId>
@@ -348,15 +336,17 @@ public class JedisConnectionFactory {
 </dependency>
 ```
 
-
-
 ## 7.2 环境配置
 
-Spring Boot **3.x** 使用 `spring.data.redis` 前缀。本仓库 `[Redis/hm-dianping/src/main/resources/application.yaml](../Redis/hm-dianping/src/main/resources/application.yaml)` 为 Boot **2.x**，使用 `spring.redis` 前缀，片段如下：
+- Boot 2.x  使用 `spring.redis` 前缀，片段如下：
+
+> 下列为本仓库 **hm-dianping** 配置片段（Boot **2.x**）。
 
 ```yaml
+# Redis/hm-dianping/src/main/resources/application.yaml
+# Boot 2.x，使用 `spring.redis` 前缀
 spring:
-  redis:
+  redis: 
     host: 192.168.150.101
     port: 6379 #redis的默认端口号
     password: 123321
@@ -367,7 +357,7 @@ spring:
         min-idle: 1
 ```
 
-课件中常见写法（Boot 2.x 为 `spring.redis`；Boot 3 请将同级项移到 `spring.data.redis` 下）含密码与 Lettuce 连接池，与 [Jedis 连接池](#redis-jedis-pool) 中 `maxTotal` / `maxIdle` / `minIdle` / `maxWaitMillis` 含义对应：
+- Spring Boot **3.x** 使用 `spring.data.redis` 前缀。即将同级项移到 `spring.data.redis` 下）含密码与 Lettuce 连接池，与 [Jedis 连接池](#redis-jedis-pool) 中 `maxTotal` / `maxIdle` / `minIdle` / `maxWaitMillis` 含义对应：
 
 
 | 配置项                       | 作用                | 课件示例值 |
@@ -379,8 +369,9 @@ spring:
 
 
 ```yaml
+# Boot 3.x，使用 `spring.data.redis` 前缀
 spring:
-  data:
+  data: ## 多一层data
     redis:
       host: 192.168.150.101
       port: 6379
@@ -393,21 +384,19 @@ spring:
           max-wait: 100
 ```
 
-
-
 ## 7.3 RedisTemplate 与数据类型 API
 
-`RedisTemplate` 封装各类 Redis 命令；不同 Value 类型的 API 分属不同 `*Operations`，与第五节 CLI 小节对应关系如下。
+`RedisTemplate` 封装各类 Redis 命令；不同 Value 类型的 API 分属不同 `Operations`，与第五节的数据类型对应关系如下。
 
 
-| API                           | 返回值类型             | 说明                               |
+| API                           | 返回值类型        | 说明                             |
 | ----------------------------- | ----------------- | -------------------------------- |
 | `redisTemplate.opsForValue()` | `ValueOperations` | [String](#redis-string-commands) |
 | `redisTemplate.opsForHash()`  | `HashOperations`  | [Hash](#redis-hash-commands)     |
 | `redisTemplate.opsForList()`  | `ListOperations`  | [List](#redis-list-commands)     |
 | `redisTemplate.opsForSet()`   | `SetOperations`   | [Set](#redis-set-commands)       |
 | `redisTemplate.opsForZSet()`  | `ZSetOperations`  | [ZSet](#redis-zset-commands)     |
-| `redisTemplate` 自身            | —                 | 通用命令（如 `delete`）                 |
+| `redisTemplate` 自身          | —                 | 通用命令（如 `delete`）          |
 
 
 注入与 String 测试（课件写法）：
@@ -424,9 +413,10 @@ void testString() {
 }
 ```
 
-
-
 ## 7.4 StringRedisTemplate 与序列化
+> - 序列化：把内存里的数据（尤其是 Java 对象）转换成一种可以 **存储或传输** 的格式。
+> - 反序列化：把那种格式再 **还原** 成程序能用的对象或数据结构。
+> Redis 里存的是 **字节或字符串**，不能直接塞一个 User 对象进去，所以要先「变成 Redis 能存的形态」，取出来时再变回 User。
 
 为节省空间、避免默认 JSON 序列化带来的可读性与工具兼容问题，本仓库业务与测试统一使用 `StringRedisTemplate`：
 
@@ -434,17 +424,28 @@ void testString() {
 - 存 Java 对象时需**手动** JSON 序列化/反序列化（与 [key 结构](#redis-key-structure) 中 JSON 字符串建模一致）。
 
 
-| 方法              | 作用           | 示例                                   |
-| --------------- | ------------ | ------------------------------------ |
-| `opsForValue()` | 操作 String 类型 | `ops.set(key, value, timeout, unit)` |
+| 方法              | 作用                    | 示例                                           |
+| --------------- | --------------------- | -------------------------------------------- |
+| `opsForValue()` | 操作 String 类型          | `ops.set(key, value, timeout, unit)`         |
 | `setIfAbsent`   | 仅当 key 不存在时写入（可选 TTL） | `ops.setIfAbsent(key, value, timeout, unit)` |
-| `opsForHash()`  | 操作 Hash 类型   | `ops.put(key, hashKey, value)`       |
-| `delete(key)`   | 删除 key       | `stringRedisTemplate.delete(key)`    |
+| `opsForHash()`  | 操作 Hash 类型            | `ops.put(key, hashKey, value)`               |
+| `delete(key)`   | 删除 key                | `stringRedisTemplate.delete(key)`            |
 
 
 - `opsForValue()` 的 `set` / `get` 及带过期参数的 `set` 分别对应 [String 常见命令](#redis-string-commands) 中的 SET、GET、SETEX（或 SET + EXPIRE）；
-- `setIfAbsent(key, value)` 对应 **SETNX**；`setIfAbsent(key, value, timeout, unit)` 在 Redis 侧等价于 **SET key value NX** 并带上 **EX/PX** 过期（一次命令完成「不存在才写 + 过期」，避免 SETNX 后再 EXPIRE 的非原子窗口）；
-- `setIfAbsent` 返回 `Boolean`：`true` 表示本次写入成功（原 key 不存在），`false` 表示 key 已存在未写入；连接异常等场景可能为 `null`，判断成功须用 `Boolean.TRUE.equals(flag)` 或 Hutool `BooleanUtil.isTrue(flag)`，勿直接 `if (flag)`；
+
+#### `setIfAbsent` 重载与 Redis 命令 {#redis-set-if-absent}
+
+`setIfAbsent(key, value)` 对应 **SETNX**；`setIfAbsent(key, value, timeout, unit)` 在 Redis 侧等价于 **SET key value NX** 并带上 **EX/PX** 过期（一次命令完成「不存在才写 + 过期」，避免 SETNX 后再 EXPIRE 的非原子窗口）。互斥锁、分布式锁等场景通常使用 **带 TTL** 的重载。
+
+| 重载 | 说明 |
+| --- | --- |
+| `setIfAbsent(K key, V value)` | key 不存在则写入 value，无过期时间 |
+| `setIfAbsent(K key, V value, long timeout, TimeUnit unit)` | key 不存在则写入 value，并设置 TTL |
+
+- 返回 `Boolean`：`true` 表示本次写入成功（原 key 不存在），`false` 表示 key 已存在未写入；
+- 连接异常等场景可能为 `null`，判断成功须用 `Boolean.TRUE.equals(flag)` 或 Hutool `BooleanUtil.isTrue(flag)`，勿直接 `if (flag)`。
+
 - `opsForHash()` 的 `put` / `get` 对应 [Hash 常见命令](#redis-hash-commands) 中的 HSET、HGET。
 
 **RedisTemplate 序列化常见两种做法**（二选一，勿混用同一 key）：
@@ -463,25 +464,15 @@ void testString() {
 ```java
 // Redis/hm-dianping/src/main/java/com/hmdp/service/impl/UserServiceImpl.java
 
-ValueOperati ons<String, String> operations = stringRedisTemplate.opsForValue();
-operations.set("username","zhangsan");
-operations.set("id","1",15, TimeUnit.SECONDS);//15秒后过期,过期后会被redis删除，就无法获取到了
+ValueOperations<String, String> operations = stringRedisTemplate.opsForValue();
+operations.set("username","zhangsan"); // 存数据
+operations.set("id","1",15, TimeUnit.SECONDS); //15秒后过期,过期后会被redis删除，就无法获取到了
 
-System.out.println(operations.get("id"));
+System.out.println(operations.get("id")); // 取数据
 ```
 
-
-
 # 八、 业务实战：基于 Redis 的 Token 会话管控
-
-alt text
-alt text
-
-- 实战功能
-alt text
-- 实战表
-alt text
-
+> JWT（JSON Web Token）: 是一种把「谁登录了、有哪些声明信息」打成 **一串可校验的字符串** 的开放标准，常在前后端分离里当 登录凭证 用
 在无状态的 JWT 架构中，Redis 常用于实现 Token 的主动失效（如退出登录、改密）。
 
 ## 8.1 核心流程
@@ -490,28 +481,25 @@ alt text
 2. **拦截校验**：[登录拦截器](#login-interceptor) 从请求头获取 Token 后，需在 Redis 中查询是否存在，不存在则视为已失效。
 3. **状态变更**：用户退出登录或修改密码时，从 Redis 中删除对应的 Token，实现强制下线。
 
-
-
 ## 8.2 拦截器逻辑实现
 
-在 `[Redis/hm-dianping](../Redis/hm-dianping)` 的 `[RefreshTokenInterceptor.java](../Redis/hm-dianping/src/main/java/com/hmdp/utils/RefreshTokenInterceptor.java)` 中，通过 Redis 校验 Token 有效性（课件 `big-event` 为 JWT + `LoginInterceptor` 写法，本模块为 Hash 存用户 + 拦截器刷新 TTL）：
+ 通过 Redis 校验 Token 有效性（课件 `big-event` 为 JWT + `LoginInterceptor` 写法，本模块为 Hash 存用户 + 拦截器刷新 TTL）：
 
 ```java
 // Redis/hm-dianping/src/main/java/com/hmdp/utils/RefreshTokenInterceptor.java
 
 @Override
 public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-    String token = request.getHeader("Authorization");
+    String token = request.getHeader("Authorization"); // 从请求头中获取token
     try {
         // 从 Redis 获取相同 Token
         ValueOperations<String, String> operations = stringRedisTemplate.opsForValue();
         String redisToken = operations.get(token);
         if (redisToken == null) {
-            // Redis 中无记录，说明 Token 已失效
-            throw new RuntimeException();
+            throw new RuntimeException(); // Redis 中无记录，说明 Token 已失效
         }
         
-        Map<String, Object> claims = JwtUtil.parseToken(token);
+        Map<String, Object> claims = JwtUtil.parseToken(token); // 解析出用户信息
         ThreadLocalUtil.set(claims);
         return true;
     } catch (Exception e) {
@@ -522,72 +510,60 @@ public boolean preHandle(HttpServletRequest request, HttpServletResponse respons
 ```
 
 
-
 ## 8.3 登录与登出管理
 
-在 `[Redis/hm-dianping](../Redis/hm-dianping)` 的 `[UserServiceImpl.java](../Redis/hm-dianping/src/main/java/com/hmdp/service/impl/UserServiceImpl.java)` 中管理 Token 的生命周期：
-
+管理 Token 的生命周期：
+> \hm-dianping\src\main\java\com\hmdp\service\impl\UserServiceImpl.java
 
 | 动作        | 核心代码片段                                            | 业务目的          |
 | --------- | ------------------------------------------------- | ------------- |
 | **登录**    | `operations.set(token, token, 1, TimeUnit.HOURS)` | 记录在线会话，同步过期时间 |
 | **改密/退出** | `operations.getOperations().delete(token)`        | 强制失效当前 Token  |
 
-
-
-
 # 九、Redis 实战
-
-
 
 ## [（一）Redis 缓存实战 {#redis-cache-chapter}](https://www.bilibili.com/video/BV1cr4y1671t/?spm_id_from=333.788.player.switch&vd_source=9d75580d0b23d1137d56e03a996ac726&p=47)
 
-应用侧将热点数据放入 [Redis](#redis)，用 [Spring Boot 整合 Redis](#spring-boot-redis) 中的 `StringRedisTemplate` 读写 JSON 字符串，是典型的 **Cache-Aside（旁路缓存）**：读时先查缓存，未命中再查库并回写；写库后通过删缓存或更新缓存保持与数据库一致。商铺查询与更新见本节 [CacheClient](#redis-cache-client) 与 [缓存更新](#redis-cache-update)。
+- 应用侧将热点数据放入 Redis，用 `StringRedisTemplate` 读写 JSON 字符串，是典型的 **Cache-Aside（旁路缓存）**：读时先查缓存，未命中再查库并回写；
+- 写库后通过删缓存或更新缓存保持与数据库一致。商铺查询与更新见本节 [CacheClient](#redis-cache-client) 与 [缓存更新](#redis-cache-update)。
 
 ### 9.1 认识缓存与读路径模型 {#redis-cache-model}
 
-**缓存**指具备高效读写能力的 **数据暂存区域**（本实战以 [Redis](#redis) 承载）。与 [9.2](#redis-cache-concepts) 汇总表中的「缓存」行互补：本节讲通用价值与成本，下表描述典型 **读缓存** 链路。
+#### 9.1.1 缓存
+缓存指具备高效读写能力的 **数据暂存区域**（本实战以 Redis 承载）。
+- **作用**：降低后端（如数据库）负载；提高服务读写响应速度             
+- **成本**：开发与封装成本；部署与监控等运维成本；缓存与持久化数据源之间的 **一致性问题**（更新策略见 [9.3](#redis-cache-update)，异常场景见 [9.4](#redis-cache-penetration)～[9.6](#redis-cache-breakdown)）
 
+#### 9.1.2 读路径（Cache-Aside 查询）
 
-| 维度     | 说明                                                                                                                                              |
-| ------ | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-| **作用** | 降低后端（如数据库）负载；提高服务读写响应速度                                                                                                                         |
-| **成本** | 开发与封装成本；部署与监控等运维成本；缓存与持久化数据源之间的 **一致性问题**（更新策略见 [9.3](#redis-cache-update)，异常场景见 [9.4](#redis-cache-penetration)～[9.6](#redis-cache-breakdown)） |
-
-
-**读路径（Cache-Aside 查询）**
-
-
-| 步骤      | 说明                                                                 |
-| ------- | ------------------------------------------------------------------ |
-| **请求**  | 客户端先访问 Redis                                                       |
-| **命中**  | key 存在且为有效数据，直接返回                                                  |
-| **未命中** | Redis 无数据，查询数据库                                                    |
+| 步骤       | 说明                                                         |
+| ---------- | ------------------------------------------------------------ |
+| **请求**   | 客户端先访问 Redis                                           |
+| **命中**   | key 存在且为有效数据，直接返回                               |
+| **未命中** | **Redis 无数据，查询数据库**                                 |
 | **写缓存** | 将库中结果写入 Redis（常配合 [EXPIRE / SETEX](#redis-string-commands) 设置 TTL） |
-| **响应**  | 将数据返回客户端                                                           |
-
-
+| **响应**   | 将数据返回客户端                                             |
 
 
 ### 9.2 概念与问题汇总 {#redis-cache-concepts}
+>回源： 是缓存场景里的说法：读请求在 缓存里没有命中（或认为缓存无效）时，再去访问真正的数据源 拿数据——在本仓库 Redis 实战里，数据源通常是 MySQL。
 
-
-| 主题              | 含义                                  | 本仓库实战要点                                                                             |
-| --------------- | ----------------------------------- | ----------------------------------------------------------------------------------- |
-| **缓存**          | 将高频访问数据放在内存型存储，降低数据库压力、缩短响应时间       | 与第二节「低延迟」一致；key 形态见 [key 结构](#redis-key-structure)                                  |
-| **Cache-Aside** | 业务代码负责读缓存、回写缓存、写库后维护缓存              | `ShopServiceImpl#queryById` 经 `CacheClient` 查询；`update` 后 `delete` 商铺 key           |
-| **缓存更新策略**      | 写库与写/删缓存的先后顺序                       | 商铺更新采用 **先更新数据库，再删除缓存**（见 [9.3](#redis-cache-update)）                               |
-| **缓存穿透**        | 查询不存在的数据，缓存与库均无，请求反复打到 DB           | **空值缓存**：`CACHE_NULL_TTL` + 空字符串占位（见 [9.4](#redis-cache-penetration)）               |
-| **缓存雪崩**        | 大量 key 在同一时刻过期，或 Redis 不可用，请求集中打 DB | 课件手段见 [9.5](#redis-cache-avalanche)；[Redis/hm-dianping](../Redis/hm-dianping) 未单独演示 |
-| **缓存击穿**        | 热点 key 过期瞬间，并发同时查库                  | **互斥锁重建**或**逻辑过期 + 异步重建**（见 [9.6](#redis-cache-breakdown)）                          |
-| **工具封装**        | 将「查缓存 → 回源 → 写缓存」与治理逻辑收敛到组件         | `CacheClient` 提供三种查询模板（见 [9.7](#redis-cache-client)）                                |
+| 主题             | 含义                                                        | 本仓库实战要点                                               |
+| ---------------- | ----------------------------------------------------------- | ------------------------------------------------------------ |
+| **缓存**         | 将高频访问数据放在内存型存储，降低数据库压力、缩短响应时间  | 与第二节「低延迟」一致；key 形态见 [key 结构](#redis-key-structure) |
+| **Cache-Aside**  | 业务代码负责读缓存、回写缓存、写库后维护缓存                | `ShopServiceImpl#queryById` 经 `CacheClient` 查询；`update` 后 `delete` 商铺 key |
+| **缓存更新策略** | 写库与写/删缓存的先后顺序                                   | 商铺更新采用 **先更新数据库，再删除缓存**（见 [9.3](#redis-cache-update)） |
+| **缓存穿透**     | 查询**不存在的数据**，缓存与库均无，请求反复打到 DB         | **空值缓存**：`CACHE_NULL_TTL` + 空字符串占位（见 [9.4](#redis-cache-penetration)） |
+| **缓存雪崩**     | **大量 key 在同一时刻过期**，或 Redis 不可用，请求集中打 DB | 课件手段见 [9.5](#redis-cache-avalanche)；本仓库 **hm-dianping** 未单独演示 |
+| **缓存击穿**     | 热点 key 过期瞬间，并发同时查库                             | **互斥锁重建**或**逻辑过期 + 异步重建**（见 [9.6](#redis-cache-breakdown)） |
+| **工具封装**     | 将「查缓存 → 回源 → 写缓存」与治理逻辑收敛到组件            | `CacheClient` 提供三种查询模板（见 [9.7](#redis-cache-client)） |
 
 
 
 
 ### 9.3 缓存更新策略 {#redis-cache-update}
 
-[9.2](#redis-cache-concepts) 汇总表已说明本仓库写路径采用 **先更新数据库、再删除缓存**；本节从「如何维护缓存与库的一致性」展开，并落到 [Redis/hm-dianping](../Redis/hm-dianping) 商铺更新代码。
+[9.2](#redis-cache-concepts) 汇总表已说明本仓库写路径采用 **先更新数据库、再删除缓存**；本节从「如何维护缓存与库的一致性」展开，并落到 **hm-dianping** 商铺更新代码。
 
 #### 9.3.1 三种维护方式（按一致性需求选型）
 
@@ -604,11 +580,11 @@ public boolean preHandle(HttpServletRequest request, HttpServletResponse respons
 #### 9.3.2 主动更新：三种架构模式 {#redis-cache-aside-pattern}
 
 
-| 模式                     | 谁维护一致性                     | 特点                                                         |
-| ---------------------- | -------------------------- | ---------------------------------------------------------- |
-| **Cache-Aside（旁路缓存）**  | 调用方（业务代码）读缓存、回写缓存，写库后删/改缓存 | 与 [第九章](#redis-cache-chapter) 及 `CacheClient` 一致；**本仓库采用** |
-| **Read/Write Through** | 缓存组件作为统一入口，内部同步写库与缓存       | 对调用方透明，需专用缓存中间件或封装层                                        |
-| **Write Behind**       | 调用方只写缓存，异步线程批量落库           | 吞吐高，库与缓存为最终一致，适合日志、计数等非强一致场景                               |
+| 模式                        | 谁维护一致性                                        | 特点                                                     |
+| --------------------------- | --------------------------------------------------- | -------------------------------------------------------- |
+| **Cache-Aside（旁路缓存）** | 调用方（业务代码）读缓存、回写缓存，写库后删/改缓存 | **本仓库采用**                                           |
+| **Read/Write Through**      | 缓存组件作为统一入口，内部同步写库与缓存            | 对调用方透明，需专用缓存中间件或封装层                   |
+| **Write Behind**            | 调用方只写缓存，异步线程批量落库                    | 吞吐高，库与缓存为最终一致，适合日志、计数等非强一致场景 |
 
 
 
@@ -616,13 +592,22 @@ public boolean preHandle(HttpServletRequest request, HttpServletResponse respons
 #### 9.3.3 Cache-Aside 写路径的三点取舍
 
 - **删缓存还是改缓存？**  
-写库后 **删除缓存**（让下次读触发回源再写入），而不是每次把新值写入缓存。直接「更新缓存」会产生大量无效写，且并发下容易写入中间态。
+  写库后 **删除缓存**（让下次读触发回源再写入），而不是每次把新值写入缓存。直接「更新缓存」会产生大量无效写，且并发下容易写入中间态。
+
 - **库与缓存如何一起成功或失败？**  
-单体可在同一 **本地事务** 内先写库再删缓存（删缓存失败可重试或依赖 TTL）；跨服务需分布式事务或补偿（如 TCC），本仓库 `ShopServiceImpl#update` 使用 `@Transactional` 保证库更新在同一事务边界内。
+  单体可在同一 **本地事务** 内**先写库再删缓存**（删缓存失败可重试或依赖 TTL）；
+
+  跨服务需分布式事务或补偿（如 TCC），本仓库 `ShopServiceImpl#update` 使用 `@Transactional` 保证库更新在同一事务边界内。
+
 - **先删缓存还是先写库？**
   - **先删缓存、再写库**：另一线程可能在库未更新前回源，把 **旧值** 写回缓存，随后写库完成，导致缓存长期为旧数据（不一致窗口大）。
-  - **先写库、再删缓存（推荐）**：仍可能出现「写库并删缓存之后，另有读请求把旧值写回缓存」的极小概率竞态，但写库通常远慢于写缓存，该窗口极短；课件与生产实践均优先此顺序。
-- 读路径（与 [9.1](#redis-cache-model) 一致）：命中则返回；未命中则查库、写入缓存并设置 TTL（`CacheClient#queryWithPassThrough` 使用 `CACHE_SHOP_TTL`）。
+  
+  - **先写库、再删缓存（推荐）**：仍可能出现「写库并删缓存之后，另有读请求把旧值写回缓存」的极小概率竞态，
+  
+    但写库通常远慢于写缓存，该窗口极短；课件与生产实践均优先此顺序。
+  
+- 读路径（同 [9.1.2](#redis-cache-model) 一致）：命中则返回；未命中则查库、写入缓存并设置 TTL（`CacheClient#queryWithPassThrough` 使用 `CACHE_SHOP_TTL`）。
+
 - 写路径（本仓库）：`updateById` 后 `stringRedisTemplate.delete(CACHE_SHOP_KEY + id)`。
 
 ```java
@@ -646,14 +631,11 @@ public boolean preHandle(HttpServletRequest request, HttpServletResponse respons
 
 ### 9.4 缓存穿透 {#redis-cache-penetration}
 
-[9.2](#redis-cache-concepts) 汇总表中的 **缓存穿透** 指：请求的数据在 **缓存与数据库都不存在**，持续发起此类请求会反复绕过缓存访问 DB。治理通常 **缓存层 + 接口/风控层** 组合；本仓库读路径以 `CacheClient#queryWithPassThrough` 为主（`ShopServiceImpl#queryById`）。
+**缓存穿透** 指：请求的数据在 **缓存与数据库都不存在**，持续发起此类请求会反复绕过缓存访问 DB。治理通常 **缓存层 + 接口/风控层** 组合；本仓库读路径以 `CacheClient#queryWithPassThrough` 为主（`ShopServiceImpl#queryById`）。
 
 #### 9.4.1 解决方案归纳
 
-alt text
-
-
-| 手段            | 要点                     | [Redis/hm-dianping](../Redis/hm-dianping)        |
+| 手段            | 要点                     | 本仓库实践        |
 | ------------- | ---------------------- | ------------------------------------------------ |
 | **缓存 null 值** | 库无结果时写入短 TTL 占位，后续不再打库 | **采用**（见 [9.4.2](#redis-cache-penetration-null)） |
 | **布隆过滤**      | 先判 key 是否可能存在，不存在则直接拒绝 | 未实现                                              |
@@ -672,11 +654,9 @@ alt text
 | **布隆过滤器** | 内存占用低、不产生大量空 key | 需与数据同步；存在「可能存在」误判                   |
 
 
-
-
 #### 9.4.2 本仓库：缓存空对象读路径 {#redis-cache-penetration-null}
 
-流程与 [9.1](#redis-cache-model) 类似，差异在 **库也无数据** 时仍写缓存，避免恶意或高频的非法 id 打穿 DB：
+流程与 [9.1](#redis-cache-model) 类似，差异在 **库也无数据时仍写缓存**，避免恶意或高频的非法 id 打穿 DB：
 
 1. 读 Redis：`get` 到非空 JSON → 反序列化返回。
 2. `get` 到 **空字符串**（`""`）→ 视为已缓存的「不存在」，**不再查库**，返回 `null`（业务层转失败提示）。
@@ -702,27 +682,43 @@ public Result queryById(Long id) {
 ```java
 // Redis/hm-dianping/src/main/java/com/hmdp/utils/CacheClient.java（queryWithPassThrough 核心片段）
 
-String json = stringRedisTemplate.opsForValue().get(key);
-if (StrUtil.isNotBlank(json)) {
-    return JSONUtil.toBean(json, type);
+public <R,ID> R queryWithPassThrough(
+        String keyPrefix, ID id, Class<R> type, Function<ID, R> dbFallback, Long time, TimeUnit unit){
+    String key = keyPrefix + id;
+    // 1.从redis查询商铺缓存
+    String json = stringRedisTemplate.opsForValue().get(key);
+    // 2.判断缓存是否存在
+    if (StrUtil.isNotBlank(json)) {
+        // 3.存在，直接返回
+        return JSONUtil.toBean(json, type);
+    }
+    // 判断命中的是否是空值
+    if (json != null) {
+        // 返回一个错误信息
+        return null;
+    }
+
+    // 4.不存在，根据id查询数据库
+    R r = dbFallback.apply(id); //apply:调用数据库查询回调函数
+    // 5.不存在，返回错误
+    if (r == null) {
+        // 将空值""写入redis
+        stringRedisTemplate.opsForValue().set(key, "", CACHE_NULL_TTL, TimeUnit.MINUTES);
+        // 返回错误信息
+        return null;
+    }
+    // 6.存在，写入redis
+    this.set(key, r, time, unit);
+    return r;
 }
-if (json != null) {
-    return null;
-}
-R r = dbFallback.apply(id);
-if (r == null) {
-    stringRedisTemplate.opsForValue().set(key, "", CACHE_NULL_TTL, TimeUnit.MINUTES);
-    return null;
-}
-this.set(key, r, time, unit);
-return r;
 ```
 
-`RedisConstants.CACHE_NULL_TTL` 为 **2**（分钟），故意短于商铺正常缓存 TTL，减轻「后来新增了该 id 却仍被空值挡住」的时间窗口；商铺 **更新/删除** 时仍应删 `cache:shop:{id}`（见 [9.3](#redis-cache-update)）。互斥锁、逻辑过期模板中的空值处理与上一致，见 [9.6](#redis-cache-breakdown)、[9.7](#redis-cache-client)。
+- `RedisConstants.CACHE_NULL_TTL` 为 **2**（分钟），故意短于商铺正常缓存 TTL，减轻「后来新增了该 id 却仍被空值挡住」的时间窗口；
+- 商铺 **更新/删除** 时仍应删 `cache:shop:{id}`（见 [9.3](#redis-cache-update)）。互斥锁、逻辑过期模板中的空值处理与上一致，见 [9.6](#redis-cache-breakdown)、[9.7](#redis-cache-client)。
 
 ### 9.5 缓存雪崩 {#redis-cache-avalanche}
 
-- **缓存雪崩** 指：在同一时段内，**大量缓存 key 同时过期** ，导致读请求集体未命中，或 **Redis 服务宕机/不可用** 导致请求绕过缓存，数据库在短时间内承受极高并发。
+- **缓存雪崩** 指：在同一时段内，**大量缓存 key 同时过期** ，导致读请求集体未命中，或 **Redis 服务宕机/不可用** 导致请求绕过缓存，**数据库在短时间内承受极高并发**。
 - 与 [9.6 缓存击穿](#redis-cache-breakdown) 不同：击穿针对 **单个热点 key** 过期瞬间的并发回源，雪崩强调 **规模性失效** 或 **缓存层整体故障**。
 
 alt text
@@ -730,49 +726,55 @@ alt text
 #### 9.5.1 常见解决方案
 
 
-| 手段                | 要点                                            | [Redis/hm-dianping](../Redis/hm-dianping)                           |
+| 手段                | 要点                                            | 本仓库实践                           |
 | ----------------- | --------------------------------------------- | ------------------------------------------------------------------- |
-| **TTL 加随机值**      | 写入缓存时在基础过期时间上叠加随机偏移，避免批量预热/同时写入的 key 同一时刻集体过期 | `CacheClient#set` 使用入参固定 TTL（如 `CACHE_SHOP_TTL = 30` 分钟），**未**做随机偏移 |
+| **TTL 加随机值**      | 写入缓存时在基础过期时间上**叠加随机偏移**，避免批量预热/同时写入的 key 同一时刻集体过期 | `CacheClient#set` 使用入参固定 TTL（如 `CACHE_SHOP_TTL = 30` 分钟），**未**做随机偏移 |
 | **Redis 集群提高可用性** | 主从、哨兵或分片集群，降低单点宕机导致全量打库的概率                    | 第二节特性表 **高可用与扩展**；工程为单机 Redis 接入，**未**配置集群                          |
 | **降级与限流**         | 缓存不可用或回源压力过大时，接口限流、熔断或返回兜底数据，保护 DB            | **未**单独演示                                                           |
 | **多级缓存**          | 业务侧增加本地缓存（如 Caffeine）再访问 Redis，分担热点与故障流量      | **未**单独演示                                                           |
 
-
-读路径仍依赖 [9.1](#redis-cache-model) 的 TTL 兜底；写路径删缓存见 [9.3](#redis-cache-update)。热点 key 并发重建见 [9.6](#redis-cache-breakdown)。
+读路径仍依赖 [9.1](#redis-cache-model) 的 TTL 兜底；写路径删缓存见 [9.3](#redis-cache-update)。
 
 ### 9.6 缓存击穿 {#redis-cache-breakdown}
 
 - **缓存击穿**（热点 key 问题）：**高并发访问** 的 key 在 **物理过期或逻辑过期** 且 **回源重建成本较高（查询需要等待的时间较久）** 时，大量线程同时未命中并查库，DB 瞬时承压。
-- 与 [9.5 雪崩](#redis-cache-avalanche) 不同，击穿强调 **单个热点**；与 [9.4 穿透](#redis-cache-penetration) 不同，穿透是 **数据本身不存在**。
+- 与 [9.5 雪崩](#redis-cache-avalanche) 不同，击穿强调 **单个热点**；
+  与 [9.4 穿透](#redis-cache-penetration) 不同，穿透是 **数据本身不存在**。
 
 常见两类方案对比如下；`CacheClient` 分别提供 `queryWithMutex`、`queryWithLogicalExpire`（空值防穿透逻辑与 [9.4.2](#redis-cache-penetration-null) 一致）。`ShopServiceImpl#queryById` 默认仍用 `queryWithPassThrough`，击穿方案在源码中为 **注释切换**。
 
 
-| 方案       | 优点                                    | 缺点                                                                         |
-| -------- | ------------------------------------- | -------------------------------------------------------------------------- |
-| **互斥锁**  | 无额外包装结构、实现相对简单、回源后写入的缓存与 DB 一致        | 未抢到锁的线程需等待重试，吞吐受影响；锁超时与重试策略需设计，否则存在长时间自旋或异常场景                              |
+| 方案         | 优点                                                         | 缺点                                                         |
+| ------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| **互斥锁**   | 无额外包装结构、实现相对简单、回源后写入的缓存与 DB 一致     | 未抢到锁的线程需等待重试，吞吐受影响；<br>锁超时与重试策略需设计，否则存在长时间自旋或异常场景 |
 | **逻辑过期** | 命中后 **直接返回**（过期则返回旧数据），线程无需同步等待回源，性能好 | 短期内可能读到过期数据；需 `RedisData` 等包装与线程池异步重建，实现更复杂、占一定内存；逻辑过期的本质是永久有效，自行根据保存的时间判断 |
 
+- 锁 key 前缀：`RedisConstants.LOCK_SHOP_KEY`（`lock:shop:` + id）；
 
-锁 key 前缀：`RedisConstants.LOCK_SHOP_KEY`（`lock:shop:` + id）；`tryLock` 通过 `setIfAbsent` 实现 **SET key NX + 过期**，过期时间 **10 秒**（`LOCK_SHOP_TTL`），避免进程异常未 `delete` 导致死锁。
+  `CacheClient#tryLock`、`SimpleRedisLock#tryLock` 均通过 [带 TTL 的 `setIfAbsent`](#redis-set-if-absent) 抢锁，过期时间分别为 `LOCK_SHOP_TTL`（**10 秒**）与调用方传入的 lease，避免进程异常未释放导致死锁。
 
-**`ValueOperations#setIfAbsent`（互斥锁场景）**
-
-| 重载 | 说明 |
-| ---- | ---- |
-| `setIfAbsent(K key, V value)` | key 不存在则写入 value，无过期时间 |
-| `setIfAbsent(K key, V value, long timeout, TimeUnit unit)` | key 不存在则写入 value，并设置 TTL（本仓库 `CacheClient#tryLock`、`SimpleRedisLock#tryLock` 使用此重载） |
-
-- **语义**：与 [SETNX](#redis-string-commands) 一致，在 Redis 单线程模型下 **整条命令原子**；带 TTL 的重载适合分布式互斥，避免只抢到锁、进程崩溃后 key 永不过期。
-- **返回值**：`Boolean`，非 `boolean`；仅当返回值为 `true` 时表示抢锁成功。`false` 表示已有其他客户端持有该 key；`null` 应按失败处理。
-- **value 取值**：`CacheClient` 占位写 `"1"`，释放锁时 `delete` 即可；秒杀等跨 JVM 场景见 `SimpleRedisLock`，value 为 **线程唯一标识**（`UUID + threadId`），释放时用 Lua 校验后再删，防止误删他人锁（见 [库存超卖 · 悲观锁](#seckill-oversell) 与 `SimpleRedisLock`）。
+- **互斥场景 value**：`CacheClient` 占位写 `"1"`，释放时 `delete` 即可；跨 JVM 见 `SimpleRedisLock`，value 为 **线程唯一标识**（`UUID + threadId`），释放时用 [unlock.lua](#redis-lua-unlock) 校验后再删（见 [3.5](#seckill-lock-release)）。
 
 #### 9.6.1 互斥锁：`queryWithMutex` {#redis-cache-breakdown-mutex}
 
 1. 读缓存：有有效 JSON → 返回；空字符串占位 → 按穿透处理返回 `null`。
 2. 未命中 → `tryLock(lock:shop:{id})`；**失败**则 `Thread.sleep(50)` 后 **递归重试** 整个查询。
 3. **成功** → 查库；无数据则写空值缓存；有数据则 `set` 带 TTL 回写，最后在 `finally` 中 `delete` 释放锁。
-
+- tryLock: 实现互斥锁
+```java
+// Redis/hm-dianping/src/main/java/com/hmdp/utils/CacheClient.java
+// 添加锁
+private boolean tryLock(String key) {
+    // setIfAbsent：key 不存在则写入 "1" 并设 10s TTL，返回 true；已存在则返回 false
+    Boolean flag = stringRedisTemplate.opsForValue().setIfAbsent(key, "1", 10, TimeUnit.SECONDS);
+    return BooleanUtil.isTrue(flag);
+}
+// 释放锁
+private void unlock(String key) {
+    stringRedisTemplate.delete(key);
+}
+```
+- 调用
 ```java
 // Redis/hm-dianping/src/main/java/com/hmdp/utils/CacheClient.java（互斥锁核心）
 
@@ -786,27 +788,10 @@ r = dbFallback.apply(id);
 ```
 
 ```java
-// Redis/hm-dianping/src/main/java/com/hmdp/utils/CacheClient.java
-
-private boolean tryLock(String key) {
-    // setIfAbsent：key 不存在则写入 "1" 并设 10s TTL，返回 true；已存在则返回 false
-    Boolean flag = stringRedisTemplate.opsForValue().setIfAbsent(key, "1", 10, TimeUnit.SECONDS);
-    return BooleanUtil.isTrue(flag);
-}
-
-private void unlock(String key) {
-    stringRedisTemplate.delete(key);
-}
-```
-
-```java
 // Redis/hm-dianping/src/main/java/com/hmdp/service/impl/ShopServiceImpl.java（切换示例，默认未启用）
 
-// Shop shop = cacheClient
-//         .queryWithMutex(CACHE_SHOP_KEY, id, Shop.class, this::getById, CACHE_SHOP_TTL, TimeUnit.MINUTES);
+Shop shop = cacheClient.queryWithMutex(CACHE_SHOP_KEY, id, Shop.class, this::getById, CACHE_SHOP_TTL, TimeUnit.MINUTES);
 ```
-
-
 
 #### 9.6.2 逻辑过期：`queryWithLogicalExpire` {#redis-cache-breakdown-logical}
 
@@ -817,8 +802,8 @@ Redis 中 **不设 key 的 TTL**（或长期存在），在 value 内嵌 **逻�
 
 @Data
 public class RedisData {
-    private LocalDateTime expireTime;
-    private Object data;
+    private LocalDateTime expireTime; // 逻辑过期时间
+    private Object data; // 业务数据
 }
 ```
 
@@ -828,61 +813,118 @@ public class RedisData {
 2. 反序列化为 `RedisData`，若 `expireTime` **未过期** → 返回业务对象。
 3. 若 **已过期** → 尝试 `tryLock`；抢到锁则在 `CACHE_REBUILD_EXECUTOR` 中异步查库并 `setWithLogicalExpire` 重建，**当前请求仍返回过期数据**；未抢到锁同样返回过期数据，避免集体等待。
 
+- 逻辑过期-实现
 ```java
-// Redis/hm-dianping/src/main/java/com/hmdp/utils/CacheClient.java（逻辑过期重建片段）
+// Redis/hm-dianping/src/main/java/com/hmdp/utils/CacheClient.java
 
-if (expireTime.isAfter(LocalDateTime.now())) {
+// 查询逻辑过期
+public <R, ID> R queryWithLogicalExpire(
+        String keyPrefix, ID id, Class<R> type, Function<ID, R> dbFallback, Long time, TimeUnit unit) {
+    String key = keyPrefix + id;
+    // 1.从redis查询商铺缓存
+    String json = stringRedisTemplate.opsForValue().get(key);
+    // 2.判断是否存在，不存在，返回空值
+    if (StrUtil.isBlank(json)) {// 不存在，返回空值
+        // 3.存在，直接返回
+        return null;
+    }
+    // 4.命中，需要先把json反序列化为对象
+    RedisData redisData = JSONUtil.toBean(json, RedisData.class);
+    R r = JSONUtil.toBean((JSONObject) redisData.getData(), type);
+    LocalDateTime expireTime = redisData.getExpireTime();
+    // 5.判断是否过期 (isAfter：判断当前时间是否在过期时间之后)
+    if(expireTime.isAfter(LocalDateTime.now())) {
+        // 5.1.未过期，直接返回店铺信息
+        return r;
+    }
+    // 5.2.已过期，需要缓存重建
+    // 6.缓存重建
+    // 6.1.获取互斥锁
+    String lockKey = LOCK_SHOP_KEY + id;
+    boolean isLock = tryLock(lockKey);//true：获取锁成功，false：获取锁失败
+    // 6.2.判断是否获取锁成功
+    if (isLock){
+        // 6.3.成功，开启独立线程，实现缓存重建
+        CACHE_REBUILD_EXECUTOR.submit(() -> { // 提交一个任务到线程池
+            try {
+                // 查询数据库
+                R newR = dbFallback.apply(id);
+                // 重建缓存
+                this.setWithLogicalExpire(key, newR, time, unit);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }finally {
+                // 释放锁
+                unlock(lockKey);
+            }
+        });
+    }
+    // 6.4.返回过期的商铺信息
     return r;
 }
-String lockKey = LOCK_SHOP_KEY + id;
-boolean isLock = tryLock(lockKey);
-if (isLock) {
-    CACHE_REBUILD_EXECUTOR.submit(() -> {
-        try {
-            R newR = dbFallback.apply(id);
-            this.setWithLogicalExpire(key, newR, time, unit);
-        } finally {
-            unlock(lockKey);
-        }
-    });
-}
-return r;
 ```
 
-预热示例（测试类写入带逻辑过期的商铺缓存）：
-
+- 缓存-设置
 ```java
 // Redis/hm-dianping/src/test/java/com/hmdp/HmDianPingApplicationTests.java
 
 Shop shop = shopService.getById(1L);
 cacheClient.setWithLogicalExpire(CACHE_SHOP_KEY + 1L, shop, 10L, TimeUnit.SECONDS);
 ```
-
+- 缓存-查询
 ```java
 // Redis/hm-dianping/src/main/java/com/hmdp/service/impl/ShopServiceImpl.java（queryById 切换示例）
 
-// Shop shop = cacheClient
-//         .queryWithLogicalExpire(CACHE_SHOP_KEY, id, Shop.class, this::getById, 20L, TimeUnit.SECONDS);
+Shop shop = cacheClient.queryWithLogicalExpire(CACHE_SHOP_KEY, id, Shop.class, this::getById, 20L, TimeUnit.SECONDS);
 ```
 
-课件常用 **JMeter** 对商铺查询接口做高并发压测，对比穿透/击穿方案下 DB 压力；本仓库未提交 `.jmx` 文件。三种读模板的方法签名与选用场景见 [9.7](#redis-cache-client)。
+测试常用 **JMeter软件** 对商铺查询接口做高并发压测，对比穿透/击穿方案下 DB 压力；本仓库未提交 `.jmx` 文件。三种读模板的方法签名与选用场景见 [9.7](#redis-cache-client)。
 
 ### 9.7 缓存工具封装 {#redis-cache-client}
-
-
-
+- `Redis/hm-dianping/src/main/java/com/hmdp/utils/CacheClient.java`
 ## （二）优惠券秒杀实战 {#seckill-chapter}
 
+### 0. 什么是分布式 {#distributed-system}
+
+**分布式**（常指 **分布式系统** 或 **集群部署**）指：
+- 同一套业务由 **多台机器、多个独立进程** 共同承载，对外仍表现为一个服务。
+- 各节点 **不共享 JVM 堆内存**，只能通过 **网络** 访问彼此与共享中间件（如 Redis、MySQL）。
+
+与 **单机单体**（一个应用进程、一台服务器跑到底）对比如下：
 
 
-### 1. 实现订单自增id
+| 维度 | 单机单体 | 分布式 / 多实例 |
+| ---- | -------- | --------------- |
+| **部署** | 单进程、单节点 | 同一份应用包部署多份（如 8081、8082），前接 Nginx 等负载均衡 |
+| **内存与锁** | `synchronized`、`Lock` 只在本 JVM 内互斥 | 各节点各有锁对象，**单机锁无法挡住其他节点上的线程**（见 [3.2 单机锁与集群问题](#seckill-one-order)） |
+| **主键发号** | 数据库 `AUTO_INCREMENT` 往往够用 | 分库分表、多库写订单时，需要 **跨节点唯一** 的 id（见下文 [全局 ID 生成器](#redis-id-worker)） |
+| **扩展方式** | 主要 **垂直扩展**（升配单机） | **水平扩展**（加机器、加实例），与开篇 SQL vs NoSQL 表中 NoSQL 的扩展性、以及 [Redis 核心特征](#redis-core-features) 中的高可用与扩展同一思路 |
+| **一致性** | 本地 `@Transactional` 常能包住「库 + 本机缓存」 | 跨服务、跨节点时要靠 **共享存储**（Redis）、**分布式锁**、消息或分布式事务/补偿（缓存章 [9.3.3](#redis-cache-aside-pattern) 已提及 TCC） |
 
-用户抢购优惠券时会生成订单并写入 `tb_voucher_order`（`id` 为 `bigint` 主键，DDL 未使用自增，见 `Redis/hm-dianping/src/main/resources/db/hmdp.sql`）。若订单主键仍依赖数据库自增，在秒杀等高并发场景下常见问题是：
+典型拓扑（与本仓库秒杀压测叙述一致）：
+
+```text
+客户端 → Nginx（负载均衡）→ 应用实例 A / 应用实例 B / … → 共享 Redis、MySQL
+```
+
+> 因此本章后续问题——**全局订单 id**、**一人一单的互斥**——本质都是：在 **多进程、多机** 环境下，原来「默认只有一份内存、一个序列」的假设不再成立，需要把 **互斥、发号、会话** 等能力放到 **所有节点都能访问** 的组件上（Redis 即课件中的核心选型之一）。
+
+### 1. Redis实现订单自增id
+
+用户抢购优惠券时会生成订单并写入 `tb_voucher_order`（`id` 为 `bigint` 主键，DDL 未使用自增）：
+
+```sql
+-- Redis/hm-dianping/src/main/resources/db/hmdp.sql（tb_voucher_order 片段）
+
+  `id` bigint(20) NOT NULL COMMENT '主键',
+```
+
+若订单主键仍依赖数据库自增，在秒杀等高并发场景下常见问题是：
 
 - **id 规律明显**：连续递增易被猜测，暴露业务量或带来爬取风险。
 - **受单表容量与单点序列限制**：分库分表后难以保证全局唯一，扩展性差。
 
-分布式场景下通常引入 **全局 ID 生成器**：在分布式系统中生成 **全局唯一** 的 id，一般需满足下列特性：
+[分布式](#distributed-system) 场景下通常引入 **全局 ID 生成器**：在多台应用实例、甚至分库分表后，仍能生成 **全局唯一** 的 id，一般需满足下列特性：
 
 
 | 特性      | 含义            | `RedisIdWorker` 中的体现                              |
@@ -941,14 +983,14 @@ void testIdWorker() throws InterruptedException {
     // Runnable: 一个接口，用于定义一个任务，run方法中定义任务的内容。无返回值，无参数。
     Runnable task = () -> {
         for (int i = 0; i < 100; i++) {
-            long id = redisIdWorker.nextId("order");
+            long id = redisIdWorker.nextId("order"); // 生成id
             System.out.println("id = " + id);
         }
         latch.countDown(); // 计数器减1
     };
     long begin = System.currentTimeMillis(); // 开始时间
     for (int i = 0; i < 300; i++) {
-        es.submit(task);
+        es.submit(task); // 提交任务到线程池
     }
     latch.await(); // 等待所有线程完成
     long end = System.currentTimeMillis(); // 结束时间
@@ -960,10 +1002,10 @@ void testIdWorker() throws InterruptedException {
 
 ### 2. 库存超卖问题 {#seckill-oversell}
 
-秒杀扣减 `tb_seckill_voucher.stock` 时，若多个线程 **先查库存再写回**（见 `VoucherOrderServiceImpl` 注释掉的 `getById` + `if (stock < 1)` 流程），会出现「都读到 stock=1、都通过校验、最终扣成负数」的 **超卖**。这是典型的多线程安全问题，常见思路是 **加锁** 或在 **更新时校验数据是否仍满足条件**。
+- 秒杀扣减 `tb_seckill_voucher.stock` 时，若多个线程 **先查库存再写回**（见 `VoucherOrderServiceImpl` 注释掉的 `getById` + `if (stock < 1)` 流程），,用提前读出来的值去判断再写库，会出现「**都同时读到 stock=1、都通过校验、最终扣成负数**」的 **超卖**。
+- 这是典型的多线程安全问题，常见思路是 **加锁** 或在 **更新时校验数据是否仍满足条件**。
 
 #### 2.1 悲观锁与乐观锁
-
 
 | 类型      | 思路                             | 代表实现                                                                             | 优点         | 缺点                                 |
 | ------- | ------------------------------ | -------------------------------------------------------------------------------- | ---------- | ---------------------------------- |
@@ -971,12 +1013,13 @@ void testIdWorker() throws InterruptedException {
 | **乐观锁** | 认为冲突不必然发生，**更新时** 再判断是否被别的线程改过 | 版本号法、`CAS` 条件更新                                                                  | 不加互斥等待，性能好 | 冲突时更新失败，需重试或返回失败，高并发下 **成功率** 可能偏低 |
 
 
-课件归纳：**悲观锁** = 同步锁让线程串行，简单粗暴；**乐观锁** = 更新时判断是否被修改，性能好但存在失败重试问题。
+归纳：**悲观锁** = 同步锁让线程串行，简单粗暴；**乐观锁** = 更新时判断是否被修改，性能好但存在失败重试问题。
 
 #### 2.2 乐观锁：版本号法与 CAS 法
+> CAS 常见全称是 Compare-And-Swap（比较并交换）
 
-两者核心都是：**以更新时的条件判断，替代「读—改—写」之间的裸奔窗口**。
-
+- 两者核心都是：**以更新时的条件判断，真正决定能不能扣减的是 执行 UPDATE 那一刻数据库里的 stock**，替代「读—改—写」之间的裸奔窗口。
+- 旧写法是用提前读出来的值去写库，只发一条带条件的 UPDATE，会出现的同时都读到一样值的情况。
 
 | 方式        | 更新条件（示例）                                                                               | 本仓库                                                               |
 | --------- | -------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
@@ -992,8 +1035,8 @@ void testIdWorker() throws InterruptedException {
 boolean success = seckillVoucherService.update()
         .setSql("stock = stock - 1") // set stock = stock - 1
         .eq("voucher_id", voucherId) // where id = ?
-        .gt("stock", 0) // and stock > 0 // 库存>0
-        .update();
+        .gt("stock", 0) // and stock > 0 // 库存>0,
+        .update(); // 真正决定能不能扣减的是 执行 UPDATE 那一刻数据库里的 stock
 if (!success) {
     log.error("库存不足！");
     return;
@@ -1002,7 +1045,258 @@ if (!success) {
 
 
 
-### 3. [一人一单](https://www.bilibili.com/video/BV1cr4y1671t/?spm_id_from=333.788.player.switch&vd_source=9d75580d0b23d1137d56e03a996ac726&p=56)
+### 3. 一人一单 {#seckill-one-order}
 
-> 知识点：集群模式（多JVM）、分布式锁
+> 课件：[黑马 Redis 实战 P56](https://www.bilibili.com/video/BV1cr4y1671t/?spm_id_from=333.788.player.switch&vd_source=9d75580d0b23d1137d56e03a996ac726&p=56)。需求：**同一优惠券，同一用户只能下一单**。
+>
+> 在 [库存 CAS](#seckill-oversell) 之外，还要在「查是否已下单 → 扣库存 → 建单」链路上保证 **按用户互斥**，避免并发下重复插入 `tb_voucher_order`。
 
+#### 3.1 业务流程要点
+
+1. 提交 `voucherId`，校验秒杀时间、库存（注释版 `seckillVoucher`）。
+2. 按 `user_id` + `voucher_id` 查询订单；**已存在**则失败。
+3. 扣减库存、创建订单、返回订单 id（`redisIdWorker.nextId("order")`）。
+
+锁应包住 **查单 + 扣库存 + 写订单** 中需要串行的部分（至少包住「一人一单」校验与写库），粒度常用 **每个用户一把锁**（`order:{userId}`），而不是锁整券。
+
+#### 3.2 单机锁与集群问题
+
+- `synchronized (userId.toString().intern())`（见 `VoucherOrderServiceImpl` 注释）依赖 **JVM 内** 的锁监视器：**同一进程**内两线程可互斥，
+- 但 **多实例部署**（如 8081、8082 双进程 + Nginx `upstream` 负载均衡）时，各 JVM 各有监视器，**不同节点上的线程可同时通过「订单不存在」判断**，仍会出现一人一单被打破。
+
+#### 3.3 分布式锁
+
+- **分布式锁**：在 [分布式](#distributed-system) 环境（多实例、多 JVM）下，由 **所有节点共同遵守** 的互斥约定；
+    锁状态存放在 Redis 等共享中间件中，因而多进程 **可见** 且 **互斥**。
+    常见要求包括互斥、多进程可见、高可用、高性能、防死锁（超时释放）等。
+
+- 原理
+    分布式锁 = 在**共享存储**里用 「**仅当 key 不存在时写入 + 过期时间**」 实现全局互斥，用 持有者标识 + 原子比对删除 安全释放；
+    
+    单机锁管不了一整群 JVM，所以要把锁「抬」到 Redis 这一层。
+
+
+| 方案            | 互斥思路                            | 高可用 | 高性能 | 安全性（释放）    |
+| ------------- | ------------------------------- | --- | --- | ---------- |
+| **MySQL**     | 内置互斥 / 行锁                       | 好   | 一般  | 连接断开可释放    |
+| **Redis**     | `SETNX` / `SET key value NX EX` | 好   | 好   | 过期时间自动释放   |
+| **Zookeeper** | 临时顺序节点                          | 好   | 一般  | 会话结束释放临时节点 |
+
+**基于 Redis 的两类操作**：
+
+- **获取锁**：互斥 + **非阻塞**（尝试一次，成功 `true`、失败 `false`）。推荐原子写法：`SET lockKey threadId NX EX seconds`（等价于 `setIfAbsent` 带过期）。
+- **释放锁**：业务结束 **手动删除**；或依赖 **超时** 自动过期（防止宕机死锁）。
+
+#### 3.4 本仓库：`ILock` 与 `SimpleRedisLock` {#seckill-lock-simple}
+
+- `ILock` 定义 `tryLock(timeoutSec)`、`unlock()`。`SimpleRedisLock` 以 `lock:{name}` 为 key，`setIfAbsent` 写入 **线程标识**（UUID 前缀 + `threadId`），并设置持有超时。
+
+> 和前面 [#9.6.1 互斥锁] 的tryLock的区别：前面是 缓存互斥、占位 value为1、固定 TTL、失败重试；
+> 这里是 分布式业务锁、线程标识 value、可配 lease、一次尝试、配合 Lua 安全释放
+```java
+// Redis/hm-dianping/src/main/java/com/hmdp/utils/SimpleRedisLock.java
+
+@Override
+public boolean tryLock(long timeoutSec) {
+    // 获取线程标识
+    String threadId = ID_PREFIX + Thread.currentThread().getId();
+    // 获取锁
+    Boolean success = stringRedisTemplate.opsForValue()
+            .setIfAbsent(KEY_PREFIX + name, threadId, timeoutSec, TimeUnit.SECONDS);// threadId线程标识 value
+    return Boolean.TRUE.equals(success); // 判断是否获取锁成功
+}
+```
+
+调用方式（一人一单 + [CAS 扣库存](#seckill-oversell)）：
+
+```java
+// VoucherOrderServiceImpl（注释演进：SimpleRedisLock）
+
+SimpleRedisLock redisLock = new SimpleRedisLock("order:" + userId, stringRedisTemplate);
+boolean isLock = redisLock.tryLock(1200);
+if (!isLock) {
+    return Result.fail("不允许重复下单！");
+}
+try {
+    int count = query().eq("user_id", userId).eq("voucher_id", voucherId).count();
+    if (count > 0) {
+        return Result.fail("用户已经购买过一次！");
+    }
+    // ... CAS 扣库存、save 订单 ...
+} finally {
+    redisLock.unlock(); // 释放锁
+}
+```
+
+#### 3.5 释放锁与线程标识（此法存在误删风险） {#seckill-lock-release}
+
+加锁时须把 **线程标识** 写入 `setIfAbsent` 的 value（见 [3.4](#seckill-lock-simple)）；释锁规则：**仅当 Redis 中 value 仍是当前线程时才 `DEL`**，否则不操作。
+
+> 本节只说明 **错误释锁方式带来的风险**；满足上述规则的原子释锁见 [§4](#redis-lua)（[4.3](#redis-lua-unlock)、[4.4](#redis-template-execute)）；加锁与释锁对照表见 [4.5 小结](#seckill-lock-summary)。
+
+##### 未使用 Lua（或未原子「比对 + 删除」）时的问题
+
+| 释锁方式 | 典型问题 |
+| --- | --- |
+| 无条件 `delete(key)` | 锁已因 **TTL 过期** 被 Redis 删掉且 **已被他人抢到** 后，仍会删掉他人的锁，互斥失效（如重复下单）。 |
+| Java 内先 `get` 再 `delete` | `get` 与 `delete` 是 **两次独立请求**，「判断」与「删除」之间可被插队，高并发下仍可能误删他人锁。 |
+
+锁带过期时间时的 **误删他人锁** 时间线（两类错误方式都会踩中，后者在边界时刻仍可能失败）：
+
+1. 线程 1 抢到锁，value 为线程 1 的标识；
+2. 线程 1 业务超过 TTL，锁被 Redis **超时自动释放**；
+3. 线程 2 抢到 **同一把锁**，value 变为线程 2 的标识；
+4. 线程 1 结束释锁：若「见 key 就删」或两步式 `get` + `delete` 在错误时刻执行 → 线程 2 的锁被删掉。
+
+本仓库注释掉的 `unlock` 即两步式写法（非原子）：
+
+```java
+// Redis/hm-dianping/src/main/java/com/hmdp/utils/SimpleRedisLock.java（已注释）
+    // 先 `get` 再 `delete`在 JVM 侧分两步，仍非原子，高并发下存在竞态。
+/*
+@Override
+public void unlock() {
+    String threadId = ID_PREFIX + Thread.currentThread().getId();// 获取线程标示
+    // 下面的get和delete 是两次独立请求，中间没有原子性：
+    String id = stringRedisTemplate.opsForValue().get(KEY_PREFIX + name); // 第1步：获取锁中的标示
+    // 判断标示是否一致，是否是同一个线程 （「判断」和「删除」之间存在被插队的窗口。）
+    if(threadId.equals(id)) {
+        stringRedisTemplate.delete(KEY_PREFIX + name);// 第2步：释放锁
+    }
+}
+*/
+```
+
+### 4. Redis Lua 脚本 {#redis-lua}
+
+#### 4.1 为何用 Lua {#redis-lua-why}
+
+[3.5](#seckill-lock-release) 说明了无条件 `delete` 与 Java 内 `get` + `delete` 为何不安全。本仓库用 Lua 做 **带条件的释锁** 及秒杀等多步写操作：
+
+- 单条 `DEL` 做不到「带条件删」，Redis 也没有 `DEL IF VALUE EQ`；须把 **GET → 比较 → DEL** 等组合合成 **一次原子操作**。
+- Redis 在服务端执行 Lua 时，脚本内多条 `redis.call` **不穿插** 其他客户端命令，适合「判断 + 写」类逻辑（释锁、[§5](#seckill-lua) 秒杀等）。
+
+#### 4.2 Lua 语法 {#redis-lua-syntax}
+
+脚本内通过 `redis.call` 调用 Redis 命令（错误时可用 `redis.pcall`，本课未用）：
+
+```lua
+redis.call('命令名', 'key', '其它参数', ...)
+```
+
+命令行用 **`EVAL`** 提交脚本（Redis 2.6+）：
+
+```text
+EVAL script numkeys key [key ...] arg [arg ...]
+```
+
+- `numkeys`：其后前 N 个参数进入 Lua 的 **`KEYS[1]`…`KEYS[N]`**，其余进入 **`ARGV[1]`…**（Lua 下标从 **1** 开始）。
+- 脚本可用 `return` 把结果返回给调用方（Java 侧由 `DefaultRedisScript#setResultType` 映射类型）。
+
+```text
+# 脚本内写死 key，numkeys=0
+EVAL "return redis.call('set','name','jack')" 0
+
+# 动态 key / value：KEYS[1]=name，ARGV[1]=Rose
+EVAL "return redis.call('set', KEYS[1], ARGV[1])" 1 name Rose
+```
+
+#### 4.3 释放分布式锁：`unlock.lua` {#redis-lua-unlock}
+
+> 本仓库将脚本放在 `resources/*.lua`，用 `DefaultRedisScript` 加载后，经 `execute` 在 Redis 执行（`KEYS` / `ARGV` 与 [4.2](#redis-lua-syntax) 的 `EVAL` 规则一致）。
+
+**流程**：`GET` 读 `KEYS[1]` → 与 `ARGV[1]` 比较 → 一致则 `DEL` 并返回，否则返回 `0`（[4.2](#redis-lua-syntax) 中的 `KEYS` / `ARGV` 约定）。
+- 编写Lua脚本
+```lua
+-- Redis/hm-dianping/src/main/resources/unlock.lua
+-- KEYS[1] 锁 key；ARGV[1] 当前线程标识
+-- 比较线程标示与锁中的标示是否一致
+
+if (redis.call('get', KEYS[1]) == ARGV[1]) then
+    return redis.call('del', KEYS[1])
+end
+return 0
+```
+- 执行Lua
+```java
+// Redis/hm-dianping/src/main/java/com/hmdp/utils/SimpleRedisLock.java
+@Override
+public void unlock() {
+    stringRedisTemplate.execute(
+            UNLOCK_SCRIPT,
+            Collections.singletonList(KEY_PREFIX + name),
+            ID_PREFIX + Thread.currentThread().getId());
+}
+```
+
+#### 4.4 Spring 调用：`StringRedisTemplate#execute` {#redis-template-execute}
+
+`stringRedisTemplate.execute(...)` 来自 **Spring Data Redis** 的 `RedisTemplate` / `StringRedisTemplate`，用于 **把 Lua 脚本发到 Redis 执行并取回返回值**（与 `opsForValue().get()`、`delete()` 等单条命令 API 并列，但一次对应整段脚本）。
+
+**常用重载（本仓库）**
+
+```text
+<T> T execute(RedisScript<T> script, List<K> keys, Object... args)
+```
+
+| 参数 | 含义 |
+| --- | --- |
+| `script` | `DefaultRedisScript`：脚本内容或 `classpath:*.lua`，`setResultType` 指定脚本 `return` 在 Java 中的类型（如 `Long.class`） |
+| `keys` | 映射为 Lua 的 **`KEYS[]`**，个数即 Redis `EVAL` 的 `numkeys` |
+| `args`（可变参数） | 依次映射为 **`ARGV[1]`、`ARGV[2]`…**（Lua 下标从 1 开始） |
+
+底层对应 Redis **`EVAL` / `EVALSHA`**：首次执行传脚本体，之后可用 SHA 缓存；对业务代码透明。
+
+**脚本加载（与释锁、秒杀共用模式）**
+
+```java
+// SimpleRedisLock / VoucherOrderServiceImpl 静态块
+DefaultRedisScript<Long> script = new DefaultRedisScript<>();
+script.setLocation(new ClassPathResource("unlock.lua")); // 设置lua脚本路径
+script.setResultType(Long.class); // 设置返回类型
+```
+
+#### 4.5 基于 Redis 的分布式锁小结 {#seckill-lock-summary}
+
+收束 [3.4](#seckill-lock-simple) 加锁、[3.5](#seckill-lock-release) 释锁风险、[4.3](#redis-lua-unlock) 脚本与 [4.4](#redis-template-execute) 调用，`SimpleRedisLock` 完整链路如下：
+
+- **加锁**：`SET key 线程标示 NX EX ttl`（Spring 中为 `setIfAbsent(key, threadId, timeoutSec, SECONDS)`），`NX` 保证互斥，`EX` 防止宕机死锁；value 必须能区分持有者。
+- **释放**：比对 key 中的标示与当前线程标示，**一致才删除**；由 `unlock.lua` + `execute` 在 Redis 侧一次完成「比对 + `DEL`」，避免 [3.5](#seckill-lock-release) 中的非原子释锁。
+
+| 特性 | 机制 | `SimpleRedisLock` |
+| --- | --- | --- |
+| **互斥性** | `SET NX`，仅 key 不存在时可写入 | `setIfAbsent` |
+| **安全性** | `EX` 超时自动释放，避免永久占锁 | `tryLock(timeoutSec)` 传入 TTL |
+| **高可用 / 高并发** | 依赖 Redis 集群或哨兵等，锁服务与业务一起水平扩展 | 工程为单机 Redis；能力说明见第二节 **高可用与扩展** |
+
+### 5. Lua 秒杀下单 {#seckill-lua}
+
+接口侧通过 [`stringRedisTemplate.execute`](#redis-template-execute) 执行 `seckill.lua`。当前 `seckillVoucher` 在 Redis 内 **原子** 完成：判库存、判一人一单、扣库存、记录用户、投递 Stream 消息；返回码 `0` 成功，`1` 库存不足，`2` 重复下单。库存 key `seckill:stock:{voucherId}` 在 `VoucherServiceImpl#addSeckillVoucher` 写入（`SECKILL_STOCK_KEY`）。
+
+```lua
+-- Redis/hm-dianping/src/main/resources/seckill.lua（结构摘要）
+
+local stockKey = 'seckill:stock:' .. voucherId
+local orderKey = 'seckill:order:' .. voucherId
+if (tonumber(redis.call('get', stockKey)) <= 0) then return 1 end
+if (redis.call('sismember', orderKey, userId) == 1) then return 2 end
+redis.call('incrby', stockKey, -1)
+redis.call('sadd', orderKey, userId)
+redis.call('xadd', 'stream.orders', '*', 'userId', userId, 'voucherId', voucherId, 'id', orderId)
+return 0
+```
+
+```java
+// Redis/hm-dianping/src/main/java/com/hmdp/service/impl/VoucherOrderServiceImpl.java
+
+Long result = stringRedisTemplate.execute(
+        SECKILL_SCRIPT,
+        Collections.emptyList(),
+        voucherId.toString(), userId.toString(), String.valueOf(orderId));
+if (result.intValue() != 0) {
+    return Result.fail(result.intValue() == 1 ? "库存不足" : "不能重复下单");
+}
+return Result.ok(orderId);
+```
+
+落库由 `VoucherOrderHandler` 消费 `stream.orders` 后调用 `createVoucherOrder`（Redisson 锁 + DB [CAS 扣库存](#seckill-oversell) 与写订单），与接口侧 Lua 预校验形成 **Redis 挡流 + 异步写库** 两段式架构。
