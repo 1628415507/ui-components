@@ -171,10 +171,9 @@ summary: Find all keys matching the given pattern
 | **SDIFF**     | 求多个 key 对应 set 的**差集**（以第一个 key 为基准） | `SDIFF key [key ...]`          | `SDIFF heima:set:s1 heima:set:s2`  |
 | **SUNION**    | 求多个 key 对应 set 的**并集**                        | `SUNION key [key ...]`         | `SUNION heima:set:s1 heima:set:s2` |
 
+<!-- ## 5.6 Stream 类型与常见命令 {#redis-stream-commands} -->
 
-
-
-## 5.6 SortedSet（ZSet）类型与常见命令
+## 5.7 SortedSet（ZSet）类型与常见命令
 
 - SortedSet（有序集合，Redis 中常称 **ZSet**）是带 **score** 的**有序** set：每个 member 唯一，按 score 排序。概念上类似 Java 的 `TreeSet`，但底层一般为 **跳表 + 哈希表** 组合实现。
 - 特征：**可排序**、**member 不重复**、**查询快**；常用于**排行榜**等场景。
@@ -395,6 +394,7 @@ spring:
 | `redisTemplate.opsForHash()`  | `HashOperations`  | [Hash](#redis-hash-commands)     |
 | `redisTemplate.opsForList()`  | `ListOperations`  | [List](#redis-list-commands)     |
 | `redisTemplate.opsForSet()`   | `SetOperations`   | [Set](#redis-set-commands)       |
+| `redisTemplate.opsForStream()` | `StreamOperations` | [Stream](#redis-stream-commands) |
 | `redisTemplate.opsForZSet()`  | `ZSetOperations`  | [ZSet](#redis-zset-commands)     |
 | `redisTemplate` 自身          | —                 | 通用命令（如 `delete`）          |
 
@@ -1182,6 +1182,10 @@ public void unlock() {
 
 ```lua
 redis.call('命令名', 'key', '其它参数', ...)
+-- 示例：
+redis.call('get', 'key') -- 获取key
+redis.call('sismember', orderKey, userId) == 1 -- 判断 member 是否在 set 中 
+
 ```
 
 命令行用 **`EVAL`** 提交脚本（Redis 2.6+）：
@@ -1201,7 +1205,35 @@ EVAL "return redis.call('set','name','jack')" 0
 EVAL "return redis.call('set', KEYS[1], ARGV[1])" 1 name Rose
 ```
 
-#### 4.3 释放分布式锁：`unlock.lua` {#redis-lua-unlock}
+#### 4.3 Spring 调用Lua脚本：`StringRedisTemplate#execute` {#redis-template-execute}
+
+- `stringRedisTemplate.execute(...)`：用于 **把 Lua 脚本发到 Redis 执行并取回返回值**
+- （与 `opsForValue().get()`、`delete()` 等单条命令 API 并列，但一次对应整段脚本）。
+
+**常用重载（本仓库）**
+
+```text
+<T> T execute(RedisScript<T> script, List<K> keys, Object... args)
+```
+
+| 参数 | 含义 |
+| --- | --- |
+| `script` | `DefaultRedisScript`：脚本内容或 `classpath:*.lua`，`setResultType` 指定脚本 `return` 在 Java 中的类型（如 `Long.class`） |
+| `keys` | 映射为 Lua 的 **`KEYS[]`**，个数即 Redis `EVAL` 的 `numkeys` |
+| `args`（可变参数） | 依次映射为 **`ARGV[1]`、`ARGV[2]`…**（Lua 下标从 1 开始） |
+
+底层对应 Redis **`EVAL` / `EVALSHA`**：首次执行传脚本体，之后可用 SHA 缓存；对业务代码透明。
+
+**Lua脚本加载（与释锁、秒杀共用模式）**
+
+```java
+// SimpleRedisLock / VoucherOrderServiceImpl 静态块
+DefaultRedisScript<Long> script = new DefaultRedisScript<>();
+script.setLocation(new ClassPathResource("unlock.lua")); // 设置lua脚本路径
+script.setResultType(Long.class); // 设置返回类型
+```
+
+#### 4.4 释放分布式锁：`unlock.lua` {#redis-lua-unlock}
 
 > 本仓库将脚本放在 `resources/*.lua`，用 `DefaultRedisScript` 加载后，经 `execute` 在 Redis 执行（`KEYS` / `ARGV` 与 [4.2](#redis-lua-syntax) 的 `EVAL` 规则一致）。
 
@@ -1229,33 +1261,6 @@ public void unlock() {
 }
 ```
 
-#### 4.4 Spring 调用：`StringRedisTemplate#execute` {#redis-template-execute}
-
-`stringRedisTemplate.execute(...)` 来自 **Spring Data Redis** 的 `RedisTemplate` / `StringRedisTemplate`，用于 **把 Lua 脚本发到 Redis 执行并取回返回值**（与 `opsForValue().get()`、`delete()` 等单条命令 API 并列，但一次对应整段脚本）。
-
-**常用重载（本仓库）**
-
-```text
-<T> T execute(RedisScript<T> script, List<K> keys, Object... args)
-```
-
-| 参数 | 含义 |
-| --- | --- |
-| `script` | `DefaultRedisScript`：脚本内容或 `classpath:*.lua`，`setResultType` 指定脚本 `return` 在 Java 中的类型（如 `Long.class`） |
-| `keys` | 映射为 Lua 的 **`KEYS[]`**，个数即 Redis `EVAL` 的 `numkeys` |
-| `args`（可变参数） | 依次映射为 **`ARGV[1]`、`ARGV[2]`…**（Lua 下标从 1 开始） |
-
-底层对应 Redis **`EVAL` / `EVALSHA`**：首次执行传脚本体，之后可用 SHA 缓存；对业务代码透明。
-
-**脚本加载（与释锁、秒杀共用模式）**
-
-```java
-// SimpleRedisLock / VoucherOrderServiceImpl 静态块
-DefaultRedisScript<Long> script = new DefaultRedisScript<>();
-script.setLocation(new ClassPathResource("unlock.lua")); // 设置lua脚本路径
-script.setResultType(Long.class); // 设置返回类型
-```
-
 #### 4.5 基于 Redis 的分布式锁小结 {#seckill-lock-summary}
 
 收束 [3.4](#seckill-lock-simple) 加锁、[3.5](#seckill-lock-release) 释锁风险、[4.3](#redis-lua-unlock) 脚本与 [4.4](#redis-template-execute) 调用，`SimpleRedisLock` 完整链路如下：
@@ -1269,20 +1274,53 @@ script.setResultType(Long.class); // 设置返回类型
 | **安全性** | `EX` 超时自动释放，避免永久占锁 | `tryLock(timeoutSec)` 传入 TTL |
 | **高可用 / 高并发** | 依赖 Redis 集群或哨兵等，锁服务与业务一起水平扩展 | 工程为单机 Redis；能力说明见第二节 **高可用与扩展** |
 
-#### 4.6  Lua 秒杀下单 {#seckill-lua}
+#### 4.6  Lua 秒杀下单优化 {#seckill-lua}
+> 同步下单优化为异步下单:
+> - 同步下单：先判断有没有下单资格，有资格则立即执行后续的下单操作，一系列操作执行完耗时较久；
+> - 异步下单：利用redis实现下单资格的判断，有资格则结束，返回下单成功的响应，下单等后续操作放到异步线程操作
+
+![alt text](/img/seckill-lua.png)
 
 接口侧通过 [`stringRedisTemplate.execute`](#redis-template-execute) 执行 `seckill.lua`。当前 `seckillVoucher` 在 Redis 内 **原子** 完成：判库存、判一人一单、扣库存、记录用户、投递 Stream 消息；返回码 `0` 成功，`1` 库存不足，`2` 重复下单。库存 key `seckill:stock:{voucherId}` 在 `VoucherServiceImpl#addSeckillVoucher` 写入（`SECKILL_STOCK_KEY`）。
 
 ```lua
 -- Redis/hm-dianping/src/main/resources/seckill.lua（结构摘要）
 
+-- 1.参数列表
+-- 1.1.优惠券id
+local voucherId = ARGV[1]
+-- 1.2.用户id
+local userId = ARGV[2]
+-- 1.3.订单id
+local orderId = ARGV[3]
+
+-- 2.数据key
+-- 2.1.库存key
 local stockKey = 'seckill:stock:' .. voucherId
+-- 2.2.订单key
 local orderKey = 'seckill:order:' .. voucherId
-if (tonumber(redis.call('get', stockKey)) <= 0) then return 1 end
-if (redis.call('sismember', orderKey, userId) == 1) then return 2 end
-redis.call('incrby', stockKey, -1)
-redis.call('sadd', orderKey, userId)
-redis.call('xadd', 'stream.orders', '*', 'userId', userId, 'voucherId', voucherId, 'id', orderId)
+
+-- 3.脚本业务
+-- 3.1.判断库存是否充足 get stockKey
+if(tonumber(redis.call('get', stockKey)) <= 0) then
+    -- 3.2.库存不足，返回1
+    return 1
+end
+
+-- 3.2. sismember：判断 member 是否在 set 中
+-- ismember判断用户userId是否在orderKey的集合中，如果存在，说明是重复下单，返回2
+if(redis.call('sismember', orderKey, userId) == 1) then
+    -- 3.3.存在，说明是重复下单，返回2
+    return 2
+end
+
+-- 3.4.扣库存 incrby stockKey -1,将stockKey的值减1
+redis.call('incrby', stockKey, -1)  
+-- 3.5.下单（保存用户）sadd orderKey userId,将用户userId添加到orderKey的集合中
+redis.call('sadd', orderKey, userId) 
+-- 3.6.发送消息到队列中， XADD stream.orders * k1 v1 k2 v2 ...
+-- 将用户userId、优惠券voucherId、订单id orderId添加到stream.orders的流中
+redis.call('xadd', 'stream.orders', '*', 'userId', userId, 'voucherId', voucherId, 'id', orderId) 
 return 0
 ```
 
@@ -1468,7 +1506,7 @@ return 0
 | 名称 | 含义 |
 | --- | --- |
 | TTL(Time To Live) | 剩余过期时间, 用来区分「锁 key 是否仍被占用、还剩多久过期」,<br/>**TTL为 `null` 表示加锁成功** |
-| `leaseTime`（租约时间) |抢到之后 锁保留多久（或由看门狗续期）；<br/> 到期后 key 会自动过期，别人可以再次抢锁，用来避免进程崩溃后永久占锁|
+| `leaseTime`（租约时间）|抢到之后 锁保留多久（或由看门狗续期）；<br/> 到期后 key 会自动过期，别人可以再次抢锁，用来避免进程崩溃后永久占锁|
 |waitTime |抢锁时 最多等多久（拿不到就 false）|
 
 ```mermaid

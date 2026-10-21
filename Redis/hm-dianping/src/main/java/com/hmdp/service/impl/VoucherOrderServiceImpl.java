@@ -52,15 +52,16 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
     private static final DefaultRedisScript<Long> SECKILL_SCRIPT;
 
     static {
-        SECKILL_SCRIPT = new DefaultRedisScript<>();
-        SECKILL_SCRIPT.setLocation(new ClassPathResource("seckill.lua"));
+        SECKILL_SCRIPT = new DefaultRedisScript<>(); // 设置lua脚本路径
+        SECKILL_SCRIPT.setLocation(new ClassPathResource("seckill.lua")); // 设置lua脚本路径
+        SECKILL_SCRIPT.setResultType(Long.class); // 设置返回类型
         SECKILL_SCRIPT.setResultType(Long.class);
     }
 
+    // 创建一个单线程的线程池，用于处理秒杀订单
+    private static final ExecutorService SECKILL_ORDER_EXECUTOR = Executors.newSingleThreadExecutor(); // 创建一个单线程的线程池
 
-    private static final ExecutorService SECKILL_ORDER_EXECUTOR = Executors.newSingleThreadExecutor();
-
-    @PostConstruct
+    @PostConstruct // 在Spring容器初始化完毕时，执行init方法
     private void init() {
         SECKILL_ORDER_EXECUTOR.submit(new VoucherOrderHandler());
     }
@@ -143,7 +144,7 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
             }
         }
     }*/
-
+    // 创建订单
     private void createVoucherOrder(VoucherOrder voucherOrder) {
         Long userId = voucherOrder.getUserId();
         Long voucherId = voucherOrder.getVoucherId();
@@ -195,10 +196,10 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
         // 1.执行lua脚本
         Long result = stringRedisTemplate.execute(
                 SECKILL_SCRIPT,
-                Collections.emptyList(),
+                Collections.emptyList(), // 映射为 Lua 的 KEYS[]，个数即 Redis EVAL 的 numkeys
                 voucherId.toString(), userId.toString(), String.valueOf(orderId)
         );
-        int r = result.intValue();
+        int r = result.intValue(); // Long 转换为 int
         // 2.判断结果是否为0
         if (r != 0) {
             // 2.1.不为0 ，代表没有购买资格

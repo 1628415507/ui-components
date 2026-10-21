@@ -42,8 +42,9 @@ public class VoucherServiceImpl extends ServiceImpl<VoucherMapper, Voucher> impl
 
     @Override
     @Transactional
-    public void addSeckillVoucher(Voucher voucher) {
-        // 保存优惠券
+    // 新增秒杀优惠券的同时，将优惠券信息保存到Redis中
+   public void addSeckillVoucher(Voucher voucher) {
+       // 保存优惠券
         save(voucher);
         // 保存秒杀信息
         SeckillVoucher seckillVoucher = new SeckillVoucher();
