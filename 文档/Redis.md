@@ -519,22 +519,19 @@ public boolean preHandle(HttpServletRequest request, HttpServletResponse respons
 | --------- | ------------------------------------------------- | ------------- |
 | **登录**    | `operations.set(token, token, 1, TimeUnit.HOURS)` | 记录在线会话，同步过期时间 |
 | **改密/退出** | `operations.getOperations().delete(token)`        | 强制失效当前 Token  |
-
-# 九、Redis 实战
-
-## [（一）Redis 缓存实战 {#redis-cache-chapter}](https://www.bilibili.com/video/BV1cr4y1671t/?spm_id_from=333.788.player.switch&vd_source=9d75580d0b23d1137d56e03a996ac726&p=47)
+# [九、Redis 缓存实战 {#redis-cache-chapter}](https://www.bilibili.com/video/BV1cr4y1671t/?spm_id_from=333.788.player.switch&vd_source=9d75580d0b23d1137d56e03a996ac726&p=47)
 
 - 应用侧将热点数据放入 Redis，用 `StringRedisTemplate` 读写 JSON 字符串，是典型的 **Cache-Aside（旁路缓存）**：读时先查缓存，未命中再查库并回写；
 - 写库后通过删缓存或更新缓存保持与数据库一致。商铺查询与更新见本节 [CacheClient](#redis-cache-client) 与 [缓存更新](#redis-cache-update)。
 
-### 9.1 认识缓存与读路径模型 {#redis-cache-model}
+## 9.1 认识缓存与读路径模型 {#redis-cache-model}
 
-#### 9.1.1 缓存
+### 9.1.1 缓存
 缓存指具备高效读写能力的 **数据暂存区域**（本实战以 Redis 承载）。
 - **作用**：降低后端（如数据库）负载；提高服务读写响应速度             
 - **成本**：开发与封装成本；部署与监控等运维成本；缓存与持久化数据源之间的 **一致性问题**（更新策略见 [9.3](#redis-cache-update)，异常场景见 [9.4](#redis-cache-penetration)～[9.6](#redis-cache-breakdown)）
 
-#### 9.1.2 读路径（Cache-Aside 查询）
+### 9.1.2 读路径（Cache-Aside 查询）
 
 | 步骤       | 说明                                                         |
 | ---------- | ------------------------------------------------------------ |
@@ -545,7 +542,7 @@ public boolean preHandle(HttpServletRequest request, HttpServletResponse respons
 | **响应**   | 将数据返回客户端                                             |
 
 
-### 9.2 概念与问题汇总 {#redis-cache-concepts}
+## 9.2 概念与问题汇总 {#redis-cache-concepts}
 >回源： 是缓存场景里的说法：读请求在 缓存里没有命中（或认为缓存无效）时，再去访问真正的数据源 拿数据——在本仓库 Redis 实战里，数据源通常是 MySQL。
 
 | 主题             | 含义                                                        | 本仓库实战要点                                               |
@@ -561,11 +558,11 @@ public boolean preHandle(HttpServletRequest request, HttpServletResponse respons
 
 
 
-### 9.3 缓存更新策略 {#redis-cache-update}
+## 9.3 缓存更新策略 {#redis-cache-update}
 
 [9.2](#redis-cache-concepts) 汇总表已说明本仓库写路径采用 **先更新数据库、再删除缓存**；本节从「如何维护缓存与库的一致性」展开，并落到 **hm-dianping** 商铺更新代码。
 
-#### 9.3.1 三种维护方式（按一致性需求选型）
+### 9.3.1 三种维护方式（按一致性需求选型）
 
 
 | 方式       | 机制                                                              | 一致性 | 维护成本 | 典型场景                                                   |
@@ -577,7 +574,7 @@ public boolean preHandle(HttpServletRequest request, HttpServletResponse respons
 
 高一致性场景常见组合：**主动更新 + TTL 兜底**（读路径回写时带过期时间，见 [9.1](#redis-cache-model) 与 `RedisConstants.CACHE_SHOP_TTL`）。
 
-#### 9.3.2 主动更新：三种架构模式 {#redis-cache-aside-pattern}
+### 9.3.2 主动更新：三种架构模式 {#redis-cache-aside-pattern}
 
 
 | 模式                        | 谁维护一致性                                        | 特点                                                     |
@@ -589,7 +586,7 @@ public boolean preHandle(HttpServletRequest request, HttpServletResponse respons
 
 
 
-#### 9.3.3 Cache-Aside 写路径的三点取舍
+### 9.3.3 Cache-Aside 写路径的三点取舍
 
 - **删缓存还是改缓存？**  
   写库后 **删除缓存**（让下次读触发回源再写入），而不是每次把新值写入缓存。直接「更新缓存」会产生大量无效写，且并发下容易写入中间态。
@@ -629,11 +626,11 @@ public boolean preHandle(HttpServletRequest request, HttpServletResponse respons
 
 
 
-### 9.4 缓存穿透 {#redis-cache-penetration}
+## 9.4 缓存穿透 {#redis-cache-penetration}
 
 **缓存穿透** 指：请求的数据在 **缓存与数据库都不存在**，持续发起此类请求会反复绕过缓存访问 DB。治理通常 **缓存层 + 接口/风控层** 组合；本仓库读路径以 `CacheClient#queryWithPassThrough` 为主（`ShopServiceImpl#queryById`）。
 
-#### 9.4.1 解决方案归纳
+### 9.4.1 解决方案归纳
 
 | 手段            | 要点                     | 本仓库实践        |
 | ------------- | ---------------------- | ------------------------------------------------ |
@@ -654,7 +651,7 @@ public boolean preHandle(HttpServletRequest request, HttpServletResponse respons
 | **布隆过滤器** | 内存占用低、不产生大量空 key | 需与数据同步；存在「可能存在」误判                   |
 
 
-#### 9.4.2 本仓库：缓存空对象读路径 {#redis-cache-penetration-null}
+### 9.4.2 本仓库：缓存空对象读路径 {#redis-cache-penetration-null}
 
 流程与 [9.1](#redis-cache-model) 类似，差异在 **库也无数据时仍写缓存**，避免恶意或高频的非法 id 打穿 DB：
 
@@ -716,14 +713,14 @@ public <R,ID> R queryWithPassThrough(
 - `RedisConstants.CACHE_NULL_TTL` 为 **2**（分钟），故意短于商铺正常缓存 TTL，减轻「后来新增了该 id 却仍被空值挡住」的时间窗口；
 - 商铺 **更新/删除** 时仍应删 `cache:shop:{id}`（见 [9.3](#redis-cache-update)）。互斥锁、逻辑过期模板中的空值处理与上一致，见 [9.6](#redis-cache-breakdown)、[9.7](#redis-cache-client)。
 
-### 9.5 缓存雪崩 {#redis-cache-avalanche}
+## 9.5 缓存雪崩 {#redis-cache-avalanche}
 
 - **缓存雪崩** 指：在同一时段内，**大量缓存 key 同时过期** ，导致读请求集体未命中，或 **Redis 服务宕机/不可用** 导致请求绕过缓存，**数据库在短时间内承受极高并发**。
 - 与 [9.6 缓存击穿](#redis-cache-breakdown) 不同：击穿针对 **单个热点 key** 过期瞬间的并发回源，雪崩强调 **规模性失效** 或 **缓存层整体故障**。
 
 alt text
 
-#### 9.5.1 常见解决方案
+### 9.5.1 常见解决方案
 
 
 | 手段                | 要点                                            | 本仓库实践                           |
@@ -735,7 +732,7 @@ alt text
 
 读路径仍依赖 [9.1](#redis-cache-model) 的 TTL 兜底；写路径删缓存见 [9.3](#redis-cache-update)。
 
-### 9.6 缓存击穿 {#redis-cache-breakdown}
+## 9.6 缓存击穿 {#redis-cache-breakdown}
 
 - **缓存击穿**（热点 key 问题）：**高并发访问** 的 key 在 **物理过期或逻辑过期** 且 **回源重建成本较高（查询需要等待的时间较久）** 时，大量线程同时未命中并查库，DB 瞬时承压。
 - 与 [9.5 雪崩](#redis-cache-avalanche) 不同，击穿强调 **单个热点**；
@@ -755,7 +752,7 @@ alt text
 
 - **互斥场景 value**：`CacheClient` 占位写 `"1"`，释放时 `delete` 即可；跨 JVM 见 `SimpleRedisLock`，value 为 **线程唯一标识**（`UUID + threadId`），释放时用 [unlock.lua](#redis-lua-unlock) 校验后再删（见 [3.5](#seckill-lock-release)）。
 
-#### 9.6.1 互斥锁：`queryWithMutex` {#redis-cache-breakdown-mutex}
+### 9.6.1 互斥锁：`queryWithMutex` {#redis-cache-breakdown-mutex}
 
 1. 读缓存：有有效 JSON → 返回；空字符串占位 → 按穿透处理返回 `null`。
 2. 未命中 → `tryLock(lock:shop:{id})`；**失败**则 `Thread.sleep(50)` 后 **递归重试** 整个查询。
@@ -793,7 +790,7 @@ r = dbFallback.apply(id);
 Shop shop = cacheClient.queryWithMutex(CACHE_SHOP_KEY, id, Shop.class, this::getById, CACHE_SHOP_TTL, TimeUnit.MINUTES);
 ```
 
-#### 9.6.2 逻辑过期：`queryWithLogicalExpire` {#redis-cache-breakdown-logical}
+### 9.6.2 逻辑过期：`queryWithLogicalExpire` {#redis-cache-breakdown-logical}
 
 Redis 中 **不设 key 的 TTL**（或长期存在），在 value 内嵌 **逻辑过期时间**：
 
@@ -880,9 +877,12 @@ Shop shop = cacheClient.queryWithLogicalExpire(CACHE_SHOP_KEY, id, Shop.class, t
 
 测试常用 **JMeter软件** 对商铺查询接口做高并发压测，对比穿透/击穿方案下 DB 压力；本仓库未提交 `.jmx` 文件。三种读模板的方法签名与选用场景见 [9.7](#redis-cache-client)。
 
-### 9.7 缓存工具封装 {#redis-cache-client}
+## 9.7 缓存工具封装 {#redis-cache-client}
 - `Redis/hm-dianping/src/main/java/com/hmdp/utils/CacheClient.java`
-## （二）优惠券秒杀实战 {#seckill-chapter}
+
+# 十、Redis 实战
+
+## 优惠券秒杀实战 {#seckill-chapter}
 
 ### 0. 什么是分布式 {#distributed-system}
 
@@ -936,8 +936,6 @@ Shop shop = cacheClient.queryWithLogicalExpire(CACHE_SHOP_KEY, id, Shop.class, t
 | **安全性** | 不易被简单猜中下一单 id | 非连续自增 1、2、3，含时间戳与按日隔离的序列                          |
 
 
-
-
 #### 1.1 全局 ID 生成器：`RedisIdWorker` {#redis-id-worker}
 
 发号逻辑（`nextId(String keyPrefix)`）：
@@ -969,7 +967,6 @@ public long nextId(String keyPrefix) {
 ```
 
 
-
 #### 1.2 并发压测：`testIdWorker`
 
 `HmDianPingApplicationTests#testIdWorker` 使用 **500** 线程池提交 **300** 个任务，每个任务循环 **100** 次调用 `nextId("order")`（合计 **3 万** 次发号），`CountDownLatch` 等待全部结束后打印耗时，用于观察 Redis 发号在高并发下的性能。
@@ -997,7 +994,6 @@ void testIdWorker() throws InterruptedException {
     System.out.println("time = " + (end - begin)); // 打印时间差
 }
 ```
-
 
 
 ### 2. 库存超卖问题 {#seckill-oversell}
@@ -1542,3 +1538,5 @@ flowchart TD
 | **③ MultiLock（联锁）** | 多个 **彼此独立** 的 Redis 节点各加一把锁，**全部** 成功才算加锁成功（Redisson `getMultiLock`，与 [5.2](#redisson-intro) 联锁/红锁同族） | **运维成本高**、实现与故障处理更复杂 | 本课 **未** 在工程中落地 |
 
 日常业务锁（如一人一单）在单机或主从 Redis 上通常用 **②** 即可；仅在必须降低「单 Redis 故障导致锁语义失效」风险时，才评估 **③** 或多节点 **RedLock** 方案，并权衡成本与一致性需求。
+
+# Redis消息队列
