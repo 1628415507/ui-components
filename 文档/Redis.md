@@ -51,7 +51,7 @@
 | **DEL**    | 删除指定 key                            | `DEL key [key ...]`；`help del` 可查语法                     |
 | **EXISTS** | 判断 key 是否存在                       | `EXISTS key`                                                 |
 | **EXPIRE** | 为 key 设置过期时间（秒），到期自动删除 | `EXPIRE key seconds`                                         |
-| **TTL**    | 查看 key 剩余存活时间（秒）             | 无过期或 key 不存在时返回值语义以 `help ttl` 为准            |
+| **TTL(Time To Live)**    | 查看 key **剩余存活时间**（秒）             | 无过期或 key 不存在时返回值语义以 `help ttl` 为准            |
 
 
 ```text
@@ -1009,7 +1009,7 @@ void testIdWorker() throws InterruptedException {
 
 | 类型      | 思路                             | 代表实现                                                                             | 优点         | 缺点                                 |
 | ------- | ------------------------------ | -------------------------------------------------------------------------------- | ---------- | ---------------------------------- |
-| **悲观锁** | 认为冲突一定会发生，**先加锁** 再读写，线程串行     | `synchronized`、`Lock`；分布式场景下 Redis 锁（如 `SimpleRedisLock`、Redisson `RLock`，见注释演进） | 思路直接       | 性能一般，锁粒度不当易成为瓶颈                    |
+| **悲观锁** | 认为冲突一定会发生，**先加锁** 再读写，线程串行     | `synchronized`、`Lock`；分布式场景下 Redis 锁（如 [SimpleRedisLock](#seckill-lock-simple)、[Redisson `RLock`](#redisson-usage)） | 思路直接       | 性能一般，锁粒度不当易成为瓶颈                    |
 | **乐观锁** | 认为冲突不必然发生，**更新时** 再判断是否被别的线程改过 | 版本号法、`CAS` 条件更新                                                                  | 不加互斥等待，性能好 | 冲突时更新失败，需重试或返回失败，高并发下 **成功率** 可能偏低 |
 
 
@@ -1269,7 +1269,7 @@ script.setResultType(Long.class); // 设置返回类型
 | **安全性** | `EX` 超时自动释放，避免永久占锁 | `tryLock(timeoutSec)` 传入 TTL |
 | **高可用 / 高并发** | 依赖 Redis 集群或哨兵等，锁服务与业务一起水平扩展 | 工程为单机 Redis；能力说明见第二节 **高可用与扩展** |
 
-### 5. Lua 秒杀下单 {#seckill-lua}
+#### 4.6  Lua 秒杀下单 {#seckill-lua}
 
 接口侧通过 [`stringRedisTemplate.execute`](#redis-template-execute) 执行 `seckill.lua`。当前 `seckillVoucher` 在 Redis 内 **原子** 完成：判库存、判一人一单、扣库存、记录用户、投递 Stream 消息；返回码 `0` 成功，`1` 库存不足，`2` 重复下单。库存 key `seckill:stock:{voucherId}` 在 `VoucherServiceImpl#addSeckillVoucher` 写入（`SECKILL_STOCK_KEY`）。
 
@@ -1299,4 +1299,208 @@ if (result.intValue() != 0) {
 return Result.ok(orderId);
 ```
 
-落库由 `VoucherOrderHandler` 消费 `stream.orders` 后调用 `createVoucherOrder`（Redisson 锁 + DB [CAS 扣库存](#seckill-oversell) 与写订单），与接口侧 Lua 预校验形成 **Redis 挡流 + 异步写库** 两段式架构。
+落库由 `VoucherOrderHandler` 消费 `stream.orders` 后调用 `createVoucherOrder`（[Redisson 锁](#redisson-usage) + DB [CAS 扣库存](#seckill-oversell) 与写订单），与接口侧 Lua 预校验形成 **Redis 挡流 + 异步写库** 两段式架构。
+
+### 5. [Redisson 分布式锁 {#redisson}](https://www.bilibili.com/video/BV1cr4y1671t/?spm_id_from=333.788.player.switch&vd_source=9d75580d0b23d1137d56e03a996ac726&p=68)
+
+- **Redisson** 是在 Redis 之上的 Java 客户端，内置**可重入锁**、**`RLock`** 及看门狗等实现。
+- [4.5](#seckill-lock-summary) 中 `SimpleRedisLock` 已用 `SET NX EX` + [unlock.lua](#redis-lua-unlock) 解决 **互斥** 与 **安全释锁**，相对生产级分布式锁仍缺下列归纳的四类能力；
+
+
+#### 5.1 自研 SETNX 锁的局限 {#redisson-setnx-limits}
+
+| 问题 | 含义 | 本仓库 `SimpleRedisLock` 中的表现 |
+| --- | --- | --- |
+| **不可重入** | 同一线程无法在同一把锁上连续 `tryLock` 成功 | value 为线程标识，key 已存在则第二次 `setIfAbsent` 失败（见 [3.4](#seckill-lock-simple)） |
+| **不可重试** | 抢锁失败即返回，无等待/唤醒 | `tryLock` 只尝试一次 |
+| **超时释放** | 固定 TTL 防死锁，但业务执行超过 lease 会提前丢锁 | `tryLock(timeoutSec)` 的 lease 由调用方一次给定，**无自动续约** |
+| **主从一致性** | 主从复制有延迟时，主宕机可能导致锁记录未同步到从节点，极端下互斥失效 | 与课件一致：依赖 Redis 部署形态；更强保证需 **RedLock** 等（Redisson 提供 `RedissonRedLock`，本课未展开） |
+
+#### 5.2 Redisson 是什么 {#redisson-intro}
+
+- 基于 Redis 的 **Java 内存数据网格（In-Memory Data Grid）** 客户端，除数据结构封装外，提供一系列分布式 Java 对象与服务；
+- 与锁相关的常见类型包括：**可重入锁**、公平锁、联锁（MultiLock）、红锁（RedLock）、读写锁、信号量、可过期信号量、闭锁（CountDownLatch）等（官方：[redisson.org](https://redisson.org)、[GitHub](https://github.com/redisson/redisson)）。
+- 下文只展开本仓库用到的 **可重入锁 `RLock`**。
+
+#### 5.3 依赖与 `RedissonClient` {#redisson-config}
+
+```xml
+<!-- Redis/hm-dianping/pom.xml -->
+
+<!--redisson：分布式锁-->
+<dependency>
+    <groupId>org.redisson</groupId>
+    <artifactId>redisson</artifactId>
+    <version>3.13.6</version>
+</dependency>
+```
+
+```java
+// Redis/hm-dianping/src/main/java/com/hmdp/config/RedissonConfig.java
+
+@Configuration
+public class RedissonConfig {
+
+    @Bean
+    public RedissonClient redissonClient(){
+        // 配置
+        Config config = new Config();
+        // useSingleServer：单节点模式
+        // setAddress：设置地址
+        // setPassword：设置密码
+        // setDatabase：设置数据库
+        // setTimeout：设置超时时间
+        // setConnectionMinimumIdleSize：设置连接池最小空闲连接数
+        // setConnectionPoolSize：设置连接池最大连接数
+        // setConnectionTimeout：设置连接超时时间
+        // setIdleTimeout：设置连接空闲时间
+        // setPingTimeout：设置心跳超时时间
+        config.useSingleServer().setAddress("redis://192.168.150.101:6379").setPassword("123321");
+        // 创建RedissonClient对象
+        return Redisson.create(config);
+    }
+}
+```
+
+- 单节点用 `useSingleServer()`；
+- 集群可改为 `useClusterServers()` 并配置多个地址。
+- 本模块 **Spring Data Redis** 地址在 `application.yaml` 的 `spring.redis`，**Redisson** 当前在 `RedissonConfig` 中单独配置，部署时需与 Redis 实例一致。
+
+#### 5.4 本仓库用法 {#redisson-usage}
+
+一人一单：锁粒度仍为 **按用户**（`lock:order:{userId}`），包住查单 + CAS 扣库存 + 写订单，与 [3.4](#seckill-lock-simple) 注释版 `SimpleRedisLock` 一致，仅换为 `RLock`。
+
+```java
+// Redis/hm-dianping/src/main/java/com/hmdp/service/impl/VoucherOrderServiceImpl.java
+
+        RLock redisLock = redissonClient.getLock("lock:order:" + userId);
+        boolean isLock = redisLock.tryLock(); // 尝试锁
+        if (!isLock) {
+            return Result.fail("不允许重复下单！");
+        }
+        try {
+            int count = query().eq("user_id", userId).eq("voucher_id", voucherId).count();
+            if (count > 0) {
+                return Result.fail("用户已经购买过一次！");
+            }
+            boolean success = seckillVoucherService.update()
+                    .setSql("stock = stock - 1")
+                    .eq("voucher_id", voucherId).gt("stock", 0)
+                    .update();
+            // ... 创建订单 ...
+        } finally {
+            redisLock.unlock(); // 释放锁
+        }
+```
+
+**可重入**：同一 `RLock` 实例在同一线程内嵌套加锁时，内层仍可成功（计数递增），与 [5.1](#redisson-setnx-limits) 对比见单测：
+
+```java
+// Redis/hm-dianping/src/test/java/com/hmdp/RedissonTest.java
+
+    @Test
+    void method1() throws InterruptedException {
+        boolean isLock = lock.tryLock(1L, TimeUnit.SECONDS);
+        if (!isLock) {
+            log.error("获取锁失败 .... 1");
+            return;
+        }
+        try {
+            log.info("获取锁成功 .... 1");
+            method2();
+        } finally {
+            lock.unlock();
+        }
+    }
+    void method2() {
+        boolean isLock = lock.tryLock();
+        if (!isLock) {
+            log.error("获取锁失败 .... 2");
+            return;
+        }
+        try {
+            log.info("获取锁成功 .... 2");
+        } finally {
+            lock.unlock();
+        }
+    }
+```
+
+- `tryLock(long waitTime, TimeUnit unit)` 在未指定 `leaseTime` 时，抢锁成功后会走 **看门狗** 续约（见 [5.6](#redisson-watchdog)）；
+- 无参 `tryLock()` 为 **不等待** 的单次尝试，与业务里「重复下单直接失败」一致。
+
+#### 5.5 可重入锁：Hash 与加锁 Lua {#redisson-reentrant}
+
+Redisson 用 **Hash** 存锁，而非 `SimpleRedisLock` 的 String value：
+
+| Redis key | Hash field | Hash value |
+| --- | --- | --- |
+| 锁名（如 `lock:order:1`） | 线程标识（客户端生成的 id + 线程 id） | 重入次数 |
+
+**加锁**（课件简化脚本，逻辑与 Redisson 内部一致）：
+
+- 不存在则 `HSET` 计数为 1 并 `EXPIRE`；
+- 已存在且 field 为当前线程则 `HINCRBY` 计数并刷新过期；否则返回失败。
+
+```lua
+-- 课件：获取锁（示意，非本仓库 resources 文件）
+
+local key = KEYS[1]
+local threadId = ARGV[1]
+local releaseTime = ARGV[2]
+
+if (redis.call('exists', key) == 0) then
+    redis.call('hset', key, threadId, 1)
+    redis.call('expire', key, releaseTime)
+    return 1
+end
+if (redis.call('hexists', key, threadId) == 1) then
+    redis.call('hincrby', key, threadId, 1) -- 计数加1
+    redis.call('expire', key, releaseTime) -- 刷新过期时间
+    return 1
+end
+return 0
+```
+
+**释锁**：仅当 field 为当前线程时 **计数减 1**；减到 0 才 `DEL` key，否则只刷新过期（避免外层未 `unlock` 时内层提前删掉锁）。
+
+#### 5.6 抢锁流程：重试、订阅与看门狗 {#redisson-watchdog}
+| 名称 | 含义 |
+| --- | --- |
+| TTL(Time To Live) | 剩余过期时间, 用来区分「锁 key 是否仍被占用、还剩多久过期」,<br/>**TTL为 `null` 表示加锁成功** |
+| `leaseTime`（租约时间) |抢到之后 锁保留多久（或由看门狗续期）；<br/> 到期后 key 会自动过期，别人可以再次抢锁，用来避免进程崩溃后永久占锁|
+|waitTime |抢锁时 最多等多久（拿不到就 false）|
+
+```mermaid
+flowchart TD
+    A[尝试加锁] --> B{ttl 为 null?}
+    B -->|是| C{leaseTime 为 -1?}
+    C -->|是| D[启动 watchDog]
+    C -->|否| E[返回 true]
+    D --> E
+    B -->|否| F{剩余等待时间 > 0?}
+    F -->|否| G[返回 false]
+    F -->|是| H[订阅锁释放频道并等待]
+    H --> I{等待超时?}
+    I -->|是| G
+    I -->|否| A
+    J[unlock 成功] --> K[发布释放消息]
+    J --> L[取消 watchDog]
+    K --> H
+```
+
+- **可重试**：`tryLock(waitTime, …)` 在抢锁失败且仍有等待时间时，通过 **Pub/Sub** 监听释放信号后再试，避免忙等轮询。
+- **超时续约（watchDog）**：未显式传入 `leaseTime`（内部为 **-1**）时，后台按约 **`lockWatchdogTimeout / 3`** 周期刷新 key 过期，降低 [5.1](#redisson-setnx-limits) 中「业务过长导致锁过期」的风险；显式 `leaseTime` 的加锁不会启用看门狗。
+- **释放锁**：Lua 校验线程并重入计数；成功后 **发释放消息** 唤醒等待线程，并 **取消** 对应看门狗任务。
+
+#### 5.7 三种方案对照与选型 {#redisson-summary}
+
+课件将 Redis 分布式锁按能力递进归纳为三类；细节分别见 [4.5](#seckill-lock-summary)、[5.5](#redisson-reentrant)、[5.6](#redisson-watchdog)，此处只收束 **原理** 与 **缺陷**，避免与 [5.1](#redisson-setnx-limits) 重复展开。
+
+| 类型 | 原理要点 | 主要缺陷 | 本仓库 |
+| --- | --- | --- | --- |
+| **① 不可重入锁** | `SET NX` 互斥 + `EX` 防死锁；释锁时比对 **线程标示** 再删（[unlock.lua](#redis-lua-unlock)） | 不可重入；抢锁 **无重试**；业务超过 TTL 会 **提前失效** | [`SimpleRedisLock`](#seckill-lock-simple)（演进注释） |
+| **② 可重入锁** | **Hash** 记录线程标示与 **重入次数**；**watchDog** 续约持锁时间；**信号量** 等配合 **Pub/Sub** 控制重试等待 | 仍依赖 Redis 可用性；**单实例/主从** 极端故障下互斥可能失效（见 [5.1](#redisson-setnx-limits) 主从一致性） | [`RLock`](#redisson-usage) |
+| **③ MultiLock（联锁）** | 多个 **彼此独立** 的 Redis 节点各加一把锁，**全部** 成功才算加锁成功（Redisson `getMultiLock`，与 [5.2](#redisson-intro) 联锁/红锁同族） | **运维成本高**、实现与故障处理更复杂 | 本课 **未** 在工程中落地 |
+
+日常业务锁（如一人一单）在单机或主从 Redis 上通常用 **②** 即可；仅在必须降低「单 Redis 故障导致锁语义失效」风险时，才评估 **③** 或多节点 **RedLock** 方案，并权衡成本与一致性需求。

@@ -41,6 +41,7 @@ class RedissonTest {
             lock.unlock();
         }
     }
+    
     void method2() {
         // 尝试获取锁
         boolean isLock = lock.tryLock();

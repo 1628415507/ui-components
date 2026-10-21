@@ -45,7 +45,7 @@ public class SimpleRedisLock implements ILock {
                 Collections.singletonList(KEY_PREFIX + name),//singletonList:将一个元素转换为只包含该元素的列表
                 ID_PREFIX + Thread.currentThread().getId());
     }
-    /*@Override
+    /* @Override
     public void unlock() {
         // 获取线程标示
         String threadId = ID_PREFIX + Thread.currentThread().getId();
@@ -56,5 +56,5 @@ public class SimpleRedisLock implements ILock {
             // 释放锁
             stringRedisTemplate.delete(KEY_PREFIX + name);
         }
-    }*/
+    } */
 }
