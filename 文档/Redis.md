@@ -135,7 +135,7 @@ summary: Find all keys matching the given pattern
 | **HSETNX**  | 仅当 field **不存在时写入**，否则不执行 | `HSETNX key field value`                  | `HSETNX heima:user:1 phone 13800000000` |
 
 
-## 5.4 List 类型与常见命令
+## 5.4 List 类型与常见命令 {#redis-list-commands}
 
 - List（列表）可视为双向链表结构（类似 Java 的 `LinkedList`），支持从两端插入与弹出，也可按索引区间读取。
 - 特征：**有序**、**元素可重复**、**头尾插入/删除快**、**按位置查询需遍历，速度一般**。
@@ -149,7 +149,7 @@ summary: Find all keys matching the given pattern
 | **RPOP**   | 移除并返回**右侧**第一个元素                           | `RPOP key`                        | `RPOP heima:queue:msg`                                   |
 | **LRANGE** | 返回下标区间内全部元素（含两端）                       | `LRANGE key start stop`           | `LRANGE heima:queue:msg `**`0 -1`**（`-1` 表示最后一个） |
 | **BLPOP**  | 同 LPOP，列表为空时阻塞等待，超时仍无元素则返回 nil    | `BLPOP key [key ...] timeout`     | `BLPOP heima:queue:msg 10`（最多等待 10 秒）             |
-| **BRPOP**  | 同 RPOP，列表为空时阻塞等待                            | `BRPOP key [key ...] timeout`     | `BRPOP heima:queue:msg 10`                               |
+| **BRPOP**  | 同 RPOP，**但列表为空时阻塞等待**                            | `BRPOP key [key ...] timeout`     | `BRPOP heima:queue:msg 10`                               |
 
 
 
@@ -996,7 +996,7 @@ void testIdWorker() throws InterruptedException {
 ```
 
 
-### 2. 库存超卖问题 {#seckill-oversell}
+### 2. 库存超卖问题-乐观锁 {#seckill-oversell}
 
 - 秒杀扣减 `tb_seckill_voucher.stock` 时，若多个线程 **先查库存再写回**（见 `VoucherOrderServiceImpl` 注释掉的 `getById` + `if (stock < 1)` 流程），,用提前读出来的值去判断再写库，会出现「**都同时读到 stock=1、都通过校验、最终扣成负数**」的 **超卖**。
 - 这是典型的多线程安全问题，常见思路是 **加锁** 或在 **更新时校验数据是否仍满足条件**。
@@ -1041,7 +1041,7 @@ if (!success) {
 
 
 
-### 3. 一人一单 {#seckill-one-order}
+### 3. 一人一单-分布式锁 {#seckill-one-order}
 
 > 课件：[黑马 Redis 实战 P56](https://www.bilibili.com/video/BV1cr4y1671t/?spm_id_from=333.788.player.switch&vd_source=9d75580d0b23d1137d56e03a996ac726&p=56)。需求：**同一优惠券，同一用户只能下一单**。
 >
@@ -1333,7 +1333,7 @@ if (result.intValue() != 0) {
 return Result.ok(orderId);
 ```
 
-落库由 `VoucherOrderHandler` 消费 `stream.orders` 后调用 `createVoucherOrder`（[Redisson 锁](#redisson-usage) + DB [CAS 扣库存](#seckill-oversell) 与写订单），与接口侧 Lua 预校验形成 **Redis 挡流 + 异步写库** 两段式架构。
+落库由 `VoucherOrderHandler` 消费 `stream.orders` 后调用 `createVoucherOrder`（[Redisson 锁](#redisson-usage) + DB [CAS 扣库存](#seckill-oversell) 与写订单），与接口侧 Lua 预校验形成 **Redis 挡流 + 异步写库** 两段式架构；Stream 命令与消费模型见 [11.4](#redis-mq-stream)。
 
 ### 5. [Redisson 分布式锁 {#redisson}](https://www.bilibili.com/video/BV1cr4y1671t/?spm_id_from=333.788.player.switch&vd_source=9d75580d0b23d1137d56e03a996ac726&p=68)
 
@@ -1539,4 +1539,240 @@ flowchart TD
 
 日常业务锁（如一人一单）在单机或主从 Redis 上通常用 **②** 即可；仅在必须降低「单 Redis 故障导致锁语义失效」风险时，才评估 **③** 或多节点 **RedLock** 方案，并权衡成本与一致性需求。
 
-# Redis消息队列
+# 十一、Redis 消息队列 {#redis-mq-chapter}
+
+消息队列（Message Queue）字面即**存放消息的队列**。最简模型包含三类角色：**消息队列**（也称 Message Broker，负责存储与管理消息）、**生产者**（向队列投递消息）、**消费者**（从队列取消息并处理）。课件在 [优惠券秒杀](#seckill-chapter) 异步下单场景中，生产者侧完成资格校验后投递消息，消费者侧再完成下单等耗时操作（整体思路见 [4.6 Lua 秒杀下单优化](#seckill-lua)）。
+
+## 11.1 Redis 实现消息队列的三种方式 {#redis-mq-variants}
+
+| 方式 | 机制要点 | 本仓库秒杀链路 |
+| --- | --- | --- |
+| **List** | 双向链表，`LPUSH` + `RPOP`（或 `RPUSH` + `LPOP`）模拟 FIFO；空队列时 `RPOP`/`LPOP` 返回 `nil`，可用 `BRPOP`/`BLPOP` 阻塞等待（命令见第五节 **5.4 List 类型与常见命令**） | 课件方案，**未**在工程中落地 |
+| **Pub/Sub** | 发布/订阅，订阅方实时收消息；**无持久化队列语义**，离线消费者收不到历史消息 | 未用于秒杀 MQ；机制见 [11.3](#redis-mq-pubsub)；[Redisson 抢锁重试](#redisson-watchdog) 通过频道通知释放锁 |
+| **Stream** | 持久化消息流，支持 **消费组**、`XACK`、**pending-list** 等，能力最接近专业 MQ | **当前** `stream.orders` + `VoucherOrderHandler`；发送/读取见 [11.4](#redis-mq-stream) |
+
+
+## 11.2 基于 List 的队列 {#redis-mq-list}
+
+[List](#redis-list-commands) 在 Redis 中是**双向链表**（与第五节描述一致，类似 Java `LinkedList`），从一端入、另一端出即可模拟队列。
+
+```mermaid
+flowchart LR
+    P[生产者] -->|LPUSH| Q[(Message Queue)]
+    Q -->|RPOP| C[消费者]
+```
+
+| 名称 | 作用 |
+| --- | --- |
+| **LPUSH + RPOP** | 左侧入队、右侧出队，实现 FIFO（亦可 **RPUSH + LPOP**，进出端对调即可） |
+| **LPOP / RPOP** | 列表为空时返回 `nil`，不会阻塞等待 |
+| **BLPOP / BRPOP** | 在 POP 语义上增加阻塞等待（可设超时），避免消费者空转；命令语法与示例见 [List 常见命令](#redis-list-commands) |
+
+| 维度 | 说明 |
+| --- | --- |
+| **优点** | 数据存放在 Redis，不受 JVM 内存限制；可借助 Redis 持久化机制；能满足消息**顺序性**（FIFO） |
+| **缺点** | 消息被 `POP` 后即从列表移除，**无法完全避免丢失**（例如消费者取出后宕机且尚未落库）；通常只支持**单一消费者**的一对一模型 |
+
+## 11.3 基于 Pub/Sub 的队列 {#redis-mq-pubsub}
+
+**Pub/Sub**（发布订阅）是 Redis 2.0 起提供的消息传递模型：消费者可订阅一个或多个 **channel**（频道），生产者向对应 channel **PUBLISH** 后，**当时已连接**的订阅者都会收到该消息（与 [11.2 List](#redis-mq-list) 从列表逐条 `POP` 的语义不同，也不同于带持久化 backlog 的专业 MQ）。
+
+```mermaid
+flowchart LR
+    P[生产者] -->|PUBLISH order.queue msg1| CH[[channel: order.queue]]
+    CH --> C1[消费者 SUBSCRIBE order.queue]
+    CH --> C2[消费者 PSUBSCRIBE order.*]
+```
+
+| 命令 | 作用 | 示例 |
+| --- | --- | --- |
+| **SUBSCRIBE** | 订阅一个或多个频道 | `SUBSCRIBE order.queue` |
+| **PUBLISH** | 向指定频道发送消息 | `PUBLISH order.queue msg1` |
+| **PSUBSCRIBE** | 按 **pattern** 订阅匹配的多个频道 | `PSUBSCRIBE order.*`（与图中 `order.queue` 匹配） |
+
+| 维度 | 说明 |
+| --- | --- |
+| **优点** | 发布订阅模型，支持**多生产、多消费** |
+| **缺点** | **不支持**以队列形式做数据持久化；订阅端离线期间的消息无法补收，**无法避免消息丢失**；<br>消息堆积有上限，超出时**丢弃** |
+
+本仓库 **未** 用 Pub/Sub 实现秒杀业务队列；仅在 [Redisson 抢锁重试](#redisson-watchdog) 中借助频道做锁释放通知，属于协调语义而非订单投递。
+
+## 11.4 基于 Stream 的队列 {#redis-mq-stream}
+
+**Stream** 是 Redis **5.0** 起新增的数据类型，可在 Redis 内实现较完整的消息队列能力（与 [11.2 List](#redis-mq-list)、[11.3 Pub/Sub](#redis-mq-pubsub) 相比，消息以 **Entry** 形式持久在流中，并支持按 ID 读取与阻塞等待）。本节归纳 **XADD**、**XREAD**、**消费者组（XREADGROUP）**；本仓库秒杀在投递侧 **XADD**、消费侧 **XREADGROUP + XACK**（见 [11.4.4](#redis-stream-commands)）。
+
+### 11.4.1 发送消息：XADD {#redis-stream-xadd}
+
+语法：`XADD key [NOMKSTREAM] [MAXLEN|MINID …] *|ID field value [field value …]`
+
+| 片段 | 含义 |
+| --- | --- |
+| **key** | 流名称（队列名）；key 不存在时默认会创建流（`NOMKSTREAM` 可禁止自动建流） |
+| **MAXLEN \| MINID** | 限制流中消息条数或最小 ID，用于控制堆积 |
+| **`*` \| ID** | 消息在流内的唯一 ID；`*` 表示由 Redis 生成（一般为「毫秒时间戳-序号」，如 `1644805700523-0`） |
+| **field value …** | 一条消息的内容，多组键值对组成一个 **Entry** |
+
+```text
+# 课件示例：向流 users 追加 {name=jack, age=21}
+
+127.0.0.1:6379> XADD users * name jack age 21
+"1644805700523-0"
+```
+
+```lua
+-- Redis/hm-dianping/src/main/resources/seckill.lua
+
+-- 3.6.发送消息到队列中， XADD stream.orders * k1 v1 k2 v2 ...
+-- 将用户userId、优惠券voucherId、订单id orderId添加到stream.orders的流中
+redis.call('xadd', 'stream.orders', '*', 'userId', userId, 'voucherId', voucherId, 'id', orderId)
+```
+
+### 11.4.2 读取消息：XREAD {#redis-stream-xread}
+
+语法：`XREAD [COUNT count] [BLOCK milliseconds] STREAMS key [key …] ID [ID …]`
+
+| 参数 | 含义 |
+| --- | --- |
+| **COUNT** | 单次最多读取的消息条数 |
+| **BLOCK** | 当前无可读消息时是否阻塞，以及最长阻塞毫秒数 |
+| **STREAMS key** | 要读取的流 key（可同时读多个流，ID 与 key 一一对应） |
+| **ID** | 起始 ID，只返回 **大于** 该 ID 的消息；`0` 表示从流中第一条起；`$` 表示只读 **本次命令之后新到达** 的消息 |
+
+阻塞读取示例（无新消息时在 `BLOCK` 时间内等待，超时返回空）：
+
+```text
+127.0.0.1:6379> XREAD COUNT 1 BLOCK 1000 STREAMS users $
+(nil)
+```
+
+业务上可 **循环** 调用带 `BLOCK` 的 `XREAD`（例如 `BLOCK 2000`、`STREAMS users $`），无消息则 `continue`，有消息则处理，从而实现持续监听；须自行维护已读位置，否则存在 **漏读** 风险（见下表）。
+
+| **XREAD** 特点 | 说明 |
+| --- | --- |
+| 消息可回溯 | 流中 Entry 保留，可按 ID 重新读取 |
+| 一条消息可被多个消费者读 | 各消费者维护各自的「上次读到哪」 |
+| 可阻塞读取 | 配合 `BLOCK`，避免空转 |
+| 有漏读风险 | 未持久记录消费进度时，进程重启或 ID 使用不当可能跳过或重复处理 |
+
+### 11.4.3 消费者组 {#redis-stream-consumer-group}
+> 适合中小型项目
+
+**消费者组**（Consumer Group）将多个消费者划为一组，共同监听同一 Stream。相对 [11.4.2 XREAD](#redis-stream-xread) 由每个客户端自行记 offset，组内由 Redis 维护消费进度与待确认列表，更适合工程化 MQ。
+
+| 机制 | 说明 |
+| --- | --- |
+| **消息分流** | 组内消息在消费者之间 **分摊**，同一条 Entry 不会给组内每个消费者各发一份，便于水平加快处理 |
+| **消息标示** | 组维护 **最后投递位置** 等进度；消费者重启后可从未确认或约定 ID 继续，降低 [XREAD](#redis-stream-xread) 那种自行记 ID 的漏读风险 |
+| **消息确认** | 投递给消费者后进入 **pending** 状态，记入该消费者的 **pending-list**；处理完成后需 **XACK**，确认后才从 pending 移除 |
+
+**创建消费组**：`XGROUP CREATE key groupName ID [MKSTREAM]`
+
+| 参数 | 含义 |
+| --- | --- |
+| **key** | 流（队列）名 |
+| **groupName** | 消费组名 |
+| **ID** | 组起始标示：`$` 只消费创建组之后的新消息；`0` 从流首条起 |
+| **MKSTREAM** | 流不存在时是否自动创建 |
+
+其它常见管理命令（课件）：`XGROUP DESTROY key groupName`（删除组）、`XGROUP CREATECONSUMER key groupName consumerName`（向组内注册消费者）、`XGROUP DELCONSUMER key groupName consumerName`（删除组内消费者）。本仓库代码使用组 `g1`、消费者 `c1`，**未**提交 `XGROUP CREATE` 脚本，部署时需保证消费组已创建（或由运维/初始化命令执行）。
+
+**组内读消息**：`XREADGROUP GROUP group consumer [COUNT count] [BLOCK milliseconds] [NOACK] STREAMS key [key …] ID [ID …]`
+
+| 参数 | 含义 |
+| --- | --- |
+| **group / consumer** | 组名与消费者名；消费者不存在时通常会自动创建 |
+| **COUNT** | 本次最多读取条数 |
+| **BLOCK** | 无消息时阻塞时长（毫秒） |
+| **NOACK** | 带上则无需手动 ACK（本仓库 **未** 使用） |
+| **STREAMS key** | 流 key |
+| **ID** | `>`：读取组内 **尚未投递给本组** 的新消息；`0` 等：读取已投递、**尚未 ACK** 的 pending 消息 |
+
+| **XREADGROUP** 相对 **XREAD** | 说明 |
+| --- | --- |
+| 消息可回溯 | 与 Stream 一致，Entry 仍保留在流中 |
+| 多消费者争抢 | 组内分摊消息，提高吞吐 |
+| 可阻塞读取 | 支持 `BLOCK` |
+| 漏读风险 | 由组进度 + pending 管理，**低于** 自行维护 ID 的 XREAD |
+| 确认机制 | **XACK** 保证至少被处理一次（处理失败且未 ACK 时留在 pending-list） |
+
+监听逻辑与课件伪代码一致：外层循环 `>` 读新消息并处理 + ACK；`catch` 后内层用 `0` 扫 pending-list 直至为空再回到外层。本仓库见 [11.4.4](#redis-stream-commands) 中 `VoucherOrderHandler` / `handlePendingList`。
+
+### 11.4.4 [本仓库秒杀消费与命令对照](https://www.bilibili.com/video/BV1cr4y1671t/?spm_id_from=333.788.player.switch&vd_source=9d75580d0b23d1137d56e03a996ac726&p=77) {#redis-stream-commands}
+
+> 适合中小型项目：List / Pub/Sub / 裸 XREAD 各有限制，秒杀异步落库采用 Stream **消费组**（与 [11.5](#redis-mq-compare) 对照）。
+
+| 命令 | 作用 | Java语法 |
+| --- | --- | --- |
+| **XADD** | 向流追加 Entry | [seckill.lua](#redis-stream-xadd) → `stream.orders` |
+| **XREAD** | 按 ID 从流读取（可阻塞） | 课件模型；秒杀落库 **未** 采用 |
+| **XREADGROUP** | 消费组读取 | `VoucherOrderHandler`，`Consumer.from("g1", "c1")` |
+| **XACK** | 确认已处理 | `opsForStream().acknowledge(...)` |
+
+Spring 侧对应 `StringRedisTemplate#opsForStream()`（见第七节 **7.3 RedisTemplate 与数据类型 API** 中的 `opsForStream` 行）。
+
+```java
+// Redis/hm-dianping/src/main/java/com/hmdp/service/impl/VoucherOrderServiceImpl.java
+String QUEUE_NAME = "stream.orders"; // 消息队列名称
+
+@PostConstruct // 在Spring容器初始化完毕时，执行init方法
+private void init() {
+    SECKILL_ORDER_EXECUTOR.submit(new VoucherOrderHandler());
+}
+// ....
+public void run() {
+        while (true) {
+            try {
+                // 1.获取消息队列中的订单信息 XREADGROUP GROUP g1 c1 COUNT 1 BLOCK 2000 STREAMS s1 >
+                List<MapRecord<String, Object, Object>> list = stringRedisTemplate.opsForStream().read(
+                        Consumer.from("g1", "c1"), // 消费者组g1，消费者c1
+                        StreamReadOptions.empty().count(1).block(Duration.ofSeconds(2)), // 读取1条消息，阻塞2秒
+                        StreamOffset.create(QUEUE_NAME, ReadOffset.lastConsumed()) // 从队列名称stream.orders流中读取最后一条消息
+                );
+                // 2.判断订单信息是否为空
+                if (list == null || list.isEmpty()) {
+                    // 如果为null，说明没有消息，继续下一次循环
+                    continue;
+                }
+                // 解析数据
+                MapRecord<String, Object, Object> record = list.get(0); // 获取第一条消息
+                Map<Object, Object> value = record.getValue(); // 获取消息内容
+                VoucherOrder voucherOrder = BeanUtil.fillBeanWithMap(value, new VoucherOrder(), true); // 将消息内容填充到VoucherOrder对象中
+                // 3.创建订单
+                createVoucherOrder(voucherOrder);
+                // 4.确认消息 XACK
+                stringRedisTemplate.opsForStream().acknowledge("s1", "g1", record.getId()); // 确认消息
+            } catch (Exception e) {
+                log.error("处理订单异常", e);
+                handlePendingList(); // 处理异常消息
+            }
+        }
+    }
+```
+
+```java
+// Redis/hm-dianping/src/main/java/com/hmdp/service/impl/VoucherOrderServiceImpl.java
+// 处理异常消息
+private void handlePendingList() {
+    // ...
+    // 1.获取pending-list中的订单信息 XREADGROUP GROUP g1 c1 COUNT 1 BLOCK 2000 STREAMS s1 0
+    List<MapRecord<String, Object, Object>> list = stringRedisTemplate.opsForStream().read(
+            Consumer.from("g1", "c1"), // 消费者组g1，消费者c1
+            StreamReadOptions.empty().count(1), // 读取1条消息,待处理消息不需要block
+            StreamOffset.create(QUEUE_NAME, ReadOffset.from("0")) // 从队列名称stream.orders流中读取第一条消息
+    );
+}
+```
+
+主循环异常时调用 `handlePendingList()` 处理 pending，再 ACK；与 [4.6 Lua 秒杀下单优化](#seckill-lua) 的 **Redis 挡流 + 异步写库** 一致。
+
+## 11.5 三种方式能力对比 {#redis-mq-compare}
+
+在 [11.1](#redis-mq-variants) 选型总览基础上，从 **持久化、阻塞、堆积、确认、回溯** 五个维度对照（细节分别见 [11.2](#redis-mq-list)、[11.3](#redis-mq-pubsub)、[11.4](#redis-mq-stream)）。
+
+| 能力 | List | Pub/Sub | Stream |
+| --- | --- | --- | --- |
+| **消息持久化** | 支持 | 不支持 | 支持 |
+| **阻塞读取** | 支持（`BLPOP`/`BRPOP`） | 支持（订阅端阻塞等待推送） | 支持（`BLOCK`） |
+| **消息堆积处理** | 受内存限制；可多实例消费者各 `POP`（非严格组内分流） | 受消费者缓冲区限制 | 受流长度与 `MAXLEN` 等限制；**消费者组** 可分流提速 |
+| **消息确认机制** | 不支持 | 不支持 | 支持（**XACK** + pending-list） |
+| **消息回溯** | 不支持 | 不支持 | 支持（按 ID / pending 再读） |

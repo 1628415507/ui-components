@@ -67,16 +67,16 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
     }
 
     private class VoucherOrderHandler implements Runnable {
-
+        String QUEUE_NAME = "stream.orders";
         @Override
         public void run() {
             while (true) {
                 try {
                     // 1.获取消息队列中的订单信息 XREADGROUP GROUP g1 c1 COUNT 1 BLOCK 2000 STREAMS s1 >
                     List<MapRecord<String, Object, Object>> list = stringRedisTemplate.opsForStream().read(
-                            Consumer.from("g1", "c1"),
-                            StreamReadOptions.empty().count(1).block(Duration.ofSeconds(2)),
-                            StreamOffset.create("stream.orders", ReadOffset.lastConsumed())
+                            Consumer.from("g1", "c1"), // 消费者组g1，消费者c1
+                            StreamReadOptions.empty().count(1).block(Duration.ofSeconds(2)), // 读取1条消息，阻塞2秒
+                            StreamOffset.create(QUEUE_NAME, ReadOffset.lastConsumed()) // 从队列名称stream.orders流中读取最后一条消息
                     );
                     // 2.判断订单信息是否为空
                     if (list == null || list.isEmpty()) {
@@ -84,28 +84,28 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
                         continue;
                     }
                     // 解析数据
-                    MapRecord<String, Object, Object> record = list.get(0);
-                    Map<Object, Object> value = record.getValue();
-                    VoucherOrder voucherOrder = BeanUtil.fillBeanWithMap(value, new VoucherOrder(), true);
+                    MapRecord<String, Object, Object> record = list.get(0); // 获取第一条消息
+                    Map<Object, Object> value = record.getValue(); // 获取消息内容
+                    VoucherOrder voucherOrder = BeanUtil.fillBeanWithMap(value, new VoucherOrder(), true); // 将消息内容填充到VoucherOrder对象中
                     // 3.创建订单
                     createVoucherOrder(voucherOrder);
                     // 4.确认消息 XACK
-                    stringRedisTemplate.opsForStream().acknowledge("s1", "g1", record.getId());
+                    stringRedisTemplate.opsForStream().acknowledge("s1", "g1", record.getId()); // 确认消息
                 } catch (Exception e) {
                     log.error("处理订单异常", e);
-                    handlePendingList();
+                    handlePendingList(); // 处理异常消息
                 }
             }
         }
-
+        // 处理异常消息
         private void handlePendingList() {
             while (true) {
                 try {
                     // 1.获取pending-list中的订单信息 XREADGROUP GROUP g1 c1 COUNT 1 BLOCK 2000 STREAMS s1 0
                     List<MapRecord<String, Object, Object>> list = stringRedisTemplate.opsForStream().read(
-                            Consumer.from("g1", "c1"),
-                            StreamReadOptions.empty().count(1),
-                            StreamOffset.create("stream.orders", ReadOffset.from("0"))
+                            Consumer.from("g1", "c1"), // 消费者组g1，消费者c1
+                            StreamReadOptions.empty().count(1), // 读取1条消息,待处理消息不需要block
+                            StreamOffset.create(QUEUE_NAME, ReadOffset.from("0")) // 从队列名称stream.orders流中读取第一条消息
                     );
                     // 2.判断订单信息是否为空
                     if (list == null || list.isEmpty()) {
