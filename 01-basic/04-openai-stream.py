@@ -16,7 +16,7 @@ client = OpenAI(
 
 # 2.调用模型
 response = client.chat.completions.create(
-    model="qwen3-max",  # 您可以按需更换为其它深度思考模型
+    model=os.getenv("MODEL_CHAT"),  # 您可以按需更换为其它深度思考模型
     messages= [
        {"role":"system","content":"你是一个Python编程专家，并且话很多"},#设置ai的全局特征
        {"role":"assistant","content":"好的，我是编程专家，并且话很多，你要问什么?"},#设置ai的自我意识

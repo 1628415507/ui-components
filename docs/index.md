@@ -6,28 +6,27 @@ https://gemini.google.com/
 > 课程： <https://www.bilibili.com/video/BV1yjz5BLEoY?spm_id_from=333.788.player.switch&vd_source=9d75580d0b23d1137d56e03a996ac726&p=2>
 > 配套资料：<https://pan.baidu.com/s/1kQ-Q7UFWuHEbawQ4SStNSQ?pwd=1234>
 > API： <https://bailian.console.aliyun.com/cn-beijing/?tab=model#/api-key>
-![alt text](image.png)
+![alt text](img/image.png)
 ------------------------------
 
 ## 01 ApiKey调用
 
-- Python安装openai：
-  打开cmd，运行 `pip install openai -i  https://pypi.tuna.tsinghua.edu.cn/simple`
-- [pycharm安装](https://www.runoob.com/w3cnote/pycharm-windows-install.html)
-- 在电脑本地配置apiKey
+- Python安装openai： `pip install openai -i  https://pypi.tuna.tsinghua.edu.cn/simple`
+- [pycharm安装](img/https://www.runoob.com/w3cnote/pycharm-windows-install.html)
+
 ------------------------------
 
-## [02 Ollama](https://www.bilibili.com/video/BV1yjz5BLEoY?spm_id_from=333.788.player.switch&vd_source=9d75580d0b23d1137d56e03a996ac726&p=5)
+## [02 Ollama](img/https://www.bilibili.com/video/BV1yjz5BLEoY?spm_id_from=333.788.player.switch&vd_source=9d75580d0b23d1137d56e03a996ac726&p=5)
 
 ### Ollama简介
 
 - 开源软件，支持在本地运行模型
-![alt text](image.png)
-![alt text](image-1.png)
+![alt text](img/image.png)
+![alt text](img/image-1.png)
 
 - 蒸馏模型，参数量越大，效果越好，但是也更吃电脑性能（性能支持越好，回答问题的速度越快）
-![alt text](image-2.png)
-![alt text](image-3.png)
+![alt text](img/image-2.png)
+![alt text](img/image-3.png)
 
 ### 本地如何使用Ollama
 
@@ -36,7 +35,7 @@ https://gemini.google.com/
 
 ------------------------------
 
-## 03 [OpenAI库的基础使用](https://www.bilibili.com/video/BV1yjz5BLEoY?spm_id_from=333.788.player.switch&vd_source=9d75580d0b23d1137d56e03a996ac726&p=8)
+## 03 [OpenAI库的基础使用](img/https://www.bilibili.com/video/BV1yjz5BLEoY?spm_id_from=333.788.player.switch&vd_source=9d75580d0b23d1137d56e03a996ac726&p=8)
 
 ### 常见命令
 
@@ -45,11 +44,11 @@ https://gemini.google.com/
 3. 重新下载模型：`ollama pull <模型名称>`
 
 - 回复越多，消耗的tokens越多
-![alt text](image-4.png)
-![alt text](image-5.png)
-![alt text](image-7.png)
+![alt text](img/image-4.png)
+![alt text](img/image-5.png)
+![alt text](img/image-7.png)
 
-### [OpenAI库的流式输出](https://www.bilibili.com/video/BV1yjz5BLEoY?spm_id_from=333.788.player.switch&vd_source=9d75580d0b23d1137d56e03a996ac726&p=9)
+### [OpenAI库的流式输出](img/https://www.bilibili.com/video/BV1yjz5BLEoY?spm_id_from=333.788.player.switch&vd_source=9d75580d0b23d1137d56e03a996ac726&p=9)
 
 - 配置`stream=True`, 然后for循环输出
 - 可以让结果一段段输出
@@ -57,8 +56,8 @@ https://gemini.google.com/
 ### openai-附带历史消息调用模型
 
 - 通过多条message记录历史消息
-![alt text](image-6.png)
-![alt text](image-8.png)
+![alt text](img/image-6.png)
+![alt text](img/image-8.png)
 
 ------------------------------
 
@@ -72,53 +71,53 @@ https://gemini.google.com/
 4. 指定步骤
 5. 提供示例
 6. 使用参考文本（给出参考范围，降低幻觉）
-![alt text](image-9.png)
+![alt text](img/image-9.png)
 
 ### 提示词思想
 
-- [Zero-shot “零样本”](https://www.bilibili.com/video/BV1yjz5BLEoY/?spm_id_from=333.788.player.switch&vd_source=9d75580d0b23d1137d56e03a996ac726&p=12)
+- [Zero-shot “零样本”](img/https://www.bilibili.com/video/BV1yjz5BLEoY/?spm_id_from=333.788.player.switch&vd_source=9d75580d0b23d1137d56e03a996ac726&p=12)
 - 基于已经训练好的能力，从已知的属性，类推识别新的类别
-![alt text](image-11.png)
+![alt text](img/image-11.png)
 
 - Few-show “少样本”
 - 给出示例
-![alt text](image-10.png)
-![alt text](image-12.png)
+![alt text](img/image-10.png)
+![alt text](img/image-12.png)
 
 ### JSON数据格式
 
-![alt text](image-13.png)
+![alt text](img/image-13.png)
 
-## 05 [langchain](https://www.bilibili.com/video/BV1yjz5BLEoY?spm_id_from=333.788.videopod.episodes&vd_source=9d75580d0b23d1137d56e03a996ac726&p=17)
+## 05 [langchain](img/https://www.bilibili.com/video/BV1yjz5BLEoY?spm_id_from=333.788.videopod.episodes&vd_source=9d75580d0b23d1137d56e03a996ac726&p=17)
 
 ### 简介和功能
-![alt text](image-14.png)
-![alt text](image-15.png)
-![alt text](image-16.png)
-![alt text](image-17.png)
+![alt text](img/image-14.png)
+![alt text](img/image-15.png)
+![alt text](img/image-16.png)
+![alt text](img/image-17.png)
 ### 安装
 - 安装  `pip install langchain langchain-community langchain-ollama langchain-chroma dashscope chromadb bs4 jq`
 
 ### RAG
 - 检索增强生成技术
-![alt text](image-18.png)
+![alt text](img/image-18.png)
 #### 向量
 - 向量：一堆数字的序列
 #### 余弦相似度
 - 余弦相似度算法：衡量两个向量的核心相似度
 - 越接近1，相似度越高
 - 公式
-![alt text](image-19.png)
+![alt text](img/image-19.png)
 
 ## LangChain
 - 可以在本地配置调用ollama
 ### 流式输出
-![alt text](image-20.png)
+![alt text](img/image-20.png)
 
 ### 聊天模型（HumanMessage）
-![alt text](88e47332-1edd-4975-a2d4-0a8e83d8dee0.png)
+![alt text](img/88e47332-1edd-4975-a2d4-0a8e83d8dee0.png)
 
-![alt text](image-21.png)
+![alt text](img/image-21.png)
 
 ## 通用提示词模板
-![alt text](image-22.png)
+![alt text](img/image-22.png)
