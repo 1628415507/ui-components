@@ -6,9 +6,46 @@
 ## 前置准备
 > 参考docs\index.md
 
-client.chat.completions.create:调用模型
+OpenAI 官方 Python SDK（`openai` 包）用于编程方式调用大模型；多数云厂商提供**兼容 OpenAI 接口**的 `base_url`，调用方式一致。安装、ApiKey 与本地 Ollama 配置见 [index.md](index.md#03-openai库的基础使用)；`import` 与 `.env` 见 [python.md](python.md#21-环境变量-env)。
 
+本仓库后续 LangChain 示例与下列三步同源：先直连 SDK，再在 [§2 消息类型](#2-消息类型-messages) 中用 LangChain 消息类或元组表达同一套角色。
 
+| 步骤 | 要点 |
+| :--- | :--- |
+| 1. 创建客户端 | 实例化 `OpenAI`，配置 `api_key`、`base_url`（如阿里云 DashScope 兼容端点） |
+| 2. 对话补全 | `client.chat.completions.create(model=..., messages=[...])` |
+| 3. 读取结果 | 非流式：`response.choices[0].message.content`；流式见 [index.md · 流式输出](index.md#openai库的流式输出) |
+
+`messages` 中每条为 `{"role": ..., "content": ...}`。角色与 LangChain 聊天消息的对应关系：
+
+| role | 作用 | LangChain 对应 |
+| :--- | :--- | :--- |
+| `system` | 设定模型行为与规则 | [SystemMessage](#21-标准类形式) |
+| `assistant` | 模型侧已有回复（多轮上下文或示例） | [AIMessage](#21-标准类形式) |
+| `user` | 用户提问 | [HumanMessage](#21-标准类形式) |
+
+```python
+# 01-basic/03-openai.py
+
+from openai import OpenAI
+import os
+
+client = OpenAI(
+    api_key=os.getenv("OPENAI_API_KEY"),
+    base_url="https://dashscope.aliyuncs.com/compatible-mode/v1",
+)
+
+completion = client.chat.completions.create( # 创建对话
+    model="qwen3-max",
+    messages=[
+        {"role": "system", "content": "你是一个Python编程专家，并且不说废话简单回答"},
+        {"role": "assistant", "content": "好的，我是编程专家，并且话不多，你要问什么?"},
+        {"role": "user", "content": "输出1-10的数字，使用python代码"},
+    ],
+)
+
+print(completion.choices[0].message.content)
+```
 
 ## 1. 模型接入 (Models)
 
