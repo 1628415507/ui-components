@@ -24,7 +24,7 @@ messages = [{"role": "user", "content": "你是谁？你能做什么？"}]
 
 completion = client.chat.completions.create(
     # ↑ 调用「聊天补全」接口，返回一个「流式」迭代器，不是一次性返回整段回复
-    model="deepseek-r1",  # 您可以按需更换为其它深度思考模型
+    model="qwen3.8-max",  # 您可以按需更换为其它深度思考模型
     # ↑ model：指定使用的模型名称，qwen3-max 支持深度思考
     messages=messages,
     # ↑ 把上面的用户消息列表传给 API

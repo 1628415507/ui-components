@@ -154,7 +154,7 @@ result = calculate_something(10, 20)
   | --- | --- |
   | `end=""` | 打印后不换行（默认是 `\n`）。<br>在流式输出（Stream）中非常常用，让字符逐个水平排列。 |
   | `flush=True` | 立即刷新缓冲区，将内容输出到屏幕。<br/>在流式输出中，若不设置此参数，内容可能会被**缓存**而无法实时显示。 |
-- **zip(list1, list2)**：同时遍历两个列表。
+- **zip(list1, list2)**：同时遍历**两个列表**。
   
   ```python
   for a, b in zip(vec_a, vec_b):

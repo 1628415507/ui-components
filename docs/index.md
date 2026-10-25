@@ -96,18 +96,11 @@ https://gemini.google.com/
 ![alt text](img/image-16.png)
 ![alt text](img/image-17.png)
 ### 安装
-- 安装  `pip install langchain langchain-community langchain-ollama langchain-chroma dashscope chromadb bs4 jq`
-
+- 安装  `pip install langchain langchain-community langchain-ollama langchain-chroma dashscope chromadb  bs4 jq`(代理到阿里云： `-i https://pypi.tuna.tsingh.ua.edu.cn/simple`)
+![alt text](image-2.png)
 ### RAG
 - 检索增强生成技术
 ![alt text](img/image-18.png)
-#### 向量
-- 向量：一堆数字的序列
-#### 余弦相似度
-- 余弦相似度算法：衡量两个向量的核心相似度
-- 越接近1，相似度越高
-- 公式
-![alt text](img/image-19.png)
 
 ## LangChain
 - 可以在本地配置调用ollama
