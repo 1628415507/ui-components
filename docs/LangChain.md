@@ -46,6 +46,20 @@ completion = client.chat.completions.create( # 创建对话
 
 print(completion.choices[0].message.content)
 ```
+## 环境配置
+### 方式1 在系统环境变量中配置
+
+### 方式2 env文件配置
+通常使用 `.env` 文件管理 API Key，并通过 `dotenv` 加载。
+```python
+from dotenv import load_dotenv
+load_dotenv() # 自动读取当前目录下的 .env 文件
+# 使用环境变量
+import os
+model = ChatTongyi(model=os.getenv("MODEL_CHAT"))
+```
+
+---
 
 ## RAG (Retrieval-Augmented Generation) 简介
 
@@ -88,9 +102,9 @@ print(completion.choices[0].message.content)
   
     ![alt text](img/image-19.png)
 
-## 1. 模型接入 (Models)
+## 模型类型与接入 (Models)
 
-### 1.1 大语言模型 (LLM)
+### 1.大语言模型 (LLM)
 > LLMs是技术范畴的统称，指基于大参数量、海量文本训练的Transformer架构模型，核心能力是理解和生成自然语言
 
 适用于简单的文本补全。
@@ -109,7 +123,7 @@ print(completion.choices[0].message.content)
   model = OllamaLLM(model="qwen3:4b")
   ```
 
-### 1.2 聊天模型 (Chat Model)
+### 2. 聊天模型 (Chat Model)
 适用于**多轮对话**（支持 System/Human/AI 消息序列）。
 
 - **通义千问 (Tongyi)**：
@@ -122,8 +136,43 @@ print(completion.choices[0].message.content)
   from langchain_ollama import ChatOllama
   model = ChatOllama(model="qwen3:4b")
   ```
+#### 聊天模型的消息类型 (Messages)
+在聊天模型中，对话由不同类型的消息组成。
 
-### 1.3 嵌入模型 (Embeddings)
+##### 标准类形式
+需要从 `langchain_core.messages` 导入。
+- **SystemMessage**：系统指令，设定 AI 的角色或行为。
+- **HumanMessage**：用户发送的消息。
+- **AIMessage**：AI 的回复消息。
+
+```python
+from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
+
+messages = [
+    SystemMessage(content="你是一个诗人。"),
+    HumanMessage(content="写首诗吧"),
+    AIMessage(content="..."),
+    HumanMessage(content="再来一首")
+]
+```
+
+##### 简写形式 (元组)
+- **推荐用法**：使用 `(角色, 内容)` 的元组形式，优点是不需要导入消息类，且**支持变量注入**。
+- 角色关键字：`"system"`, `"human"`, `"ai"`。
+
+```python
+messages = [
+    ("system", "你是一个诗人。"),
+    ("human", "写一首唐诗。"),
+    ("ai", "锄禾日当午..."),
+    ("human", "再写一首。")
+]
+```
+
+---
+
+
+### 3. 嵌入模型 (Embeddings)
 用于**将文本转化为向量**，常用于**向量搜索**。
 
 - **阿里云 (DashScope)**：
@@ -152,16 +201,16 @@ vector = model.embed_query("我喜欢你")
 vectors = model.embed_documents(["我喜欢你", "我稀饭你"])
 ```
 
-### 1.4 调用方式 (Invocation)
+### 4. 调用方式 (Invocation)
 
-#### 1.4.1 同步调用 (invoke)
+#### 4.1. 同步调用 (invoke)
 **一次性**获取完整结果。
 ```python
 res = model.invoke(input="你是谁？")
 print(res)
 ```
 
-#### 1.4.2 流式输出 (stream)
+#### 4.2. 流式输出 (stream)
 **实时获取**模型生成的文本块，逐段流式输出。
 
 - **LLM 模式**：直接迭代 chunk。
@@ -174,60 +223,11 @@ print(res)
   ```python
   res = model.stream(input=messages)
   for chunk in res:
-      print(chunk.content, end="", flush=True)
+      print(chunk.content, end="", flush=True)  # end=""：不换行
   ```
 
 ---
 
-## 2. 消息类型 (Messages)
-在聊天模型中，对话由不同类型的消息组成。
-
-### 2.1 标准类形式
-需要从 `langchain_core.messages` 导入。
-- **SystemMessage**：系统指令，设定 AI 的角色或行为。
-- **HumanMessage**：用户发送的消息。
-- **AIMessage**：AI 的回复消息。
-
-```python
-from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
-
-messages = [
-    SystemMessage(content="你是一个诗人。"),
-    HumanMessage(content="写首诗吧"),
-    AIMessage(content="..."),
-    HumanMessage(content="再来一首")
-]
-```
-
-### 2.2 简写形式 (元组)
-- **推荐用法**：使用 `(角色, 内容)` 的元组形式，优点是不需要导入消息类，且**支持变量注入**。
-- 角色关键字：`"system"`, `"human"`, `"ai"`。
-
-```python
-messages = [
-    ("system", "你是一个诗人。"),
-    ("human", "写一首唐诗。"),
-    ("ai", "锄禾日当午..."),
-    ("human", "再写一首。")
-]
-```
-
----
-
-## 3. 环境配置
-### 3.1 方式1 在系统环境变量中配置
-
-### 3.2 方式2 env文件配置
-通常使用 `.env` 文件管理 API Key，并通过 `dotenv` 加载。
-```python
-from dotenv import load_dotenv
-load_dotenv() # 自动读取当前目录下的 .env 文件
-# 使用环境变量
-import os
-model = ChatTongyi(model=os.getenv("MODEL_CHAT"))
-```
-
----
 
 ## 4. 提示词模板 (Prompts)
 

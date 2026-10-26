@@ -1,9 +1,15 @@
-from langchain_community.embeddings import DashScopeEmbeddings
+import dashscope
+from http import HTTPStatus
+from dotenv import load_dotenv
 
-# 创建模型对象 不传model默认用的是 text-embeddings-v1
-model = DashScopeEmbeddings()
+load_dotenv()
 
-# 不用invoke stream
-# embed_query、embed_documents
-print(model.embed_query("我喜欢你"))
-print(model.embed_documents(["我喜欢你", "我稀饭你", "晚上吃啥"]))
+dashscope.base_http_api_url = "https://ws-78j32b28bvlgsgf2.cn-beijing.maas.aliyuncs.com/api/v1"
+
+input_texts = "衣服的质量杠杠的，很漂亮，不枉我等了这么久啊，喜欢，以后还来这里买"
+
+resp = dashscope.TextEmbedding.call(
+    model="qwen3.7-text-embedding",
+    input=input_texts
+)
+print(resp)
