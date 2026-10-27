@@ -241,25 +241,29 @@ from langchain_core.prompts import PromptTemplate
 
 # 定义模板：支持 lastname 和 gender 两个变量
 prompt_template = PromptTemplate.from_template("我的邻居姓{lastname}, 刚生了{gender}")
+
 ```
 
-#### 4.1.1 模板方法：`format` vs `invoke`
+#### 4.1.1 模板方法：`.format` vs `.invoke`
 
-`PromptTemplate` 继承 `Runnable`，注入变量有两种常用方式：
+- 都支持解析`{}`占位符
+
+- `PromptTemplate` 继承 `Runnable`，注入变量有两种常用方式：
 
 | 方法 | 输入值类型 | 返回值类型 | 典型用途 |
 | :--- | :--- | :--- | :--- |
-| `.format(kwargs)` | `str`          | `str` | 手动生成最终字符串，再传给 `model.invoke(input=prompt_text)` |
-| `.invoke(input=dict)` | 字典（`dict`） | `PromptValue`（如 `StringPromptValue`） | 作为 Runnable 调用；需字符串时配合 [4.1.2](#412-promptvalue-转换) 的 `.to_string()`，或接入 [§5 LCEL](#5-lcel-chains--composition) 链 |
+| `.format(k1=v1,k2=v2,...)` | `str`          | `str` | 手动生成最终字符串，再传给 `model.invoke(input=prompt_text)` |
+| `.invoke({"k1":v1,"k2":v2,...})` | `dict`（字典） | `PromptValue`类对象 | 1.作为 Runnable 调用；<br>2.需字符串使用 `.to_string()`方法或接入 [§5 LCEL](#5-lcel-chains--composition) 链<br>3.**支持`MessagesPlaceholder`**(详见4.4) |
 
 - 方式1：format
 
 ```python
-# 创建模板
+# 创建模板，template得到实例对象
 template = PromptTemplate.from_template("我的邻居是：{lastname}，最喜欢：{hobby}")
 # 传入值，获取组装的模板结果
 res = template.format(lastname="张大明", hobby="钓鱼")
-print(res, type(res))  # str
+print(res, type(res))  
+# 我的邻居是：张大明，最喜欢：钓鱼， str
 ```
 
 - 方式2：invoke
@@ -274,10 +278,11 @@ print(res2, type(res2))  # PromptValue（如 StringPromptValue）
 
 #### 4.1.2 PromptValue 转换
 
-对模板调用 `.invoke()` 后得到 `PromptValue` 对象，可进一步转换为字符串或消息列表：
+对模板调用 `.invoke()` 后得到 `PromptValue` **对象**，可进一步转换为字符串或消息列表：
 
 - **to_string()**：
-  - **功能**：将提示词对象转换为**纯文本字符串**。
+  
+  - **功能**：将提示词**对象转换为****纯文本字符串**。
   - **使用场景**：查看最终提示词内容，或手动将提示词传给 `model.invoke(input=prompt_text)`。
   - **示例**：
     
@@ -309,11 +314,14 @@ print(res2, type(res2))  # PromptValue（如 StringPromptValue）
 适用于通过**提供少量示例**来引导模型生成特定格式或逻辑的回复。
 
 - **核心组件**：
-  - `example_prompt`: 单个示例的模板。
-  - `examples`: 示例数据列表（List of Dict）。
-  - `prefix`: 示例前的引导语。
-  - `suffix`: 示例后的后缀，通常包含最终要注入的变量。
-  - `input_variables`: 声明在前缀或后缀中需要注入的变量名。
+  
+| 属性 | 作用|
+| :--- | :--- |
+|  `example_prompt` |  单个示例的模板。 |
+| `examples`  |示例数据列表（List of Dict）。   |
+| `prefix`  |  示例前的引导语。 |
+| `suffix`  | 示例后的后缀，通常包含**最终要注入的变量**。  |
+|  `input_variables` | 声明在前缀或后缀中需要注入的变量名。  |
 
 - **代码示例**：
   ```python
@@ -344,7 +352,8 @@ print(res2, type(res2))  # PromptValue（如 StringPromptValue）
 
 ### 4.4 聊天提示词模板 (ChatPromptTemplate)
 
-面向**聊天模型**的提示词模板，通过 `from_messages` 组装消息序列；输出为消息列表，而非 `PromptTemplate` 的纯文本字符串。
+- 面向**聊天模型**的提示词模板，通过 `from_messages` 组装消息序列；
+- 输出为消息列表，而非 `PromptTemplate` 的纯文本字符串。
 
 ```python
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
@@ -374,7 +383,12 @@ print(res.content, type(res))
 ```
 
 - **MessagesPlaceholder**：在模板中声明占位变量（如 `"history"`），调用 `.invoke()` 时传入对应消息列表（元组或 `BaseMessage` 均可）。
-- **与 PromptTemplate 的区别**：`ChatPromptTemplate` 面向 Chat Model，输出消息序列；`PromptTemplate` 输出纯文本，见 [§4.1](#41-定义提示词模板-prompttemplate)。
+
+- **与 PromptTemplate 的区别**：
+
+  `ChatPromptTemplate` 面向 Chat Model，输出消息序列；
+
+  `PromptTemplate` 输出纯文本，见 [§4.1](#41-定义提示词模板-prompttemplate)。
 
 ---
 
