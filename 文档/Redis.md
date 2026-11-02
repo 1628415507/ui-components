@@ -70,9 +70,9 @@ summary: Find all keys matching the given pattern
 ```
 
 
-
 # 五、 Redis 数据类型与 key 规范
 
+- 除 String、Hash、List、Set、ZSet 外，Redis 3.2 起提供 **GEO**（Geolocation，地理坐标）类型，用于按经纬度存取与范围检索，命令见 [5.8 GEO](#redis-geo-commands)。
 - Redis 中最基础的 Value 类型；value 虽为字符串，按内容可分为三类。
 - 无论哪种形态，底层均以**字节数组**存储（编码方式不同）；单个 String 值最大 **512MB**。
 
@@ -179,21 +179,74 @@ summary: Find all keys matching the given pattern
 - 特征：**可排序**、**member 不重复**、**查询快**；常用于**排行榜**等场景。
 
 
-| 命令                        | 作用                                         | 语法                                       | 示例                                    |
-| --------------------------- | -------------------------------------------- | ------------------------------------------ | --------------------------------------- |
-| **ZADD**                    | 添加 member 并指定 score；已存在则更新 score | `ZADD key member score [member score ...]` | `ZADD heima:rank:game jack 100 rose 95` |
-| **ZREM**                    | 删除指定 member                              | `ZREM key member [member ...]`             | `ZREM heima:rank:game rose`             |
-| **ZSCORE**                  | 获取 member 的 score                         | `ZSCORE key member`                        | `ZSCORE heima:rank:game jack`           |
-| **ZRANK**                   | 获取 member 按 score 升序的排名（从 0 起）   | `ZRANK key member`                         | `ZRANK heima:rank:game jack`            |
-| **ZCARD**                   | 返回 member 个数                             | `ZCARD key`                                | `ZCARD heima:rank:game`                 |
-| **ZCOUNT**                  | 统计 score 落在闭区间内的 member 个数        | `ZCOUNT key min max`                       | `ZCOUNT heima:rank:game 90 100`         |
-| **ZINCRBY**                 | 将 member 的 score 增加指定步长              | `ZINCRBY key increment member`             | `ZINCRBY heima:rank:game 5 jack`        |
-| **ZRANGE**                  | 按 score **升序**，取下标区间内的 member     | `ZRANGE key start end`                     | `ZRANGE heima:rank:game 0 2`            |
-| **ZRANGEBYSCORE**           | 按 score 升序，取 score 区间内的 member      | `ZRANGEBYSCORE key min max`                | `ZRANGEBYSCORE heima:rank:game 90 100`  |
-| **ZDIFF / ZINTER / ZUNION** | 对多个 ZSet 求差集、交集、并集               | `ZDIFF numkeys key [key ...]` 等           | `ZINTER 2 heima:zset:s1 heima:zset:s2`  |
+| 命令                        | 作用                                         | 语法                                      | 示例                                    |
+| --------------------------- | -------------------------------------------- | ----------------------------------------- | --------------------------------------- |
+| **ZADD**                    | 添加 member 并指定 score；已存在则更新 score | `ZADD key score member [score member...]` | `ZADD heima:rank:game 100 jack 95 rose` |
+| **ZREM**                    | 删除指定 member                              | `ZREM key member [member ...]`            | `ZREM heima:rank:game rose`             |
+| **ZSCORE**                  | 获取 member 的 score                         | `ZSCORE key member`                       | `ZSCORE heima:rank:game jack`           |
+| **ZRANK**                   | 获取 member 按 score 升序的排名（从 0 起）   | `ZRANK key member`                        | `ZRANK heima:rank:game jack`            |
+| **ZCARD**                   | 返回 member 个数                             | `ZCARD key`                               | `ZCARD heima:rank:game`                 |
+| **ZCOUNT**                  | 统计 score 落在闭区间内的 member 个数        | `ZCOUNT key min max`                      | `ZCOUNT heima:rank:game 90 100`         |
+| **ZINCRBY**                 | 将 member 的 score 增加指定步长              | `ZINCRBY key increment member`            | `ZINCRBY heima:rank:game 5 jack`        |
+| **ZRANGE**                  | 按 score **升序**，取下标区间内的 member     | `ZRANGE key start end [WITHSCORES]`       | `ZRANGE heima:rank:game 0 2`            |
+| **ZRANGEBYSCORE**           | 按 score 升序，取 score 区间内的 member      | `ZRANGEBYSCORE key min max [WITHSCORES] [LIMIT offset count]` | `ZRANGEBYSCORE heima:rank:game 90 100`  |
+| **ZREVRANGEBYSCORE**        | 按 score **降序**，取 score 区间内的 member（参数为 **max min**） | `ZREVRANGEBYSCORE key max min [WITHSCORES] [LIMIT offset count]` | `ZREVRANGEBYSCORE z1 5 0 WITHSCORES LIMIT 1 3` |
+| **ZDIFF / ZINTER / ZUNION** | 对多个 ZSet 求差集、交集、并集               | `ZDIFF numkeys key [key ...]` 等          | `ZINTER 2 heima:zset:s1 heima:zset:s2`  |
+
+- **`WITHSCORES`**（可选）：除 member 外一并返回 score，结果为 `member1 score1 member2 score2 ...` 交替排列。
+- **`LIMIT offset count`**（可选）：在已按 score 筛出的结果上再分页——先跳过 **offset** 条，再最多取 **count** 条；常与 `ZRANGEBYSCORE` / `ZREVRANGEBYSCORE` 联用。上表示例在 score 闭区间 `[0, 5]` 内**降序**取数，跳过第 1 条后最多再取 3 条，且带 score。
+
+默认按 score **升序**排名与区间；需要**降序**时在命令的 `Z` 后插入 `REV`（如 `ZREVRANK`、`ZREVRANGE`、`ZREVRANGEBYSCORE`），例如 `ZREVRANGE heima:rank:game 0 0` 可取排行榜第一名。
+
+## 5.8 GEO 类型与常见命令 {#redis-geo-commands}
+
+- **GEO** 表示 **Geolocation（地理坐标）**：在指定 key 下保存 **经度、纬度** 与 **member**（如店铺 id），支持按坐标做距离计算与范围查询。
+- 本仓库 hm-dianping 按店铺 **类型** 分 key：`shop:geo:{typeId}`，member 为店铺 id；坐标来自 `Shop` 的 `x`（经度）、`y`（纬度）。
 
 
-默认按 score **升序**排名与区间；需要**降序**时在命令的 `Z` 后插入 `REV`（如 `ZREVRANK`、`ZREVRANGE`），例如 `ZREVRANGE heima:rank:game 0 0` 可取排行榜第一名。
+| 命令 | 作用 | 语法 | 示例 |
+| --- | --- | --- | --- |
+| **GEOADD** | 添加或更新 member 的经纬度 | `GEOADD key longitude latitude member [longitude latitude member ...]` | `GEOADD shop:geo:1 116.4 39.9 10` |
+| **GEODIST** | 计算两 member 间距离 | `GEODIST key member1 member2 [m\|km\|ft\|mi]` | `GEODIST shop:geo:1 10 11 km` |
+| **GEOHASH** | 返回 member 坐标的 Geohash 字符串 | `GEOHASH key member [member ...]` | `GEOHASH shop:geo:1 10` |
+| **GEOPOS** | 返回 member 的经纬度 | `GEOPOS key member [member ...]` | `GEOPOS shop:geo:1 10` |
+| **GEORADIUS**（废弃） | 以圆心 + 半径查范围内 member（按距离排序） | `GEORADIUS key longitude latitude radius m\|km ...` | 课件旧命令；**Redis 6.2 起已废弃**，由 **GEOSEARCH** 替代 |
+| **GEOSEARCH** | 按圆或矩形范围搜索 member，可带距离、排序、条数限制 | `GEOSEARCH key FROMLONLAT lon lat BYRADIUS r km [WITHDIST] [COUNT n]` | 本仓库附近店铺查询采用此命令（Spring：`opsForGeo().search`） |
+| **GEOSEARCHSTORE** | 同 GEOSEARCH，结果写入目标 key | `GEOSEARCHSTORE dest src ...` | 将搜索结果持久到另一 key |
+
+**写入（初始化）**：测试类 `loadShopData` 按 `typeId` 分组后批量 `GEOADD`（`opsForGeo().add`）。
+
+```java
+// Redis/hm-dianping/src/test/java/com/hmdp/HmDianPingApplicationTests.java
+
+String key = SHOP_GEO_KEY + typeId;
+List<RedisGeoCommands.GeoLocation<String>> locations = new ArrayList<>(value.size());
+for (Shop shop : value) {
+    locations.add(new RedisGeoCommands.GeoLocation<>(
+            shop.getId().toString(),
+            new Point(shop.getX(), shop.getY())
+    ));
+}
+stringRedisTemplate.opsForGeo().add(key, locations);
+```
+
+**[按距离查店铺](https://www.bilibili.com/video/BV1cr4y1671t/?spm_id_from=333.788.videopod.episodes&vd_source=9d75580d0b23d1137d56e03a996ac726&p=90)**：传入用户坐标 `(x, y)` 时，对 `shop:geo:{typeId}` 做 **GEOSEARCH**（圆心为用户位置、半径 **5000 m**、`WITHDISTANCE`，`limit` 取到当前页末尾）；再在应用层 `skip` 做页内偏移，按 id 回表并回填 `distance`。
+
+```java
+// Redis/hm-dianping/src/main/java/com/hmdp/service/impl/ShopServiceImpl.java
+
+String key = SHOP_GEO_KEY + typeId;
+GeoResults<RedisGeoCommands.GeoLocation<String>> results = stringRedisTemplate.opsForGeo()
+        .search(
+                key,
+                GeoReference.fromCoordinate(x, y),
+                new Distance(5000),
+                RedisGeoCommands.GeoSearchCommandArgs.newGeoSearchArgs().includeDistance().limit(end)
+        );
+// ... 解析 shopId、distance，再 ORDER BY FIELD(id, ...) 查 Shop
+```
+
+未传坐标时 `queryShopByType` 仍走数据库分页，**不**使用 GEO。
 
 # 六、 Java 客户端：Jedis（了解）
 
@@ -396,6 +449,7 @@ spring:
 | `redisTemplate.opsForSet()`   | `SetOperations`   | [Set](#redis-set-commands)       |
 | `redisTemplate.opsForStream()` | `StreamOperations` | [Stream](#redis-stream-commands) |
 | `redisTemplate.opsForZSet()`  | `ZSetOperations`  | [ZSet](#redis-zset-commands)     |
+| `redisTemplate.opsForGeo()`   | `GeoOperations`   | [GEO](#redis-geo-commands)       |
 | `redisTemplate` 自身          | —                 | 通用命令（如 `delete`）          |
 
 
@@ -1778,9 +1832,7 @@ private void handlePendingList() {
 | **消息回溯** | 不支持 | 不支持 | 支持（按 ID / pending 再读） |
 
 
-> - 观看到：https://www.bilibili.com/video/BV1cr4y1671t/?spm_id_from=333.788.player.switch&vd_source=9d75580d0b23d1137d56e03a996ac726&p=78
-
-# 十二、Feed 流（关注推送） {#redis-feed-chapter}
+# 十二、[Feed 流（关注推送） {#redis-feed-chapter}](https://www.bilibili.com/video/BV1cr4y1671t/?spm_id_from=333.788.videopod.episodes&vd_source=9d75580d0b23d1137d56e03a996ac726&p=84)
 
 **关注推送**也称 **Feed 流**（直译「投喂」）：系统按**时间线或算法**把内容推到用户面前，配合下拉刷新形成连续浏览体验。相对「用户主动寻找内容」的传统模式，Feed 更接近「内容经匹配后触达用户」。
 
@@ -1802,3 +1854,80 @@ private void handlePendingList() {
 ![alt text](image-2.png)
 - **推拉结合**：普通用户发帖仍推给粉丝；大 V 只写发件箱，由活跃粉丝推、普通粉丝读时再拉，兼顾读延迟与写成本。
 ![alt text](image-3.png)
+
+## 12.2 本仓库选型与 Redis 结构 {#redis-feed-hmdp}
+
+hm-dianping 在 `saveBlog` / `queryBlogOfFollow` 中实现 **推模式**：笔记 ID 作为 [ZSet](#redis-zset-commands) 的 member，**score 为发布时间戳**（与 [5.7 SortedSet](#redis-zset-commands) 中「可排序」一致）；关注关系在 DB `tb_follow` 之外，用 [Set](#redis-set-commands) 缓存「我关注了谁」便于共同关注等能力。
+
+| Redis key | 类型 | 作用 |
+| --- | --- | --- |
+| `feed:{userId}` | ZSet | 粉丝 **收件箱**：member 为笔记 id，score 为发布时间毫秒时间戳 |
+| `follows:{userId}` | Set | 当前用户关注的用户 id（`FollowServiceImpl`） |
+
+| 环节 | Redis 命令（课件） | 本仓库 |
+| --- | --- | --- |
+| 发帖推送给粉丝 | `ZADD feed:{粉丝id} {时间戳} {笔记id}` | `BlogServiceImpl#saveBlog` |
+| 读关注 Feed | `ZREVRANGEBYSCORE feed:{userId} max min LIMIT offset count` | `BlogServiceImpl#queryBlogOfFollow` |
+| 维护关注列表 | `SADD` / `SREM follows:{userId}` | `FollowServiceImpl#follow` |
+
+接口：`GET /blog/of/follow?lastId={max}&offset={offset}`（`lastId` 对应滚动分页的上界 score）。
+
+## 12.3 发布笔记：写扩散 {#redis-feed-push-write}
+
+发帖落库后查作者粉丝列表，对每个粉丝执行 `ZADD`（Spring：`opsForZSet().add`）。**未**在「新关注」时回填该作者历史笔记，仅新发笔记会进入粉丝收件箱。
+
+```java
+// Redis/hm-dianping/src/main/java/com/hmdp/service/impl/BlogServiceImpl.java
+
+@Override
+public Result saveBlog(Blog blog) {
+    UserDTO user = UserHolder.getUser();
+    blog.setUserId(user.getId());
+    boolean isSuccess = save(blog);
+    if(!isSuccess){
+        return Result.fail("新增笔记失败!");
+    }
+    List<Follow> follows = followService.query().eq("follow_user_id", user.getId()).list();
+    for (Follow follow : follows) {
+        Long userId = follow.getUserId();
+        String key = FEED_KEY + userId;
+        stringRedisTemplate.opsForZSet().add(key, blog.getId().toString(), System.currentTimeMillis());
+    }
+    return Result.ok(blog.getId());
+}
+```
+
+## 12.4 关注页：滚动分页读收件箱 {#redis-feed-scroll}
+
+传统 `LIMIT offset, size` 在数据变动时易 **漏页、重复**；本仓库用 **基于时间戳的滚动分页**：每次带上次返回的 `minTime`（作为本次 `max`）与 `offset`（同一毫秒下已读条数），配合 `ZREVRANGEBYSCORE` 按 score **降序**取下一批（默认每次 2 条）。
+
+```java
+// Redis/hm-dianping/src/main/java/com/hmdp/service/impl/BlogServiceImpl.java
+
+@Override
+public Result queryBlogOfFollow(Long max, Integer offset) {
+    Long userId = UserHolder.getUser().getId();
+    String key = FEED_KEY + userId;
+    Set<ZSetOperations.TypedTuple<String>> typedTuples = stringRedisTemplate.opsForZSet()
+            .reverseRangeByScoreWithScores(key, 0, max, offset, 2);
+    if (typedTuples == null || typedTuples.isEmpty()) {
+        return Result.ok();
+    }
+    List<Long> ids = new ArrayList<>(typedTuples.size());
+    long minTime = 0;
+    int os = 1;
+    for (ZSetOperations.TypedTuple<String> tuple : typedTuples) {
+        ids.add(Long.valueOf(tuple.getValue()));
+        long time = tuple.getScore().longValue();
+        if(time == minTime){
+            os++;
+        }else{
+            minTime = time;
+            os = 1;
+        }
+    }
+    // ... 按 ids 查 Blog，封装 ScrollResult(list, minTime, offset)
+}
+```
+
+`ScrollResult` 中 `minTime`、`offset` 供前端下一页请求传入 `lastId` 与 `offset`；笔记详情仍走 DB，Redis 只存 **收件箱索引**（笔记 id + 时间 score）。

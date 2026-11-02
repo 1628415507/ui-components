@@ -159,7 +159,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
         for (Follow follow : follows) {
             // 4.1.获取粉丝id
             Long userId = follow.getUserId();
-            // 4.2.推送
+            // 4.2.推送,推送到粉丝收件箱
             String key = FEED_KEY + userId;
             stringRedisTemplate.opsForZSet().add(key, blog.getId().toString(), System.currentTimeMillis());
         }
@@ -181,24 +181,24 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
         }
         // 4.解析数据：blogId、minTime（时间戳）、offset
         List<Long> ids = new ArrayList<>(typedTuples.size());
-        long minTime = 0; // 2
-        int os = 1; // 2
+        long minTime = 0; // 2 minTime表示最小时间戳
+        int os = 1; // 2 os表示偏移量
         for (ZSetOperations.TypedTuple<String> tuple : typedTuples) { // 5 4 4 2 2
             // 4.1.获取id
-            ids.add(Long.valueOf(tuple.getValue()));
+            ids.add(Long.valueOf(tuple.getValue())); // 获取笔记id-blogId
             // 4.2.获取分数(时间戳）
-            long time = tuple.getScore().longValue();
+            long time = tuple.getScore().longValue(); // 获取时间戳
             if(time == minTime){
-                os++;
+                os++; // 如果时间戳相同，则偏移量加1
             }else{
-                minTime = time;
-                os = 1;
+                minTime = time; // 如果时间戳不同，则设置最小时间戳
+                os = 1; // 如果时间戳不同，则重置偏移量
             }
         }
 
-        // 5.根据id查询blog
+        // 5.根据ids查询blog
         String idStr = StrUtil.join(",", ids);
-        List<Blog> blogs = query().in("id", ids).last("ORDER BY FIELD(id," + idStr + ")").list();
+        List<Blog> blogs = query().in("id", ids).last("ORDER BY FIELD(id," + idStr + ")").list(); // 根据id查询blog
 
         for (Blog blog : blogs) {
             // 5.1.查询blog有关的用户
@@ -209,9 +209,9 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
 
         // 6.封装并返回
         ScrollResult r = new ScrollResult();
-        r.setList(blogs);
-        r.setOffset(os);
-        r.setMinTime(minTime);
+        r.setList(blogs); // 设置笔记列表
+        r.setOffset(os); // 设置偏移量
+        r.setMinTime(minTime); // 设置最小时间戳
 
         return Result.ok(r);
     }

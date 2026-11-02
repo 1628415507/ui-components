@@ -72,7 +72,7 @@ public class Blog implements Serializable {
     private String content;
 
     /**
-     * 点赞数量
+     * 点赞数量 
      */
     private Integer liked;
 
