@@ -20,11 +20,11 @@ public class FollowController {
 
     @Resource
     private IFollowService followService;
-
+    // 关注和取消关注
     @PutMapping("/{id}/{isFollow}")
     public Result follow(@PathVariable("id") Long followUserId, @PathVariable("isFollow") Boolean isFollow) {
         return followService.follow(followUserId, isFollow);
-    }
+    }  
 
     @GetMapping("/or/not/{id}")
     public Result isFollow(@PathVariable("id") Long followUserId) {

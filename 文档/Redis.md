@@ -181,14 +181,14 @@ summary: Find all keys matching the given pattern
 
 | 命令                        | 作用                                         | 语法                                       | 示例                                    |
 | --------------------------- | -------------------------------------------- | ------------------------------------------ | --------------------------------------- |
-| **ZADD**                    | 添加 member 并指定 score；已存在则更新 score | `ZADD key score member [score member ...]` | `ZADD heima:rank:game 100 jack 95 rose` |
+| **ZADD**                    | 添加 member 并指定 score；已存在则更新 score | `ZADD key member score [member score ...]` | `ZADD heima:rank:game jack 100 rose 95` |
 | **ZREM**                    | 删除指定 member                              | `ZREM key member [member ...]`             | `ZREM heima:rank:game rose`             |
 | **ZSCORE**                  | 获取 member 的 score                         | `ZSCORE key member`                        | `ZSCORE heima:rank:game jack`           |
 | **ZRANK**                   | 获取 member 按 score 升序的排名（从 0 起）   | `ZRANK key member`                         | `ZRANK heima:rank:game jack`            |
 | **ZCARD**                   | 返回 member 个数                             | `ZCARD key`                                | `ZCARD heima:rank:game`                 |
 | **ZCOUNT**                  | 统计 score 落在闭区间内的 member 个数        | `ZCOUNT key min max`                       | `ZCOUNT heima:rank:game 90 100`         |
 | **ZINCRBY**                 | 将 member 的 score 增加指定步长              | `ZINCRBY key increment member`             | `ZINCRBY heima:rank:game 5 jack`        |
-| **ZRANGE**                  | 按 score 升序，取下标区间内的 member         | `ZRANGE key start stop`                    | `ZRANGE heima:rank:game 0 2`            |
+| **ZRANGE**                  | 按 score **升序**，取下标区间内的 member     | `ZRANGE key start end`                     | `ZRANGE heima:rank:game 0 2`            |
 | **ZRANGEBYSCORE**           | 按 score 升序，取 score 区间内的 member      | `ZRANGEBYSCORE key min max`                | `ZRANGEBYSCORE heima:rank:game 90 100`  |
 | **ZDIFF / ZINTER / ZUNION** | 对多个 ZSet 求差集、交集、并集               | `ZDIFF numkeys key [key ...]` 等           | `ZINTER 2 heima:zset:s1 heima:zset:s2`  |
 
@@ -1776,3 +1776,29 @@ private void handlePendingList() {
 | **消息堆积处理** | 受内存限制；可多实例消费者各 `POP`（非严格组内分流） | 受消费者缓冲区限制 | 受流长度与 `MAXLEN` 等限制；**消费者组** 可分流提速 |
 | **消息确认机制** | 不支持 | 不支持 | 支持（**XACK** + pending-list） |
 | **消息回溯** | 不支持 | 不支持 | 支持（按 ID / pending 再读） |
+
+
+> - 观看到：https://www.bilibili.com/video/BV1cr4y1671t/?spm_id_from=333.788.player.switch&vd_source=9d75580d0b23d1137d56e03a996ac726&p=78
+
+# 十二、Feed 流（关注推送） {#redis-feed-chapter}
+
+**关注推送**也称 **Feed 流**（直译「投喂」）：系统按**时间线或算法**把内容推到用户面前，配合下拉刷新形成连续浏览体验。相对「用户主动寻找内容」的传统模式，Feed 更接近「内容经匹配后触达用户」。
+
+个人主页「我关注的人发的笔记」属于 **Timeline（时间线）**：按发布时间排序、信息较全；与 **智能排序**（算法筛内容、提粘性）相比，实现更直接，本仓库 hm-dianping 采用 Timeline + **推模式**。
+
+## 12.1 Timeline 三种实现 {#redis-feed-timeline-modes}
+
+| 比较维度 | 拉模式（读扩散） | 推模式（写扩散） | 推拉结合（读写混合） |
+| --- | --- | --- | --- |
+| **写比例** | 低 | 高 | 中 |
+| **读比例** | 高 | 低 | 中 |
+| **用户读延迟** | 高 | 低 | 低 |
+| **实现难度** | 复杂 | 简单 | 很复杂 |
+| **典型场景** | 较少单独使用 | 用户量不大、无明显大 V | 千万级用户且存在大 V |
+
+- **拉模式**：读者刷新 Feed 时，从所关注作者的 **发件箱** 拉取再合并排序进 **收件箱**；写少读多，读路径要聚合多人数据。
+![alt text](image-1.png)
+- **推模式**：作者发帖时，把消息写入每位粉丝的 **收件箱**；读路径只查自己的收件箱。粉丝量大时单次发帖写放大明显（大 V 问题）。
+![alt text](image-2.png)
+- **推拉结合**：普通用户发帖仍推给粉丝；大 V 只写发件箱，由活跃粉丝推、普通粉丝读时再拉，兼顾读延迟与写成本。
+![alt text](image-3.png)
