@@ -97,16 +97,16 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
         String key = SHOP_GEO_KEY + typeId;
         GeoResults<RedisGeoCommands.GeoLocation<String>> results = stringRedisTemplate.opsForGeo() // GEOSEARCH key BYLONLAT x y BYRADIUS 10 WITHDISTANCE
                 .search(
-                        key,
-                        GeoReference.fromCoordinate(x, y),
-                        new Distance(5000),
-                        RedisGeoCommands.GeoSearchCommandArgs.newGeoSearchArgs().includeDistance().limit(end)
+                        key, 
+                        GeoReference.fromCoordinate(x, y),// 坐标
+                        new Distance(5000),// 距离
+                        RedisGeoCommands.GeoSearchCommandArgs.newGeoSearchArgs().includeDistance().limit(end)// 限制结果数量
                 );
         // 4.解析出id
         if (results == null) {
             return Result.ok(Collections.emptyList());
         }
-        List<GeoResult<RedisGeoCommands.GeoLocation<String>>> list = results.getContent();
+        List<GeoResult<RedisGeoCommands.GeoLocation<String>>> list = results.getContent();// 获取结果
         if (list.size() <= from) {
             // 没有下一页了，结束
             return Result.ok(Collections.emptyList());
@@ -114,6 +114,7 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
         // 4.1.截取 from ~ end的部分
         List<Long> ids = new ArrayList<>(list.size());
         Map<String, Distance> distanceMap = new HashMap<>(list.size());
+        // skip:跳过from个元素，然后遍历剩下的元素，即截取from ~ end的部分
         list.stream().skip(from).forEach(result -> {
             // 4.2.获取店铺id
             String shopIdStr = result.getContent().getName();
@@ -122,13 +123,14 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
             Distance distance = result.getDistance();
             distanceMap.put(shopIdStr, distance);
         });
-        // 5.根据id查询Shop
+        // 5.根据id查询店铺Shop，给店铺设置距离
         String idStr = StrUtil.join(",", ids);
         List<Shop> shops = query().in("id", ids).last("ORDER BY FIELD(id," + idStr + ")").list();
         for (Shop shop : shops) {
-            shop.setDistance(distanceMap.get(shop.getId().toString()).getValue());
+            shop.setDistance(distanceMap.get(shop.getId().toString()).getValue()); // 设置店铺的距离，不是从数据库取得，而是从redis取得
         }
         // 6.返回
         return Result.ok(shops);
     }
 }
+ 

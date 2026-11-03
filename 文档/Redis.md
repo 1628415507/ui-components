@@ -229,23 +229,28 @@ for (Shop shop : value) {
 }
 stringRedisTemplate.opsForGeo().add(key, locations);
 ```
-
+### 附近商铺查询功能 
 **[按距离查店铺](https://www.bilibili.com/video/BV1cr4y1671t/?spm_id_from=333.788.videopod.episodes&vd_source=9d75580d0b23d1137d56e03a996ac726&p=90)**：传入用户坐标 `(x, y)` 时，对 `shop:geo:{typeId}` 做 **GEOSEARCH**（圆心为用户位置、半径 **5000 m**、`WITHDISTANCE`，`limit` 取到当前页末尾）；再在应用层 `skip` 做页内偏移，按 id 回表并回填 `distance`。
 
 ```java
 // Redis/hm-dianping/src/main/java/com/hmdp/service/impl/ShopServiceImpl.java
-
 String key = SHOP_GEO_KEY + typeId;
-GeoResults<RedisGeoCommands.GeoLocation<String>> results = stringRedisTemplate.opsForGeo()
+// GEOSEARCH key BYLONLAT x y BYRADIUS 10 WITHDISTANCE
+GeoResults<RedisGeoCommands.GeoLocation<String>> results = stringRedisTemplate.opsForGeo() 
         .search(
                 key,
-                GeoReference.fromCoordinate(x, y),
-                new Distance(5000),
-                RedisGeoCommands.GeoSearchCommandArgs.newGeoSearchArgs().includeDistance().limit(end)
+                GeoReference.fromCoordinate(x, y),// 坐标
+                new Distance(5000),// 距离
+                RedisGeoCommands.GeoSearchCommandArgs.newGeoSearchArgs().includeDistance().limit(end)// 限制结果数量
         );
 // ... 解析 shopId、distance，再 ORDER BY FIELD(id, ...) 查 Shop
+// 5.根据id查询店铺Shop，给店铺设置距离
+String idStr = StrUtil.join(",", ids);
+List<Shop> shops = query().in("id", ids).last("ORDER BY FIELD(id," + idStr + ")").list();
+for (Shop shop : shops) {
+    shop.setDistance(distanceMap.get(shop.getId().toString()).getValue()); // 设置店铺的距离，不是从数据库取得，而是从redis取得
+}
 ```
-
 未传坐标时 `queryShopByType` 仍走数据库分页，**不**使用 GEO。
 
 # 六、 Java 客户端：Jedis（了解）
