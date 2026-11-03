@@ -201,7 +201,7 @@ vector = model.embed_query("我喜欢你")
 vectors = model.embed_documents(["我喜欢你", "我稀饭你"])
 ```
 
-### 4. 调用方式 (Invocation)
+### 4. 调用方式 (invoke&stream)
 
 #### 4.1. 同步调用 (invoke)
 **一次性**获取完整结果。
@@ -241,10 +241,9 @@ from langchain_core.prompts import PromptTemplate
 
 # 定义模板：支持 lastname 和 gender 两个变量
 prompt_template = PromptTemplate.from_template("我的邻居姓{lastname}, 刚生了{gender}")
-
 ```
 
-#### 4.1.1 模板方法：`.format` vs `.invoke`
+#### 4.1.1 模板类的方法：`.format` vs `.invoke`
 
 - 都支持解析`{}`占位符
 
@@ -252,7 +251,7 @@ prompt_template = PromptTemplate.from_template("我的邻居姓{lastname}, 刚�
 
 | 方法 | 输入值类型 | 返回值类型 | 典型用途 |
 | :--- | :--- | :--- | :--- |
-| `.format(k1=v1,k2=v2,...)` | `str`          | `str` | 手动生成最终字符串，再传给 `model.invoke(input=prompt_text)` |
+| `.format(k1=v1,k2=v2,...)` | `str`          | `str`字符串 | 手动生成最终字符串，再传给 `model.invoke(input=prompt_text)` |
 | `.invoke({"k1":v1,"k2":v2,...})` | `dict`（字典） | `PromptValue`类对象 | 1.作为 Runnable 调用；<br>2.需字符串使用 `.to_string()`方法或接入 [§5 LCEL](#5-lcel-chains--composition) 链<br>3.**支持`MessagesPlaceholder`**(详见4.4) |
 
 - 方式1：format
@@ -260,10 +259,11 @@ prompt_template = PromptTemplate.from_template("我的邻居姓{lastname}, 刚�
 ```python
 # 创建模板，template得到实例对象
 template = PromptTemplate.from_template("我的邻居是：{lastname}，最喜欢：{hobby}")
-# 传入值，获取组装的模板结果
+
 res = template.format(lastname="张大明", hobby="钓鱼")
-print(res, type(res))  
-# 我的邻居是：张大明，最喜欢：钓鱼， str
+print(res,"【值类型】", type(res))  
+# 输出结果；我的邻居是：张大明，最喜欢：钓鱼 
+# 【值类型】 <class 'str'>
 ```
 
 - 方式2：invoke
@@ -273,7 +273,9 @@ print(res, type(res))
 template = PromptTemplate.from_template("我的邻居是：{lastname}，最喜欢：{hobby}")
 # 传入参数
 res2 = template.invoke({"lastname": "周杰轮", "hobby": "唱歌"})
-print(res2, type(res2))  # PromptValue（如 StringPromptValue）
+print(res2,"【值类型】",type(res2))  # PromptValue（如 StringPromptValue）
+# 输出结果；我的邻居是：周杰轮，最喜欢：唱歌 
+# 【值类型】 <class 'langchain_core.prompt_values.StringPromptValue'>
 ```
 
 #### 4.1.2 PromptValue 转换
@@ -314,7 +316,6 @@ print(res2, type(res2))  # PromptValue（如 StringPromptValue）
 适用于通过**提供少量示例**来引导模型生成特定格式或逻辑的回复。
 
 - **核心组件**：
-  
 | 属性 | 作用|
 | :--- | :--- |
 |  `example_prompt` |  单个示例的模板。 |
@@ -324,6 +325,7 @@ print(res2, type(res2))  # PromptValue（如 StringPromptValue）
 |  `input_variables` | 声明在前缀或后缀中需要注入的变量名。  |
 
 - **代码示例**：
+  
   ```python
   from langchain_core.prompts import PromptTemplate, FewShotPromptTemplate
   
@@ -353,7 +355,7 @@ print(res2, type(res2))  # PromptValue（如 StringPromptValue）
 ### 4.4 聊天提示词模板 (ChatPromptTemplate)
 
 - 面向**聊天模型**的提示词模板，通过 `from_messages` 组装消息序列；
-- 输出为消息列表，而非 `PromptTemplate` 的纯文本字符串。
+- 输出为消息**列表**，而非 `PromptTemplate` 的纯文本字符串。
 
 ```python
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
@@ -394,7 +396,8 @@ print(res.content, type(res))
 
 ## 5. LCEL (Chains & Composition)
 
-LCEL (LangChain Expression Language) 是 LangChain 推荐的**构建复杂链条**的方式，通过 `|` 管道将 Prompt、Model、Parser 等 Runnable 组件串联为可执行链。
+> LCEL (LangChain Expression Language) 是 LangChain 推荐的**构建复杂链条**的方式，通过 `|` 管道将 Prompt、Model、Parser 等 **Runnable 组件**串联为可执行链。
+- **核心原则**：上一个组件的**输出**必须符合下一个组件的**输入要求**，都满足Runnable接口的子类对象。
 
 ### 5.1 管道语法 (`|`)
 
@@ -432,15 +435,56 @@ LCEL (LangChain Expression Language) 是 LangChain 推荐的**构建复杂链条
 | **Retriever（[`as_retriever`](#101-通用-api)）** | 查询字符串 (`str`) | `list[Document]` |
 | **并行 dict（`RunnableParallel`）** | 与链 `invoke` 输入相同 | 字典（各分支输出按键合并） |
 
-**核心原则**：上一个组件的**输出**必须符合下一个组件的**输入要求**。
+### 5.4 [LCEL 底层原理：Python 或运算符重写](https://www.bilibili.com/video/BV1yjz5BLEoY?spm_id_from=333.788.player.switch&vd_source=9d75580d0b23d1137d56e03a996ac726&p=32)
 
-### 5.4 自定义逻辑 (RunnableLambda)
+LCEL 的 `|` 管道语法之所以能工作，是因为 LangChain 的组件（如 `PromptTemplate`, `Model`, `OutputParser`）都继承自 `Runnable` 类，并重写了 Python 的魔术方法 `__or__`。
 
-如果你需要在 LCEL 链中加入自定义的 Python 函数逻辑，可以使用 `RunnableLambda`。
+- **原理**：在 Python 中，`a | b` 实际上会触发 `a.__or__(b)`。
+- **实现逻辑**：**当调用 `a | b` 时，它并不立即执行，而是返回一个新的 `RunnableSequence` 对象，该对象记录了执行顺序。**
+
+**简化版实现示例**：
+
+```python
+class Test:
+    def __init__(self, name):
+        self.name = name
+
+    def __or__(self, other):
+        # 当执行 a | b 时，返回一个包含两者的序列对象，self 表示a（发起者），other表示b
+        return MySequence(self, other)
+    # 原__str__方法的输出的是内存地址，重写__str__使其输出原值
+    def __str__(self): 
+        return self.name #输出原值 
+
+class MySequence:
+    def __init__(self, *args):
+        self.sequence = list(args)
+
+    def __or__(self, other):
+        # 支持链式拼接：(a | b) | c
+        self.sequence.append(other) #将 | 后的数值追加到sequence数组中
+        return self
+
+    def run(self):
+        # 模拟链式执行
+        for item in self.sequence:
+            print(f"执行组件: {item.name}")
+
+# 实战：
+a, b, c = Test('Prompt'), Test('Model'), Test('Parser')
+chain = a | b | c  # 触发 __or__
+chain.run()
+```
+
+---
+
+### 5.5 自定义逻辑 (RunnableLambda)
+
+> 如果你需要在 LCEL 链中加入自定义的 Python 函数逻辑，可以使用 `RunnableLambda`。
 
 - **核心用法**：
     - **手动封装**：使用 `RunnableLambda(your_function)` 将函数封装为 Runnable 对象。
-    - **自动转换（推荐）**：在 `|` 管道中直接使用函数或 `lambda` 表达式，LangChain 会自动将其转换为 `RunnableLambda`。
+    - **自动转换（推荐）**：在 `|` 管道中直接使用**函数或 `lambda` 表达式**，LangChain 会自动将其转换为 `RunnableLambda`。
     - **无缝集成**：封装后的函数遵循 `Runnable` 接口，支持 `invoke`, `stream`, `batch` 等方法，并能完美融入 LCEL 管道。
 
 - **应用场景：类型适配桥梁**：
@@ -462,7 +506,7 @@ LCEL (LangChain Expression Language) 是 LangChain 推荐的**构建复杂链条
   res = chain.invoke({"lastname": "曹", "gender": "女孩"})
   ```
 
-### 5.5 多模型级联 (Multi-step Chain)
+### 5.6 多模型级联 (Multi-step Chain)
 
 若需**将一个模型的输出作为另一个模型的输入**，通常须先通过 Output Parser 将其转换为字符串或字典（各 Parser 用法见 [§6 输出解析器](#6-输出解析器-output-parsers)）。
 
@@ -479,7 +523,7 @@ for chunk in chain.stream({"lastname": "张", "gender": "女儿"}):
 
 > 各组件输入/输出类型须匹配，详见 [5.3 链式逻辑与兼容性](#53-链式逻辑与兼容性-lcel-compatibility)。
 
-### 5.6 RunnablePassthrough（并行分支透传）
+### 5.7 [RunnablePassthrough（并行分支透传）](https://www.bilibili.com/video/BV1yjz5BLEoY/?spm_id_from=333.788.player.switch&vd_source=9d75580d0b23d1137d56e03a996ac726&p=45)
 
 LCEL 中字典 `{key: runnable, ...}` 表示**并行分支**（`RunnableParallel`）：链的 `invoke` 输入流入各分支，各分支输出按键合并为字典，供下游 [`ChatPromptTemplate`](#44-聊天提示词模板-chatprompttemplate) 等组件使用。
 
@@ -507,59 +551,19 @@ res = chain.invoke(input_text)  # 直接传入 str，无需手动构造 dict
 
 > RAG 完整链路见 [§11.4](#114-提示词模板与-lcel-链)；向量存储须先经 [`as_retriever`](#101-通用-api) 封装为 Runnable 检索器后再入链。
 
-### 5.7 [LCEL 底层原理：Python 或运算符重写](https://www.bilibili.com/video/BV1yjz5BLEoY?spm_id_from=333.788.player.switch&vd_source=9d75580d0b23d1137d56e03a996ac726&p=32)
-
-LCEL 的 `|` 管道语法之所以能工作，是因为 LangChain 的组件（如 PromptTemplate, Model, OutputParser）都继承自 `Runnable` 类，并重写了 Python 的魔术方法 `__or__`。
-
-- **原理**：在 Python 中，`a | b` 实际上会触发 `a.__or__(b)`。
-- **实现逻辑**：当调用 `a | b` 时，它并不立即执行，而是返回一个新的 `RunnableSequence` 对象，该对象记录了执行顺序。
-
-**简化版实现示例**：
-```python
-class Test:
-    def __init__(self, name):
-        self.name = name
-
-    def __or__(self, other):
-        # 当执行 a | b 时，返回一个包含两者的序列对象，self 表示a（发起者），other表示b
-        return MySequence(self, other)
-    # 原__str__方法的输出的是内存地址，重写__str__使其输出原值
-    def __str__(self): 
-        return self.name
-
-class MySequence:
-    def __init__(self, *args):
-        self.sequence = list(args)
-
-    def __or__(self, other):
-        # 支持链式拼接：(a | b) | c
-        self.sequence.append(other) #将 | 后的数值追加到sequence数组中
-        return self
-
-    def run(self):
-        # 模拟链式执行
-        for item in self.sequence:
-            print(f"执行组件: {item.name}")
-
-# 实战：
-a, b, c = Test('Prompt'), Test('Model'), Test('Parser')
-chain = a | b | c  # 触发 __or__
-chain.run()
-```
-
----
-
 ## 6. 输出解析器 (Output Parsers)
 
-输出解析器将模型输出的 `AIMessage` 转换为更易处理的纯文本或结构化数据。
+输出解析器将模型输出的 `AIMessage` 转换为更易处理的**纯文本或结构化数据**。
 
 > 链式拼接与类型兼容见 [§5 LCEL](#5-lcel-chains--composition)。
 
-### 6.1 字符串解析器 (StrOutputParser)
+### 6.1 StrOutputParser 字符串解析器
 
-输入 `AIMessage`，输出 `str`。
+- 输入 `AIMessage`，输出 `str`（将`AIMessage`类型转为基础字符串）
+- 可以加入chain作为组件存在
 
 - **代码示例**：
+  
   ```python
   from langchain_core.output_parsers import StrOutputParser
   
@@ -567,7 +571,7 @@ chain.run()
   
   # 在链中使用
   chain = prompt | model | parser
-  res = chain.invoke({"var": "value"})
+  res:str = chain.invoke({"var": "value"})
   # 此时 res 是 str 类型，而不是 AIMessage
   ```
 
@@ -577,10 +581,14 @@ chain.run()
 
 - **代码示例**：
   ```python
+  # 03-LangChain\18JsonOutputParser解析器.py
   from langchain_core.output_parsers import JsonOutputParser
   
   json_parser = JsonOutputParser()
-  
+  prompt = prompt = PromptTemplate.from_template(
+        "我邻居姓：{lastname}，刚生了{gender}，请帮忙起名字，"
+        "并封装为JSON格式返回给我。要求key是name，value就是你起的名字，请严格遵守格式要求。"  # 定义输出格式
+  ) #AIMessage("{name:张若曦}")
   # 在链中使用
   chain = prompt | model | json_parser
   res = chain.invoke({"lastname": "张", "gender": "女儿"})
@@ -668,8 +676,10 @@ base_chain = prompt | print_prompt | model | str_parser
 
 ### 7.2 临时会话记忆 (InMemoryChatMessageHistory)
 
-数据保存在进程内存中，**程序重启后历史丢失**，适合开发调试与单次运行。
+数据保存在进程内存中，**程序重启后历史丢失**，适合**开发调试与单次运行**。
 
+- **InMemoryChatMessageHistory**：LangChain 内置实现，开箱即用，无需自定义序列化逻辑。
+- **store 字典**：以 `session_id` 为 key 缓存历史对象，实现多用户会话隔离。
 ```python
 from langchain_core.chat_history import InMemoryChatMessageHistory
 
@@ -679,14 +689,22 @@ def get_history(session_id):
     if session_id not in store:
         store[session_id] = InMemoryChatMessageHistory()
     return store[session_id]
+
+if __name__ == '__main__':
+    # 固定格式，添加LangChain的配置，为当前程序配置所属的session_id
+    session_config = {
+        "configurable": {
+            "session_id": "user_001"
+        }
+    }
+
 ```
 
-- **InMemoryChatMessageHistory**：LangChain 内置实现，开箱即用，无需自定义序列化逻辑。
-- **store 字典**：以 `session_id` 为 key 缓存历史对象，实现多用户会话隔离。
 
 ### 7.3 长期会话记忆 (FileChatMessageHistory)
 
-数据序列化后写入本地 JSON 文件，**程序重启后历史保留**，适合生产环境与多用户持久会话。除 `get_history` 的实现外，其余链式配置（`base_chain`、`input_messages_key`、`history_messages_key`、`session_config`）与临时记忆完全一致。
+- 数据序列化后写入本地 JSON 文件，**程序重启后历史保留**，适合生产环境与**多用户持久会话**。
+- 除 `get_history` 的实现外，其余链式配置（`base_chain`、`input_messages_key`、`history_messages_key`、`session_config`）与临时记忆完全一致。
 
 #### 7.3.1 消息序列化工具
 
@@ -795,7 +813,7 @@ for document in loader.lazy_load():
 - **`file_path`**：源文件路径（字符串或 `Path`）。
 - **`encoding`**：文件编码；中文场景常用 `"utf-8"`，避免乱码。
 
-### 8.2 CSVLoader
+### 8.2 [CSVLoader(加载 CSV 文件)](https://www.bilibili.com/video/BV1yjz5BLEoY/?spm_id_from=333.788.videopod.episodes&vd_source=9d75580d0b23d1137d56e03a996ac726&p=39)
 
 `CSVLoader` 用于加载 CSV 文件，底层通过 Python 标准库 `csv.DictReader` 解析，每行 CSV 对应一个 `Document`。
 
@@ -832,18 +850,29 @@ documents = loader.load()
 | **`fieldnames`** | 列名列表；**仅用于无表头的 CSV**。若文件已有表头行，设置此项会把表头当作第一条数据。 |
 | **`source_column`** | 指定 CSV 中哪一列作为 `Document.metadata["source"]`（数据来源标识），便于检索结果溯源。 |
 
-### 8.3 JSONLoader
+### 8.3 JSONLoader(加载 JSON 数据)
 
 `JSONLoader` 用于加载 JSON 数据并封装为 `Document`。底层依赖跨平台 JSON 解析库 **`jq`**，需先安装：
 
 ```bash
+# python.exe -m pip install jq
 pip install jq
 ```
 
 信息抽取通过 **`jq_schema`**（jq 语法字符串）指定。
 > `load()` / `lazy_load()` 用法同 [8.1 通用特性](#81-通用特性-baseloader)。
 
-#### 8.3.1 jq_schema 常用语法
+
+#### 8.3.1 初始化参数
+
+| 参数 | 作用 |
+| :--- | :--- |
+| **`file_path`** | （必填）见 [8.1.1 通用初始化参数](#811-通用初始化参数) |
+| **`jq_schema`** | （必填）jq 抽取语法。 |
+| **`text_content`** | 抽取结果**是否为字符串**，默认 `True`。抽取对象、数组等非字符串时需设为 `False`。 |
+| **`json_lines`** | 是否为 JSONLines 格式（**每行**一个独立 JSON 对象），默认 `False`。 |
+
+#### 8.3.2 jq_schema 常用语法
 
 | 语法 | 含义 | 示例 JSON | 抽取结果 |
 | :--- | :--- | :--- | :--- |
@@ -854,15 +883,6 @@ pip install jq
 | `.other.addr` | 嵌套字段 | `"other": {"addr": "深圳"}` | `"深圳"` |
 | `.[]` | 数组中每个对象 | `[{...}, {...}]` | 多个独立对象 |
 | `.[].name` | 数组中每个对象的 `name` | 学生数组 | 多个姓名字符串 |
-
-#### 8.3.2 初始化参数
-
-| 参数 | 作用 |
-| :--- | :--- |
-| **`file_path`** | 见 [8.1.1 通用初始化参数](#811-通用初始化参数) |
-| **`jq_schema`** | jq 抽取语法（必填）。 |
-| **`text_content`** | 抽取结果是否为字符串，默认 `True`。抽取对象、数组等非字符串时需设为 `False`。 |
-| **`json_lines`** | 是否为 JSONLines 格式（每行一个独立 JSON 对象），默认 `False`。 |
 
 #### 8.3.3 三种常见场景
 
@@ -906,8 +926,11 @@ documents = loader.load()
 ```
 
 ### 8.4 TextLoader
-`TextLoader` 用于加载**纯文本文件**（如 `.txt`），是最简单的文档加载器之一。
+- `TextLoader` 用于加载**纯文本文件**（如 `.txt`），是最简单的文档加载器之一。
 
+- 返回值特点：**`load()`** 返回 `list[Document]`，但**整份文本文件只对应 1 个 `Document`**（`page_content` 为全文，`metadata` 通常含 `source` 路径）。
+
+> 若需将长文本切分为多个小块供向量化或检索，加载后配合 [§9.1 RecursiveCharacterTextSplitter](#91-recursivecharactertextsplitter) 使用。
 ```python
 from pathlib import Path
 from langchain_community.document_loaders import TextLoader
@@ -922,16 +945,74 @@ loader = TextLoader(
 docs = loader.load()            # [Document]，整份文件对应列表中的 1 个 Document
 ```
 
-#### 8.4.1 返回值特点
+### 8.5 文本分割器 (Text Splitters)
 
-- **`load()`** 返回 `list[Document]`，但**整份文本文件只对应 1 个 `Document`**（`page_content` 为全文，`metadata` 通常含 `source` 路径）。
+- RAG 流程中，加载器读入的 `Document` 往往过长，需先**分块 (Chunking)** 再嵌入或检索。
+- LangChain 提供多种文本分割器；其中 **`RecursiveCharacterTextSplitter`** 是官方文档推荐的默认字符分割器，能按自然段落递归切分，在**保持上下文完整**与**控制片段大小**之间取得较好平衡，开箱即用。
 
-> 若需将长文本切分为多个小块供向量化或检索，加载后配合 [§9.1 RecursiveCharacterTextSplitter](#91-recursivecharactertextsplitter) 使用。
+- 依赖包（与 `langchain_community` 分离）：`pip install langchain_text_splitters`
 
-### 8.5 PyPDFLoader
+#### 8.5.1 RecursiveCharacterTextSplitter
+
+按 `separators` 列表**优先级递归**尝试切分：优先在 `\n\n`（段落）处分割，仍超长则尝试 `\n`、句号、问号等，最后才按空格或单字符硬切。
+
+
+##### 8.5.1.1 初始化参数
+
+| 参数 | 作用 |
+| :--- | :--- |
+| **`chunk_size`** | 每个分块允许的最大长度（由 `length_function` 计量）。 |
+| **`chunk_overlap`** | 相邻分块重叠的字符数，避免语义在边界处被截断。 |
+| **`separators`** | 分割符列表，**按顺序**尝试；列表末尾的 `""` 表示必要时按单字符硬切。 |
+| **`length_function`** | 计算文本长度的函数，默认 `len`；可换为按 token 计数的函数。 |
+```python
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+
+splitter = RecursiveCharacterTextSplitter(
+    chunk_size=500,         # 每段最大字符数
+    chunk_overlap=50,       # 相邻段之间的重叠字符数，保留上下文衔接
+    separators=["\n\n", "\n", "。", "！", "？", ".", "!", "?", " ", ""],
+    length_function=len,    # 统计长度的函数，默认 len（按字符数）
+)
+
+split_docs = splitter.split_documents(docs)   # docs 来自 TextLoader 等加载器
+print(len(split_docs))
+```
+
+#### 8.5.2 常用方法
+
+- **`split_documents(documents)`**：输入 `list[Document]`，输出切分后的 `list[Document]`，**保留原 `metadata`**（如 `source`）。
+- **`split_text(text)`**：直接对纯字符串分块，返回 `list[str]`（不涉及 `Document` 封装）。
+
+#### 8.5.3 典型链路
+
+```text
+TextLoader.load()  →  [Document]（1 个，全文）
+        ↓
+RecursiveCharacterTextSplitter.split_documents()
+        ↓
+[list[Document]]（多个小块）→ [§10 向量存储](#10-向量存储-vector-stores)
+```
+
+---
+
+### 8.6 PyPDFLoader
 
 `PyPDFLoader` 用于加载 **PDF 文件**并封装为 `Document`。
+#### 8.6.1 初始化参数
 
+> `file_path` 见 [8.1.1 通用初始化参数](#811-通用初始化参数)。
+
+- **`mode`**：控制多页 PDF 如何映射为 `Document`，默认 `"page"`。
+    | 参数 | 作用 |
+    | :--- | :--- |
+    | **`"page"`**（默认）| 每一页生成 **1 个** `Document`。 |
+    | **`"single"`** | 无论多少页，**合并为 1 个** `Document`（`page_content` 为全文）。 |
+
+- **`password`**：PDF 有密码保护时传入打开密码；无加密时可省略。
+
+---
+#### 8.6.2 代码示例
 ```python
 from pathlib import Path
 from langchain_community.document_loaders import PyPDFLoader
@@ -948,74 +1029,9 @@ for doc in loader.lazy_load():
     print(doc)
 ```
 
-#### 8.5.1 初始化参数
 
-> `file_path` 见 [8.1.1 通用初始化参数](#811-通用初始化参数)。
-
-- **`mode`**：控制多页 PDF 如何映射为 `Document`，默认 `"page"`。
-  - **`"page"`**（默认）：每一页生成 **1 个** `Document`。
-  - **`"single"`**：无论多少页，**合并为 1 个** `Document`（`page_content` 为全文）。
-- **`password`**：PDF 有密码保护时传入打开密码；无加密时可省略。
-
----
-
-## 9. 文本分割器 (Text Splitters)
-
-RAG 流程中，加载器读入的 `Document` 往往过长，需先**分块 (Chunking)** 再嵌入或检索。LangChain 提供多种文本分割器；其中 **`RecursiveCharacterTextSplitter`** 是官方文档推荐的默认字符分割器，能按自然段落递归切分，在**保持上下文完整**与**控制片段大小**之间取得较好平衡，开箱即用。
-
-依赖包（与 `langchain_community` 分离）：
-
-```bash
-pip install langchain_text_splitters
-```
-
-### 9.1 RecursiveCharacterTextSplitter
-
-按 `separators` 列表**优先级递归**尝试切分：优先在 `\n\n`（段落）处分割，仍超长则尝试 `\n`、句号、问号等，最后才按空格或单字符硬切。
-
-```python
-from langchain_text_splitters import RecursiveCharacterTextSplitter
-
-splitter = RecursiveCharacterTextSplitter(
-    chunk_size=500,         # 每段最大字符数
-    chunk_overlap=50,       # 相邻段之间的重叠字符数，保留上下文衔接
-    separators=["\n\n", "\n", "。", "！", "？", ".", "!", "?", " ", ""],
-    length_function=len,    # 统计长度的函数，默认 len（按字符数）
-)
-
-split_docs = splitter.split_documents(docs)   # docs 来自 TextLoader 等加载器
-print(len(split_docs))
-```
-
-#### 9.1.1 初始化参数
-
-| 参数 | 作用 |
-| :--- | :--- |
-| **`chunk_size`** | 每个分块允许的最大长度（由 `length_function` 计量）。 |
-| **`chunk_overlap`** | 相邻分块重叠的字符数，避免语义在边界处被截断。 |
-| **`separators`** | 分割符列表，**按顺序**尝试；列表末尾的 `""` 表示必要时按单字符硬切。 |
-| **`length_function`** | 计算文本长度的函数，默认 `len`；可换为按 token 计数的函数。 |
-
-#### 9.1.2 常用方法
-
-- **`split_documents(documents)`**：输入 `list[Document]`，输出切分后的 `list[Document]`，**保留原 `metadata`**（如 `source`）。
-- **`split_text(text)`**：直接对纯字符串分块，返回 `list[str]`（不涉及 `Document` 封装）。
-
-#### 9.1.3 典型链路
-
-```text
-TextLoader.load()  →  [Document]（1 个，全文）
-        ↓
-RecursiveCharacterTextSplitter.split_documents()
-        ↓
-[list[Document]]（多个小块）→ [§10 向量存储](#10-向量存储-vector-stores)
-```
-
----
 
 ## 10. 向量存储 (Vector Stores)
-
-
 
 
 向量存储用于**存储嵌入向量**并执行**相似性检索**，是 RAG 流程的核心环节之一；具体实现分**内存临时**（如 `InMemoryVectorStore`）与**磁盘持久化**（如 `Chroma`）两类，见下表。
@@ -1044,7 +1060,7 @@ LangChain 中常用的向量存储实现：
 | **`add_texts`** | 快速写入纯文本字符串（内部自动嵌入并封装为 `Document`） | `texts`：`list[str]`；`ids`、`metadatas`：可选 | 写入的 ID 列表 |
 | **`delete`** | 按 ID 删除已存储的向量 | `ids`：`list[str]` | — |
 | **`similarity_search`** | 按查询文本做相似性检索，返回最相关的文档 | 第 1 个参数：查询字符串； <br/>第 2 个参数：`k`，返回条数；<br/>`Chroma` 另支持[`filter` 按 metadata](#10.1.2 similarity_search 扩展参数) 过滤 | `list[Document]` |
-| **`as_retriever`** | 将向量存储封装为 Runnable 检索器，可接入 LCEL 链| `search_kwargs`：如 `{"k": 2}`， 表示每次检索应该返回k个结果，传给底层 [`similarity_search`](#101-通用-api) | `BaseRetriever`（Runnable 子类） |
+| **`as_retriever`** | 将向量存储封装为 `Runnable` 检索器，可接入 LCEL 链 | `search_kwargs`：如 `{"k": 2}`， 表示每次检索应该返回k个结果，传给底层 [`similarity_search`](#101-通用-api) | `BaseRetriever`（Runnable 子类） |
 
 > 向量存储实例（如 `InMemoryVectorStore`）**本身不是 Runnable**，不能直接用 `|` 入链；须通过 [`as_retriever`](#101-通用-api) 转为检索器后再拼接。
 
@@ -1069,7 +1085,13 @@ vector_store.add_texts(["示例文本 A", "示例文本 B"])
 
 ### 10.2 InMemoryVectorStore（临时存储）
 
-`InMemoryVectorStore` 将向量保存在**进程内存**中，适合本地调试与临时场景；进程退出后数据不保留。
+> `InMemoryVectorStore` 将向量保存在**进程内存**中，适合本地调试与临时场景；进程退出后数据不保留。
+
+#### 10.2.1 初始化参数
+
+| 参数 | 作用 |
+| :--- | :--- |
+| **`embedding`** | 嵌入模型实例；索引与检索时均用它将文本转为向量，须与业务侧使用的模型一致。 |
 
 ```python
 from pathlib import Path
@@ -1113,12 +1135,6 @@ result = vector_store.similarity_search(
 print(result)
 ```
 
-#### 10.2.1 初始化参数
-
-| 参数 | 作用 |
-| :--- | :--- |
-| **`embedding`** | 嵌入模型实例；索引与检索时均用它将文本转为向量，须与业务侧使用的模型一致。 |
-
 #### 10.2.2 典型链路
 
 ```text
@@ -1138,6 +1154,19 @@ similarity_search(query, k)  →  list[Document]（Top-k 相关片段）
 ```bash
 pip install langchain-chroma chromadb
 ```
+
+#### 10.3.1 初始化参数
+
+| 参数 | 作用 |
+| :--- | :--- |
+| **`collection_name`** | 集合名称，类似数据库中的**表名**；同一目录下可区分多个集合。 |
+| **`embedding_function`** | 嵌入模型实例（Chroma 使用此参数名；`InMemoryVectorStore` 对应参数为 `embedding`）。 |
+| **`persist_directory`** | 向量数据持久化目录；首次写入后会在该路径下生成数据库文件。 |
+
+[`add_documents`](#101-通用-api) / [`delete`](#101-通用-api) 用法同 [§10.2 InMemoryVectorStore](#10.2 InMemoryVectorStore（临时存储）) 示例。
+
+> 首次写入后，后续运行可直接加载同一 `persist_directory` 做检索，无需重复导入文档。
+####  10.3.2 示例代码
 
 ```python
 from pathlib import Path
@@ -1163,31 +1192,21 @@ result = vector_store.similarity_search(
 print(result)
 ```
 
-#### 10.3.1 初始化参数
-
-| 参数 | 作用 |
-| :--- | :--- |
-| **`collection_name`** | 集合名称，类似数据库中的**表名**；同一目录下可区分多个集合。 |
-| **`embedding_function`** | 嵌入模型实例（Chroma 使用此参数名；`InMemoryVectorStore` 对应参数为 `embedding`）。 |
-| **`persist_directory`** | 向量数据持久化目录；首次写入后会在该路径下生成数据库文件。 |
-
-[`add_documents`](#101-通用-api) / [`delete`](#101-通用-api) 用法同 [§10.2 InMemoryVectorStore](#10.2 InMemoryVectorStore（临时存储）) 示例。
-
-> 首次写入后，后续运行可直接加载同一 `persist_directory` 做检索，无需重复导入文档。
-
 ---
 
-## 11. 向量检索构建提示词 (RAG Prompt)
+## 11. [向量检索构建提示词 (RAG Prompt)](https://www.bilibili.com/video/BV1yjz5BLEoY/?spm_id_from=333.788.player.switch&vd_source=9d75580d0b23d1137d56e03a996ac726&p=44)
 
-**提示词 = 用户的提问 + 向量库中检索到的参考资料。** 在 [§10 向量存储](#10-向量存储-vector-stores) 完成索引与检索后，将 Top-k 结果拼入 [`ChatPromptTemplate`](#44-聊天提示词模板-chatprompttemplate)，再通过 [LCEL 链](#5-lcel-chains--composition) 调用模型，即构成完整的 RAG 生成环节。
+- 提示词 = 用户的提问 + 向量库中检索到的参考资料。
+-  在 [§10 向量存储](#10-向量存储-vector-stores) 完成索引与检索后，将结果拼入聊天提示词模板 [`ChatPromptTemplate`](#44-聊天提示词模板-chatprompttemplate)，
+- 再通过 [LCEL 链](#5-lcel-chains--composition) 调用模型，即构成完整的 RAG 生成环节。
 
 ### 11.1 流程概览
 
 | 步骤 | 动作 |
 | :--- | :--- |
 | **1. 写入资料** | [`add_texts(list[str])`](#1011-add_texts-快速写入) 或 [`add_documents`](#101-通用-api) 向向量库添加参考文本 |
-| **2. 检索匹配** | 命令式：[`similarity_search(查询文本, k)`](#101-通用-api)；链式：[`as_retriever(search_kwargs={"k": n})`](#101-通用-api) 封装为 Runnable 后入链 |
-| **3. 封装提示词** | 将各 `Document.page_content` 拼接为 `{context}`，与用户 `{input}` 注入 [`ChatPromptTemplate`](#44-聊天提示词模板-chatprompttemplate)；链式场景用 [`RunnablePassthrough()`](#56-runnablepassthrough并行分支透传) 透传 `{input}`，经 [LCEL 链](#5-lcel-chains--composition) 调用模型 |
+| **2. 检索匹配** | 命令式：[`similarity_search(查询文本, k)`](#101-通用-api)；<br>链式：[`as_retriever(search_kwargs={"k": n})`](#101-通用-api) 封装为 Runnable 后入链 |
+| **3. 封装提示词** | 将各 `Document.page_content` 拼接为 `{context}`，与用户 `{input}` 注入 [`ChatPromptTemplate`](#44-聊天提示词模板-chatprompttemplate)；<br>链式场景用 [`RunnablePassthrough()`](#56-runnablepassthrough并行分支透传) 透传 `{input}`，经 [LCEL 链](#5-lcel-chains--composition) 调用模型 |
 
 ### 11.2 RAG 语料写入
 
@@ -1201,7 +1220,7 @@ vector_store.add_texts(
 
 ### 11.3 检索与参考资料拼接（命令式）
 
-以用户提问同时作为相似性检索的查询文本，再将返回文档的 `page_content` 拼成 `{context}` 注入值。LCEL 链式写法见 [§11.4](#114-提示词模板与-lcel-链)。
+以用户提问同时作为相似性检索的查询文本，再将返回文档的 `page_content` 拼成 `{context}` 注入值。
 
 ```python
 input_text = "怎么减肥？"
@@ -1223,7 +1242,8 @@ reference_text += "]"
 
 ### 11.4 提示词模板与 LCEL 链
 
-通过 [`as_retriever`](#101-通用-api) 与 [`RunnablePassthrough()`](#56-runnablepassthrough并行分支透传) 将检索、参考资料拼接与提示词注入合并为一条链；[`add_texts`](#112-rag-语料写入) 写入语料后可直接 `invoke(input_text)`，无需像 [§11.3](#113-检索与参考资料拼接命令式) 那样手动构造变量字典。
+- 通过 [`as_retriever`](#101-通用-api) 与 [`RunnablePassthrough()`](#56-runnablepassthrough并行分支透传) 将检索、参考资料拼接与提示词注入**合并为一条链**；
+- [`add_texts`](#112-rag-语料写入) 写入语料后可直接 `invoke(input_text)`，无需像 [§11.3](#113-检索与参考资料拼接命令式) 那样手动构造变量字典。
 
 ```python
 from langchain_core.documents import Document
@@ -1248,7 +1268,7 @@ def format_func(docs: list[Document]):
     return formatted_str
 
 chain = (
-    {"input": RunnablePassthrough(), "context": retriever | format_func}
+    {"input": RunnablePassthrough(), "context": retriever | format_func} # 向量检索入链
     | prompt
     | print_prompt
     | model
@@ -1266,7 +1286,9 @@ print(res)
 | **并行 dict** | `input_text` | `{"input": str, "context": str}` |
 | **`prompt`** | 变量字典 | `PromptValue` |
 
-链内 [`print_prompt`](#714-链内调试打印-prompt-的透传函数) 用于透传打印最终提示词；[`StrOutputParser`](#61-字符串解析器-stroutputparser) 将模型输出转为字符串。若已按 [§11.3](#113-检索与参考资料拼接命令式) 得到 `reference_text`，也可省略并行分支，直接 `chain.invoke({"input": input_text, "context": reference_text})`。
+- 链内 [`print_prompt`](#714-链内调试打印-prompt-的透传函数) 用于透传打印最终提示词；
+- [`StrOutputParser`](#61-字符串解析器-stroutputparser) 将模型输出转为字符串。
+- 若已按 [§11.3](#113-检索与参考资料拼接命令式) 得到 `reference_text`，也可省略并行分支，直接 `chain.invoke({"input": input_text, "context": reference_text})`。
 
 ---
 

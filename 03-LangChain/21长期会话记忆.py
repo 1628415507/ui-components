@@ -47,7 +47,7 @@ class FileChatMessageHistory(BaseChatMessageHistory):
         # 将数据写入文件：
         # open打开文件，w写入模式，encoding编码，dump：写入文件
         with open(self.file_path, "w", encoding="utf-8") as f:
-            json.dump(new_messages, f)
+            json.dump(new_messages, f) # json.dump()：将Python对象编码成JSON字符串，并写入文件
 
     @property       # @property装饰器将messages方法变成成员属性用
     def messages(self) -> list[BaseMessage]:
