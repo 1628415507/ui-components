@@ -72,7 +72,7 @@ summary: Find all keys matching the given pattern
 
 # 五、 Redis 数据类型与 key 规范
 
-- 除 String、Hash、List、Set、ZSet 外，Redis 3.2 起提供 **GEO**（Geolocation，地理坐标）类型，用于按经纬度存取与范围检索，命令见 [5.8 GEO](#redis-geo-commands)。
+- 除 String、Hash、List、Set、ZSet 外，Redis 3.2 起提供 **GEO**（Geolocation，地理坐标）类型，用于按经纬度存取与范围检索，命令见 [5.8 GEO](#redis-geo-commands)；在 [String](#redis-string-commands) 值上还可按位读写 **BitMap（位图）**，命令见 [5.9 BitMap](#redis-bitmap-commands)，本仓库签到见 [十三、用户签到](#redis-sign-chapter)。
 - Redis 中最基础的 Value 类型；value 虽为字符串，按内容可分为三类。
 - 无论哪种形态，底层均以**字节数组**存储（编码方式不同）；单个 String 值最大 **512MB**。
 
@@ -252,6 +252,28 @@ for (Shop shop : shops) {
 }
 ```
 未传坐标时 `queryShopByType` 仍走数据库分页，**不**使用 GEO。
+
+## 5.9 BitMap（位图）与常见命令 {#redis-bitmap-commands}
+
+- **BitMap** 不是与 String 并列的独立类型，而是对 **String 值按 bit 偏移读写** 的用法：用 `0` / `1` 表示业务状态（如未签到 / 已签到），每一位可映射到时间序列中的一个单位（如当月某一天）。
+- 底层仍是 [String](#redis-string-commands) 的字节数组，单 key 仍受 **512MB** 上限约束，约 **2^32** 个 bit；按月签到时 key 通常只需 28～31 bit，空间极省。
+- hm-dianping 按月统计签到、统计连续签到天数的 key 与接口见 [十三、用户签到](#redis-sign-chapter)。
+
+
+| 命令 | 作用 | 语法 | 示例 |
+| --- | --- | --- | --- |
+| **SETBIT** | 将指定 offset 的 bit 设为 0 或 1 | `SETBIT key offset value` | `SETBIT sign:5:202203 0 1`（2022年03月第 1 天签到） |
+| **GETBIT** | 读取指定 offset 的 bit | `GETBIT key offset` | `GETBIT sign:5:202203 2` |
+| **BITCOUNT** | 统计值为 1 的 bit 个数（可指定字节区间） | `BITCOUNT key [start end]` | `BITCOUNT bm1` |
+| **BITFIELD** | 将连续若干 bit **视为整数**，支持 GET / SET / INCRBY | `BITFIELD key [GET type offset] [SET type offset value] [INCRBY type offset increment] [OVERFLOW WRAP\|SAT\|FAIL]` | `BITFIELD sign:5:202203 GET u14 0`（从 offset 0 起读 14 位无符号整数） |
+| **BITFIELD_RO** | 只读版 BITFIELD，仅 GET | `BITFIELD_RO key [GET type offset ...]` | 与 BITFIELD 的 GET 子命令等价（Redis 6.0+） |
+| **BITOP** | 对多个 String 做按位 AND / OR / XOR / NOT，结果写入 dest | `BITOP operation dest key [key ...]` | `BITOP AND dest key1 key2` |
+| **BITPOS** | 在 bit 数组中查找第一个值为 0 或 1 的位置 | `BITPOS key bit [start end]` | `BITPOS bm1 0` |
+
+- **BITFIELD 的 type**：
+  - `u` 表示无符号、`i` 表示有符号，后接 bit 宽度（如 `u3` 为 3 位无符号整数）；
+  - `GET u4 0` 从 offset 0 起读 4 位，若前四位为 `1110` 则返回十进制 **14**。
+- **Spring**：`StringRedisTemplate.opsForValue().setBit` / `getBit` / `bitField` 分别对应 SETBIT、GETBIT、BITFIELD；连续签到统计的位运算思路见 `NormalTest#testBitMap` 与 [13.2 连续签到天数](#redis-sign-count)。
 
 # 六、 Java 客户端：Jedis（了解）
 
@@ -491,7 +513,7 @@ void testString() {
 | `delete(key)`   | 删除 key                | `stringRedisTemplate.delete(key)`            |
 
 
-- `opsForValue()` 的 `set` / `get` 及带过期参数的 `set` 分别对应 [String 常见命令](#redis-string-commands) 中的 SET、GET、SETEX（或 SET + EXPIRE）；
+- `opsForValue()` 的 `set` / `get` 及带过期参数的 `set` 分别对应 [String 常见命令](#redis-string-commands) 中的 SET、GET、SETEX（或 SET + EXPIRE）；`setBit` / `getBit` / `bitField` 对应 [BitMap 命令](#redis-bitmap-commands) 中的 SETBIT、GETBIT、BITFIELD（签到实战见 [十三、用户签到](#redis-sign-chapter)）；
 
 #### `setIfAbsent` 重载与 Redis 命令 {#redis-set-if-absent}
 
@@ -1904,35 +1926,42 @@ public Result saveBlog(Blog blog) {
 
 ## 12.4 关注页：滚动分页读收件箱 {#redis-feed-scroll}
 
-传统 `LIMIT offset, size` 在数据变动时易 **漏页、重复**；本仓库用 **基于时间戳的滚动分页**：每次带上次返回的 `minTime`（作为本次 `max`）与 `offset`（同一毫秒下已读条数），配合 `ZREVRANGEBYSCORE` 按 score **降序**取下一批（默认每次 2 条）。
+- 传统 `LIMIT offset, size` 在数据变动时易 **漏页、重复**；
+- 本仓库用 **基于时间戳的滚动分页**：每次带上次返回的 `minTime`（作为本次 `max`）与 `offset`（同一毫秒下已读条数），配合 `ZREVRANGEBYSCORE` 按 score **降序**取下一批（默认每次 2 条）。
+- `ScrollResult` 中 `minTime`、`offset` 供前端下一页请求传入 `lastId` 与 `offset`；笔记详情仍走 DB，
+- Redis 只存 **收件箱索引**（笔记 id + 时间 score）。
 
 ```java
 // Redis/hm-dianping/src/main/java/com/hmdp/service/impl/BlogServiceImpl.java
 
 @Override
 public Result queryBlogOfFollow(Long max, Integer offset) {
+    // 1.获取当前用户
     Long userId = UserHolder.getUser().getId();
+    // 2.查询收件箱 ZREVRANGEBYSCORE key Max Min LIMIT offset count
     String key = FEED_KEY + userId;
     Set<ZSetOperations.TypedTuple<String>> typedTuples = stringRedisTemplate.opsForZSet()
             .reverseRangeByScoreWithScores(key, 0, max, offset, 2);
+    // 3.非空判断
     if (typedTuples == null || typedTuples.isEmpty()) {
         return Result.ok();
     }
+    // 4.解析数据：blogId、minTime（时间戳）、offset
     List<Long> ids = new ArrayList<>(typedTuples.size());
-    long minTime = 0;
-    int os = 1;
-    for (ZSetOperations.TypedTuple<String> tuple : typedTuples) {
-        ids.add(Long.valueOf(tuple.getValue()));
-        long time = tuple.getScore().longValue();
+    long minTime = 0; // 2 minTime表示最小时间戳
+    int os = 1; // 2 os表示偏移量
+    for (ZSetOperations.TypedTuple<String> tuple : typedTuples) { // 5 4 4 2 2
+        // 4.1.获取id
+        ids.add(Long.valueOf(tuple.getValue())); // 获取笔记id-blogId
+        // 4.2.获取分数(时间戳）
+        long time = tuple.getScore().longValue(); // 获取时间戳
         if(time == minTime){
-            os++;
+            os++; // 如果时间戳相同，则偏移量加1
         }else{
-            minTime = time;
-            os = 1;
+            minTime = time; // 如果时间戳不同，则设置最小时间戳
+            os = 1; // 如果时间戳不同，则重置偏移量
         }
     }
     // ... 按 ids 查 Blog，封装 ScrollResult(list, minTime, offset)
 }
 ```
-
-`ScrollResult` 中 `minTime`、`offset` 供前端下一页请求传入 `lastId` 与 `offset`；笔记详情仍走 DB，Redis 只存 **收件箱索引**（笔记 id + 时间 score）。
