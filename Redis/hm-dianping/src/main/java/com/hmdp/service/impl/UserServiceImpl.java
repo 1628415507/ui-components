@@ -120,7 +120,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         // 4.获取今天是本月的第几天
         int dayOfMonth = now.getDayOfMonth();
         // 5.写入Redis SETBIT key offset 1
-        stringRedisTemplate.opsForValue().setBit(key, dayOfMonth - 1, true);
+        stringRedisTemplate.opsForValue().setBit(key, dayOfMonth - 1, true);//签到bit位的第dayOfMonth位，从0开始，设置为1
         return Result.ok();
     }
 
@@ -135,15 +135,15 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         String key = USER_SIGN_KEY + userId + keySuffix;
         // 4.获取今天是本月的第几天
         int dayOfMonth = now.getDayOfMonth();
-        // 5.获取本月截止今天为止的所有的签到记录，返回的是一个十进制的数字 BITFIELD sign:5:202203 GET u14 0
-        List<Long> result = stringRedisTemplate.opsForValue().bitField(
+        // 5.获取本月截止今天为止的所有的签到记录，返回的是一个十进制的数字 
+        // BITFIELD sign:5:202203 GET u14 0(从0开始，取14个bit位，u14表示无符号14位整数)
+        List<Long> result = stringRedisTemplate.opsForValue().bitField( // 结果是一个List，里面包含一个Long
                 key,
-                BitFieldSubCommands.create()
-                        .get(BitFieldSubCommands.BitFieldType.unsigned(dayOfMonth)).valueAt(0)
+                BitFieldSubCommands.create() //创建一个子命令集合，unsigned:表示无符号u，14:14个bit位
+                        .get(BitFieldSubCommands.BitFieldType.unsigned(dayOfMonth)).valueAt(0)//签到bit位的第dayOfMonth位，从0开始
         );
         if (result == null || result.isEmpty()) {
-            // 没有任何签到结果
-            return Result.ok(0);
+            return Result.ok(0);  // 没有任何签到结果
         }
         Long num = result.get(0);
         if (num == null || num == 0) {
@@ -154,14 +154,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         while (true) {
             // 6.1.让这个数字与1做与运算，得到数字的最后一个bit位  // 判断这个bit位是否为0
             if ((num & 1) == 0) {
-                // 如果为0，说明未签到，结束
-                break;
+                break;// 如果为0，说明未签到，结束，连续签到天数终止
             }else {
-                // 如果不为0，说明已签到，计数器+1
-                count++;
+                count++; // 如果不为0，说明已签到，计数器+1
             }
-            // 把数字右移一位，抛弃最后一个bit位，继续下一个bit位
-            num >>>= 1;
+            num >>>= 1;  // 把数字右移一位，抛弃最后一个bit位，继续下一个bit位
         }
         return Result.ok(count);
     }

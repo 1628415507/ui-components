@@ -101,7 +101,7 @@ public class HelloController {
     }
 }
 ```
-![alt text](img/image-2.png)
+![alt text](img/springboot-controller-annotations.png)
 
 ## 4.2 请求参数绑定 (@RequestParam) <a id="42-请求参数绑定-requestparam"></a>
 
@@ -145,7 +145,7 @@ public class HelloController {
         return Result.success();
     }
 ```
-![alt text](img/image-3.png)
+![alt text](img/springboot-request-param-annotation.png)
 ---
 
 # 五、 配置文件

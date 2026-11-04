@@ -254,7 +254,7 @@ for (Shop shop : shops) {
 未传坐标时 `queryShopByType` 仍走数据库分页，**不**使用 GEO。
 
 ## 5.9 BitMap（位图）与常见命令 {#redis-bitmap-commands}
-
+![alt text](image-1.png)
 - **BitMap** 不是与 String 并列的独立类型，而是对 **String 值按 bit 偏移读写** 的用法：用 `0` / `1` 表示业务状态（如未签到 / 已签到），每一位可映射到时间序列中的一个单位（如当月某一天）。
 - 底层仍是 [String](#redis-string-commands) 的字节数组，单 key 仍受 **512MB** 上限约束，约 **2^32** 个 bit；按月签到时 key 通常只需 28～31 bit，空间极省。
 - hm-dianping 按月统计签到、统计连续签到天数的 key 与接口见 [十三、用户签到](#redis-sign-chapter)。
@@ -1876,11 +1876,11 @@ private void handlePendingList() {
 | **典型场景** | 较少单独使用 | 用户量不大、无明显大 V | 千万级用户且存在大 V |
 
 - **拉模式**：读者刷新 Feed 时，从所关注作者的 **发件箱** 拉取再合并排序进 **收件箱**；写少读多，读路径要聚合多人数据。
-![alt text](image-1.png)
+![alt text](feed-timeline-pull.png)
 - **推模式**：作者发帖时，把消息写入每位粉丝的 **收件箱**；读路径只查自己的收件箱。粉丝量大时单次发帖写放大明显（大 V 问题）。
-![alt text](image-2.png)
+![alt text](feed-timeline-push.png)
 - **推拉结合**：普通用户发帖仍推给粉丝；大 V 只写发件箱，由活跃粉丝推、普通粉丝读时再拉，兼顾读延迟与写成本。
-![alt text](image-3.png)
+![alt text](feed-timeline-hybrid.png)
 
 ## 12.2 本仓库选型与 Redis 结构 {#redis-feed-hmdp}
 
@@ -1965,3 +1965,93 @@ public Result queryBlogOfFollow(Long max, Integer offset) {
     // ... 按 ids 查 Blog，封装 ScrollResult(list, minTime, offset)
 }
 ```
+
+# 十三、用户签到（BitMap） {#redis-sign-chapter}
+![alt text](image-2.png)
+按月记录每位用户每日是否签到：已签到位为 **1**，未签为 **0**；每一位对应当月一天（offset 从 **0** 起，对应第 1 天）。建模与 [5.9 BitMap](#redis-bitmap-commands) 一致。
+
+## 13.1 Redis key 与接口 {#redis-sign-key}
+
+| Redis key | 类型 | 作用 |
+| --- | --- | --- |
+| `sign:{userId}:{yyyyMM}` | String（BitMap） | 某用户某月的签到位图，如 `sign:5:202203` |
+
+| HTTP | 说明 |
+| --- | --- |
+| `POST /user/sign` | 当日签到（`UserController#sign`） |
+| `GET /user/sign/count` | 截止今天的**连续**签到天数（`UserController#signCount`） |
+
+常量 `USER_SIGN_KEY = "sign:"` 定义于 `RedisConstants`；key 由 `sign:` + 用户 id + `:yyyyMM` 拼接。
+
+## 13.2 签到：SETBIT {#redis-sign-setbit}
+
+当天是本月第 `dayOfMonth` 天时，向 offset **`dayOfMonth - 1`** 写入 1（与「第 1 天 → offset 0」一致）。
+
+```java
+// Redis/hm-dianping/src/main/java/com/hmdp/service/impl/UserServiceImpl.java
+
+@Override
+public Result sign() {
+    // 1.获取当前登录用户
+    Long userId = UserHolder.getUser().getId();
+    // 2.获取日期
+    LocalDateTime now = LocalDateTime.now();
+    // 3.拼接key
+    String keySuffix = now.format(DateTimeFormatter.ofPattern(":yyyyMM"));
+    String key = USER_SIGN_KEY + userId + keySuffix;
+    // 4.获取今天是本月的第几天
+    int dayOfMonth = now.getDayOfMonth();
+    // 5.写入Redis SETBIT key offset 1
+    stringRedisTemplate.opsForValue().setBit(key, dayOfMonth - 1, true);//签到bit位的第dayOfMonth位，从0开始，设置为1
+    return Result.ok();
+}
+```
+
+## 13.3 [获取连续签到天数：BITFIELD + 位运算 {#redis-sign-count}](https://www.bilibili.com/video/BV1cr4y1671t/?spm_id_from=333.788.player.switch&vd_source=9d75580d0b23d1137d56e03a996ac726&p=93)
+
+1. 用 **BITFIELD** 从 offset 0 读取 **`dayOfMonth` 位**无符号整数，得到「本月 1 号至今天」的位图压缩值（等价于 CLI：`BITFIELD sign:{userId}:{yyyyMM} GET u{dayOfMonth} 0`）。
+2. 从**最低位**（今天）起 repeatedly：`num & 1` 为 1 则连续天数 +1，`num >>>= 1`；遇到 0 则停止（今天未签则结果为 0）。
+
+```java
+// Redis/hm-dianping/src/main/java/com/hmdp/service/impl/UserServiceImpl.java
+
+public Result signCount() {
+    // 1.获取当前登录用户
+    Long userId = UserHolder.getUser().getId();
+    // 2.获取日期
+    LocalDateTime now = LocalDateTime.now();
+    // 3.拼接key
+    String keySuffix = now.format(DateTimeFormatter.ofPattern(":yyyyMM"));
+    String key = USER_SIGN_KEY + userId + keySuffix;
+    // 4.获取今天是本月的第几天
+    int dayOfMonth = now.getDayOfMonth();
+    // 5.获取本月截止今天为止的所有的签到记录，返回的是一个十进制的数字 
+    // BITFIELD sign:5:202203 GET u14 0(从0开始，取14个bit位，u14表示无符号14位整数)
+    List<Long> result = stringRedisTemplate.opsForValue().bitField( // 结果是一个List，里面包含一个Long
+            key,
+            BitFieldSubCommands.create() //创建一个子命令集合，unsigned:表示无符号u，14:14个bit位
+                    .get(BitFieldSubCommands.BitFieldType.unsigned(dayOfMonth)).valueAt(0)//签到bit位的第dayOfMonth位，从0开始
+    );
+    if (result == null || result.isEmpty()) {
+        return Result.ok(0);  // 没有任何签到结果
+    }
+    Long num = result.get(0);
+    if (num == null || num == 0) {
+        return Result.ok(0);
+    }
+    // 6.循环遍历
+    int count = 0;
+    while (true) {
+        // 6.1.让这个数字与1做与运算，得到数字的最后一个bit位  // 判断这个bit位是否为0
+        if ((num & 1) == 0) {
+            break;// 如果为0，说明未签到，结束，连续签到天数终止
+        }else {
+            count++; // 如果不为0，说明已签到，计数器+1
+        }
+        num >>>= 1;  // 把数字右移一位，抛弃最后一个bit位，继续下一个bit位
+    }
+    return Result.ok(count);
+}
+```
+
+测试类中对同一循环逻辑的两种写法对比见 `NormalTest#testBitMap`（与业务中 `(num & 1)` / `>>>` 写法等价，用于理解从低位统计连续 1 的位数）。
