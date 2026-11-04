@@ -72,7 +72,7 @@ summary: Find all keys matching the given pattern
 
 # 五、 Redis 数据类型与 key 规范
 
-- 除 String、Hash、List、Set、ZSet 外，Redis 3.2 起提供 **GEO**（Geolocation，地理坐标）类型，用于按经纬度存取与范围检索，命令见 [5.8 GEO](#redis-geo-commands)；在 [String](#redis-string-commands) 值上还可按位读写 **BitMap（位图）**，命令见 [5.9 BitMap](#redis-bitmap-commands)，本仓库签到见 [十三、用户签到](#redis-sign-chapter)。
+- 除 String、Hash、List、Set、ZSet 外，Redis 3.2 起提供 **GEO**（Geolocation，地理坐标）类型，用于按经纬度存取与范围检索，命令见 [5.8 GEO](#redis-geo-commands)；在 [String](#redis-string-commands) 值上还可按位读写 **BitMap（位图）**，命令见 [5.9 BitMap](#redis-bitmap-commands)，本仓库签到见 [十三、用户签到](#redis-sign-chapter)；Redis 2.8.9 起 **HyperLogLog** 用于基数估算（如 UV），命令见 [5.10 HyperLogLog](#redis-hyperloglog-commands)。
 - Redis 中最基础的 Value 类型；value 虽为字符串，按内容可分为三类。
 - 无论哪种形态，底层均以**字节数组**存储（编码方式不同）；单个 String 值最大 **512MB**。
 
@@ -274,6 +274,52 @@ for (Shop shop : shops) {
   - `u` 表示无符号、`i` 表示有符号，后接 bit 宽度（如 `u3` 为 3 位无符号整数）；
   - `GET u4 0` 从 offset 0 起读 4 位，若前四位为 `1110` 则返回十进制 **14**。
 - **Spring**：`StringRedisTemplate.opsForValue().setBit` / `getBit` / `bitField` 分别对应 SETBIT、GETBIT、BITFIELD；连续签到统计的位运算思路见 `NormalTest#testBitMap` 与 [13.2 连续签到天数](#redis-sign-count)。
+
+## 5.10 HyperLogLog 与常见命令 {#redis-hyperloglog-commands}
+
+- **UV**（Unique Visitor，独立访客）：同一自然人在一天内多次访问网站，只计 **1** 次。
+
+- **PV**（Page View，页面访问量/点击量）：每打开一次页面计 **1** 次，同一用户多次访问累计多次；PV 常用 [String 自增](#redis-string-commands)（如 `INCR`）即可，**UV 需要去重计数**。
+
+- **HyperLogLog（HLL）** 源自 LogLog 概率算法，用于在**不保存全部元素**的前提下估算集合**基数**（distinct 个数）；
+
+  Redis 中底层仍落在 **String** 编码上，单个 key 占用**小于 16KB**，结果为标准误差约 **0.81% 以内**的近似值，做 UV 统计通常足够。
+
+  与 [BitMap](#redis-bitmap-commands) 精确按位标记不同，HLL 适合「只关心大概有多少独立访客、不需要逐个 id 列表」的场景。
+
+| 命令 | 作用 | 语法 | 示例 |
+| --- | --- | --- | --- |
+| **PFADD** | 向 HLL 添加元素（重复元素不影响基数） | `PFADD key element [element ...]` | `PFADD uv:20251104 user:1001` |
+| **PFCOUNT** | 返回 HLL 观测到的近似基数 | `PFCOUNT key [key ...]` | `PFCOUNT uv:20251104` |
+| **PFMERGE** | 合并多个 HLL 到目标 key | `PFMERGE destkey sourcekey [sourcekey ...]` | `PFMERGE uv:week uv:20251101 uv:20251102` |
+
+（以上命令自 Redis **2.8.9** 起提供。）
+
+- **Spring**：`StringRedisTemplate.opsForHyperLogLog().add` / `size` 分别对应 PFADD、PFCOUNT；`union` 对应 PFMERGE。
+
+  测试类 `HmDianPingApplicationTests#testHyperLogLog` 模拟百万次写入、仅 **1000** 个不同 member，用 `size("hl2")` 验证近似计数：
+
+```java
+// Redis/hm-dianping/src/test/java/com/hmdp/HmDianPingApplicationTests.java
+
+@Test
+void testHyperLogLog() {
+    String[] values = new String[1000];
+    int j = 0;
+    // 假设有1000000个用户，每个用户一个id，id从0到999999
+    for (int i = 0; i < 1000000; i++) {
+        j = i % 1000; // 将i对1000取模，得到j，j的值为0-999
+        values[j] = "user_" + i;
+        if(j == 999){
+            // 发送到Redis
+            stringRedisTemplate.opsForHyperLogLog().add("hl2", values); // 将values数组中的元素添加到Redis的hl2集合中
+        }
+    }
+    // 统计数量
+    Long count = stringRedisTemplate.opsForHyperLogLog().size("hl2");
+    System.out.println("count = " + count);
+}
+```
 
 # 六、 Java 客户端：Jedis（了解）
 
@@ -477,6 +523,7 @@ spring:
 | `redisTemplate.opsForStream()` | `StreamOperations` | [Stream](#redis-stream-commands) |
 | `redisTemplate.opsForZSet()`  | `ZSetOperations`  | [ZSet](#redis-zset-commands)     |
 | `redisTemplate.opsForGeo()`   | `GeoOperations`   | [GEO](#redis-geo-commands)       |
+| `redisTemplate.opsForHyperLogLog()` | `HyperLogLogOperations` | [HyperLogLog](#redis-hyperloglog-commands) |
 | `redisTemplate` 自身          | —                 | 通用命令（如 `delete`）          |
 
 
@@ -513,7 +560,7 @@ void testString() {
 | `delete(key)`   | 删除 key                | `stringRedisTemplate.delete(key)`            |
 
 
-- `opsForValue()` 的 `set` / `get` 及带过期参数的 `set` 分别对应 [String 常见命令](#redis-string-commands) 中的 SET、GET、SETEX（或 SET + EXPIRE）；`setBit` / `getBit` / `bitField` 对应 [BitMap 命令](#redis-bitmap-commands) 中的 SETBIT、GETBIT、BITFIELD（签到实战见 [十三、用户签到](#redis-sign-chapter)）；
+- `opsForValue()` 的 `set` / `get` 及带过期参数的 `set` 分别对应 [String 常见命令](#redis-string-commands) 中的 SET、GET、SETEX（或 SET + EXPIRE）；`setBit` / `getBit` / `bitField` 对应 [BitMap 命令](#redis-bitmap-commands) 中的 SETBIT、GETBIT、BITFIELD（签到实战见 [十三、用户签到](#redis-sign-chapter)）；`opsForHyperLogLog().add` / `size` 对应 [HyperLogLog 命令](#redis-hyperloglog-commands) 中的 PFADD、PFCOUNT（示例见 `HmDianPingApplicationTests#testHyperLogLog`）；
 
 #### `setIfAbsent` 重载与 Redis 命令 {#redis-set-if-absent}
 
@@ -1861,7 +1908,8 @@ private void handlePendingList() {
 
 # 十二、[Feed 流（关注推送） {#redis-feed-chapter}](https://www.bilibili.com/video/BV1cr4y1671t/?spm_id_from=333.788.videopod.episodes&vd_source=9d75580d0b23d1137d56e03a996ac726&p=84)
 
-**关注推送**也称 **Feed 流**（直译「投喂」）：系统按**时间线或算法**把内容推到用户面前，配合下拉刷新形成连续浏览体验。相对「用户主动寻找内容」的传统模式，Feed 更接近「内容经匹配后触达用户」。
+- **关注推送**也称 **Feed 流**（直译「投喂」）：系统按**时间线或算法**把内容推到用户面前，配合下拉刷新形成连续浏览体验。
+- 相对「用户主动寻找内容」的传统模式，Feed 更接近「内容经匹配后触达用户」。
 
 个人主页「我关注的人发的笔记」属于 **Timeline（时间线）**：按发布时间排序、信息较全；与 **智能排序**（算法筛内容、提粘性）相比，实现更直接，本仓库 hm-dianping 采用 Timeline + **推模式**。
 
@@ -2007,9 +2055,12 @@ public Result sign() {
 }
 ```
 
-## 13.3 [获取连续签到天数：BITFIELD + 位运算 {#redis-sign-count}](https://www.bilibili.com/video/BV1cr4y1671t/?spm_id_from=333.788.player.switch&vd_source=9d75580d0b23d1137d56e03a996ac726&p=93)
+## 13.3 [获取连续签到天数：BITFIELD + 与位运算 {#redis-sign-count}](https://www.bilibili.com/video/BV1cr4y1671t/?spm_id_from=333.788.player.switch&vd_source=9d75580d0b23d1137d56e03a996ac726&p=93)
 
-1. 用 **BITFIELD** 从 offset 0 读取 **`dayOfMonth` 位**无符号整数，得到「本月 1 号至今天」的位图压缩值（等价于 CLI：`BITFIELD sign:{userId}:{yyyyMM} GET u{dayOfMonth} 0`）。
+1. 用 **BITFIELD** 从 offset 0 读取 **`dayOfMonth` 位**无符号整数，得到「本月 1 号至今天」的位图压缩值
+
+   （等价于 CLI：`BITFIELD sign:{userId}:{yyyyMM} GET u{dayOfMonth} 0`）。
+
 2. 从**最低位**（今天）起 repeatedly：`num & 1` 为 1 则连续天数 +1，`num >>>= 1`；遇到 0 则停止（今天未签则结果为 0）。
 
 ```java
@@ -2054,4 +2105,4 @@ public Result signCount() {
 }
 ```
 
-测试类中对同一循环逻辑的两种写法对比见 `NormalTest#testBitMap`（与业务中 `(num & 1)` / `>>>` 写法等价，用于理解从低位统计连续 1 的位数）。
+> 测试类中对同一循环逻辑的两种写法对比见 `NormalTest#testBitMap`（与业务中 `(num & 1)` / `>>>` 写法等价，用于理解从低位统计连续 1 的位数）。

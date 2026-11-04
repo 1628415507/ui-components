@@ -96,12 +96,13 @@ class HmDianPingApplicationTests {
     void testHyperLogLog() {
         String[] values = new String[1000];
         int j = 0;
+        // 假设有1000000个用户，每个用户一个id，id从0到999999
         for (int i = 0; i < 1000000; i++) {
-            j = i % 1000;
+            j = i % 1000; // 将i对1000取模，得到j，j的值为0-999
             values[j] = "user_" + i;
             if(j == 999){
                 // 发送到Redis
-                stringRedisTemplate.opsForHyperLogLog().add("hl2", values);
+                stringRedisTemplate.opsForHyperLogLog().add("hl2", values); // 将values数组中的元素添加到Redis的hl2集合中
             }
         }
         // 统计数量
