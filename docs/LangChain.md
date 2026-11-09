@@ -1,4 +1,4 @@
-# [LangChain 常用语法梳理](https://www.bilibili.com/video/BV1yjz5BLEoY/?spm_id_from=333.788.player.switch&vd_source=9d75580d0b23d1137d56e03a996ac726&p=47)
+### [LangChain 常用语法梳理](https://www.bilibili.com/video/BV1yjz5BLEoY/?spm_id_from=333.788.player.switch&vd_source=9d75580d0b23d1137d56e03a996ac726&p=47)
 
 - 这份文档基于 当前项目目录 下的实战代码，为你梳理了 LangChain 的核心组件用法。
 - 使用前需先配置电脑的环境变量： `OPENAI_API_KEY`和`DASHSCOPE_API_KEY`（电脑需重启）
@@ -480,7 +480,7 @@ chain.run()
 
 ### 5.5 自定义逻辑 (RunnableLambda)
 
-> 如果你需要在 LCEL 链中加入自定义的 Python 函数逻辑，可以使用 `RunnableLambda`。
+> 如果你需要在 LCEL 链中加入自定义的 Python 函数逻辑，可以使用 `RunnableLambda`包裹。
 
 - **核心用法**：
     - **手动封装**：使用 `RunnableLambda(your_function)` 将函数封装为 Runnable 对象。
@@ -1033,8 +1033,8 @@ for doc in loader.lazy_load():
 
 ## 10. 向量存储 (Vector Stores)
 
-
-向量存储用于**存储嵌入向量**并执行**相似性检索**，是 RAG 流程的核心环节之一；具体实现分**内存临时**（如 `InMemoryVectorStore`）与**磁盘持久化**（如 `Chroma`）两类，见下表。
+- 向量存储用于**存储嵌入向量**并执行**相似性检索**，是 RAG 流程的核心环节之一；
+- 具体实现分**内存临时**（如 `InMemoryVectorStore`）与**磁盘持久化**（如 `Chroma`）两类，见下表。
 
 **典型 RAG 两阶段流程**：
 
@@ -1050,7 +1050,7 @@ LangChain 中常用的向量存储实现：
 | 实现 | 导入 | 特点 |
 | :--- | :--- | :--- |
 | **`InMemoryVectorStore`** | `langchain_core.vectorstores` | 内存存储（**临时的**），进程退出后数据不保留，适合调试 |
-| **`Chroma`** | `langchain_chroma` | 轻量级外部向量数据库，数据**持久化**到磁盘 |
+| **`Chroma`** | `langchain_chroma` | 轻量级外部向量数据库，数据**持久化**到**磁盘** |
 
 ### 10.1 通用 API
 
@@ -1161,7 +1161,7 @@ pip install langchain-chroma chromadb
 | :--- | :--- |
 | **`collection_name`** | 集合名称，类似数据库中的**表名**；同一目录下可区分多个集合。 |
 | **`embedding_function`** | 嵌入模型实例（Chroma 使用此参数名；`InMemoryVectorStore` 对应参数为 `embedding`）。 |
-| **`persist_directory`** | 向量数据持久化目录；首次写入后会在该路径下生成数据库文件。 |
+| **`persist_directory`** | 向量数据持久化**目录**；首次写入后会在该路径下生成**数据库文件**。 |
 
 [`add_documents`](#101-通用-api) / [`delete`](#101-通用-api) 用法同 [§10.2 InMemoryVectorStore](#10.2 InMemoryVectorStore（临时存储）) 示例。
 
@@ -1290,13 +1290,11 @@ print(res)
 - [`StrOutputParser`](#61-字符串解析器-stroutputparser) 将模型输出转为字符串。
 - 若已按 [§11.3](#113-检索与参考资料拼接命令式) 得到 `reference_text`，也可省略并行分支，直接 `chain.invoke({"input": input_text, "context": reference_text})`。
 
----
-
-## 11.5 RAG 实战优化
+## 12.RAG 实战优化
 
 ![alt text](image-1.png)在实际 RAG 项目中，为了提高知识库质量和管理效率，通常需要引入**去重校验**与**元数据注入**。
 
-#### 11.5.1 MD5 去重校验
+### 12.1 MD5 去重校验
 **解决问题**：避免同一份文件或相同内容被重复灌入向量库，造成冗余检索。
 
 ```python
@@ -1316,7 +1314,7 @@ if check_md5(md5_hex): # check_md5 为自定义持久化校验逻辑
     return "[跳过]内容已经存在知识库中"
 ```
 
-#### 11.5.2 结构化元数据 (Metadata)
+### 12.2 结构化元数据 (Metadata)
 **解决问题**：为检索结果提供溯源信息（如文件名、创建时间、操作人），便于前端展示或后续过滤。
 
 ```python
@@ -1337,12 +1335,12 @@ self.chroma.add_texts(
 
 ---
 
-## 12. Web 集成 (Streamlit-UI框架)
+### 12.3 Web 集成 (Streamlit-UI框架)
 在实战中，常使用 Streamlit 快速构建 LangChain 的 Web 交互界面。
 
-### 12.1 基础特性与运行
+#### 12.3.1 基础特性与运行
 
-- **核心机制**：Streamlit 采用“脚本式”运行逻辑，当页面元素发生任何变化时，整个 Python 代码会**从头到尾重新执行一遍**。
+- **核心机制**：Streamlit 采用“脚本式”运行逻辑，当WEB页面元素**发生任何变化**时（如附件上传），整个 Python 代码会**从头到尾重新执行一遍**。
 - **安装**：
   ```bash
   pip install streamlit
@@ -1355,11 +1353,10 @@ self.chroma.add_texts(
   python -m streamlit run app_file_uploader.py
   ```
 
-### 12.2 状态持久化与资源缓存
+#### 12.3.2 状态持久化与资源缓存
+- 由于 Streamlit 的重新执行机制，对于模型实例、数据库连接等重型资源，必须进行持久化或缓存，避免重复初始化。
 
-由于 Streamlit 的重新执行机制，对于模型实例、数据库连接等重型资源，必须进行持久化或缓存，避免重复初始化。
-
-#### 12.2.1 资源缓存 (`@st.cache_resource`)
+##### 12.3.2.1 资源缓存 (`@st.cache_resource`)
 **推荐用法**：用于全局共享的资源（如 LangChain 服务类、模型实例）。
 
 ```python
@@ -1371,12 +1368,56 @@ def get_kb_service():
 service = get_kb_service() # 仅在首次运行时初始化，后续重跑直接取缓存
 ```
 
-#### 12.2.2 会话状态 (`st.session_state`)
-用于存储与单个用户会话相关的临时数据（如对话历史、用户输入）。
+##### 12.3.2.2 会话状态 (`st.session_state`)
+- Streamlit：当WEB页面元素发生变化，则代码**重新执行一遍**
+- session_state用于存储与单个用户会话相关的临时数据（如对话历史、用户输入）。
+- session_state就是一个字典，用来保存数据状态（不然页面变化每次都会刷新），
+- 通过 Web 界面上传文件并将其内容同步到知识库，配合 `spinner` （加载状态）提供良好的交互体验。
+```python
+# 04-RAG项目案例\example1\app_file_uploader.py
+import streamlit as st #起别名：st
+from knowledge_base import KnowledgeBaseService
 
-### 12.3 文件上传与交互反馈
+# 1.添加网页标题
+st.title("知识库更新服务")
 
-通过 Web 界面上传文件并将其内容同步到知识库，配合 `spinner` （加载状态）提供良好的交互体验。
+# 2.添加文件上传服务
+# file_uploader：获取文件上传框
+uploader_file = st.file_uploader(
+    "请上传TXT文件",
+    type=['txt'],#上传控件所支持的文件类型
+    accept_multiple_files=False,    # False表示仅接受一个文件的上传
+)
+
+# 避免WEB页面元素发生变化时的数据清空
+if "service" not in st.session_state: # 如果没有service字段，则添加
+    st.session_state["service"] = KnowledgeBaseService() # 只创建一次
+
+# 若文件不为空
+if uploader_file is not None:
+    # 提取文件的信息
+    file_name = uploader_file.name
+    file_type = uploader_file.type
+    file_size = uploader_file.size / 1024    # KB
+
+    st.subheader(f"文件名：{file_name}") # 设置子标题
+    # .2f设置精度
+    st.write(f"格式：{file_type} | 大小：{file_size:.2f} KB")
+    
+    # 提取文件的内容
+#     # get_value -> bytes -> decode('utf-8')
+    text = uploader_file.getvalue().decode("utf-8") #decode("utf-8")
+    st.write(text) #输出文件内容
+
+    with st.spinner("载入知识库中。。。"):       # 在spinner内的代码执行过程中，会有一个转圈动画
+        result = st.session_state["service"].upload_by_str(text, file_name)
+        st.write(result)
+
+
+```
+
+#### 12.3.3 文件上传与交互反馈
+
 
 ```python
 # 示例取自 04-RAG项目案例/app_file_uploader.py
@@ -1392,5 +1433,6 @@ if uploader_file is not None:
             result = service.upload_by_str(text_content, uploader_file.name)
             st.success(result) # 使用 st.success/st.warning/st.error 提供彩色反馈
 ```
-
----
+### 12.4 [聊天页面开发](https://www.bilibili.com/video/BV1yjz5BLEoY/?spm_id_from=333.788.videopod.episodes&vd_source=9d75580d0b23d1137d56e03a996ac726&p=54)
+- yield 表达式
+- 聊天界面开发：04-RAG项目案例\example2\app_qa.py

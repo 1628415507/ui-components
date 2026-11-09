@@ -22,8 +22,9 @@ uploader_file = st.file_uploader(
     accept_multiple_files=False,    # False表示仅接受一个文件的上传
 )
 
-# session_state就是一个字典，用来保存数据状态（不然页面变化每次斗湖刷新），#避免WEB页面元素发生变化时的数据清空
-if "service" not in st.session_state:
+# session_state就是一个字典，用来保存数据状态（不然页面变化每次都会刷新），
+# #避免WEB页面元素发生变化时的数据清空
+if "service" not in st.session_state: # 如果没有service字段，则添加
     st.session_state["service"] = KnowledgeBaseService()
 
 # 若文件不为空
