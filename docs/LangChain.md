@@ -68,7 +68,7 @@ model = ChatTongyi(model=os.getenv("MODEL_CHAT"))
 - 可以总结为一个公式:`RAG= 检索技术+LLM提示`
 
 - 分为离线和在线流程
-![alt text](img/RAG.png)
+![alt text](img/rag-offline-online-pipeline.png)
 ### 为什么需要 RAG？
 1. **降低模型幻觉**：LLM 可能会生成虚假信息，RAG 通过提供真实依据来减少“幻觉”，让模型的回答基于检索到的事实性资料。
 2. **知识时效性**：无需重新训练模型，即可让模型**掌握最新的私有数据或实时信息**。
@@ -94,13 +94,13 @@ model = ChatTongyi(model=os.getenv("MODEL_CHAT"))
   - 维度数代表模型用多少个抽象语义特征来描述文本
   - 维度越多，做语义匹配越精准
   - 但性能压力也会增大  
-### **[余弦相似度（了解即可）](https://www.bilibili.com/video/BV1yjz5BLEoY/?spm_id_from=333.788.player.switch&vd_source=9d75580d0b23d1137d56e03a996ac726&p=21)**  ​	![alt text]( image-3.png)
+### **[余弦相似度（了解即可）](https://www.bilibili.com/video/BV1yjz5BLEoY/?spm_id_from=333.788.player.switch&vd_source=9d75580d0b23d1137d56e03a996ac726&p=21)**  ​	![alt text](img/vector-cosine-similarity-concept.png)
 
   - 余弦相似度算法：衡量两个向量的核心相似度（衡量方向相似性，剔除长度影响）
   - 越接近1，相似度越高
   - 公式
   
-    ![alt text](img/image-19.png)
+    ![alt text](img/vector-cosine-similarity-formula.png)
 
 ## 模型类型与接入 (Models)
 
@@ -1292,7 +1292,7 @@ print(res)
 
 ## 12.RAG 实战优化
 
-![alt text](image-1.png)在实际 RAG 项目中，为了提高知识库质量和管理效率，通常需要引入**去重校验**与**元数据注入**。
+![alt text](img/rag-practice-dedup-metadata.png)在实际 RAG 项目中，为了提高知识库质量和管理效率，通常需要引入**去重校验**与**元数据注入**。
 
 ### 12.1 MD5 去重校验
 **解决问题**：避免同一份文件或相同内容被重复灌入向量库，造成冗余检索。
