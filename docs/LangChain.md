@@ -1462,13 +1462,13 @@ if uploader_file is not None:
 
 ### 13.3 `create_agent` 初体验
 
-`create_agent` 用于一次性装配「聊天模型 + 工具列表 + 系统提示」。示例取自 `05-Agent智能体/01Agent智能体初体验.py`。
+`create_agent` 用于一次性装配「聊天模型 + 工具列表 + 系统提示」。
 
 | 参数 | 作用 |
 | :--- | :--- |
 | **`model`** | 智能体使用的**聊天模型**（大脑），推荐 `common/dashscope_compat.create_chat_openai()`（读取 `BASE_URL`、`MODEL_CHAT`、密钥） |
 | **`tools`** | 可供模型调用的工具列表（`@tool` 装饰的函数或其它 Tool 实例） |
-| **`system_prompt`** | 系统级角色与行为说明 |
+| **`system_prompt`** | **系统级**角色与行为说明 |
 
 工具函数使用 `langchain_core.tools` 的 `@tool` 注册；`description` 会写入工具元数据，供模型选择是否调用。
 
@@ -1479,14 +1479,22 @@ if uploader_file is not None:
 | **`description`** | 工具用途说明，供模型在规划阶段匹配任务 |
 | **函数 docstring** | 与 `description` 一并作为工具说明（示例中为「查询天气」） |
 
-#### 13.3.2 调用与消息
+#### 13.3.2 Runnable 执行：`invoke` 与 `stream`
 
-`agent.invoke` 入参为包含 `messages` 的字典；每条为 `{"role": ..., "content": ...}`（本例 `role` 为 `user`，对应 [HumanMessage](#21-标准类形式)）。
+通过 `create_agent` 得到的 **Agent 图**同样是 [Runnable](#5-lcel-chains--composition) 实现，因此具备与其它 Runnable 一致的调用方式（聊天模型侧 [`invoke` / `stream`](#4-调用方式-invokestream) 见 §4）。
 
-| 键 | 含义 |
+| 方法 | 作用 |
+| :--- | :--- |
+| **`invoke`** | 一次性执行，返回**完整**终态（如 `res["messages"]` 全量轨迹） |
+| **`stream`** | 流式执行，按步产出中间状态；见 [§13.3.3](#1333-agent-流式输出-stream_modevalues) |
+
+**`invoke` 入参**：包含 `messages` 的字典；每条为 `{"role": ..., "content": ...}`（本例 `role` 为 `user`，对应 [HumanMessage](#21-标准类形式)）。
+
+| 键 / 用法 | 含义 |
 | :--- | :--- |
 | **`messages`** | 本轮对话消息列表 |
 | **返回值 `res["messages"]`** | 完整消息轨迹（含工具调用与模型回复），可遍历 `type(msg).__name__` 与 `msg.content` 调试 |
+| **`type(msg).__name__`** | 查看消息类型 |
 
 ```python
 # 示例取自 05-Agent智能体/01Agent智能体初体验.py
@@ -1529,5 +1537,62 @@ res = agent.invoke(
 )
 
 for msg in res["messages"]:
+    # `type(msg).__name__`：输出消息类型
     print(type(msg).__name__, msg.content)
 ```
+
+#### 13.3.3 Agent 流式输出 (`stream_mode="values"`)
+
+示例取自 `05-Agent智能体/02Agent的stream流式输出.py`。Agent 装配与 [§13.3](#133-create_agent-初体验) 相同；下列仅展示**多工具**与 **`agent.stream`** 增量逻辑。
+
+| 参数 | 作用 |
+| :--- | :--- |
+| **`stream_mode="values"`** | 每个流式块 `chunk` 为 Agent **当前完整状态**（字典）；<br>其中 `chunk["messages"]` 为截至该步的消息列表 |
+| **`chunk["messages"][-1]`** | 取列表**最后一条**，即该步**最新**消息（文本回复或工具调用意图） |
+
+- 流式块包含该时刻的完整状态，因此用 `[-1]` 即可跟踪最新进展；
+- 若 `latest_message.content` 非空则打印模型输出，若存在 `tool_calls` 则打印工具名列表。
+
+```python
+# 示例取自 05-Agent智能体/02Agent的stream流式输出.py
+# 项目根路径加入 sys.path、create_chat_openai 等同 §13.3，此处从工具定义起
+
+from common.dashscope_compat import create_chat_openai
+from langchain.agents import create_agent
+from langchain_core.tools import tool
+
+@tool(description="获取股价，传入股票名称，返回字符串信息")
+def get_price(name: str) -> str:
+    return f"股票{name}的价格是20元"
+
+@tool(description="获取股票信息，传入股票名称，返回字符串信息")
+def get_info(name: str) -> str:
+    return f"股票{name}，是一家A股上市公司，专注于IT职业教育。"
+
+agent = create_agent(
+    model=create_chat_openai(),
+    tools=[get_price, get_info],
+    system_prompt="你是一个智能助手，可以回答股票相关问题，记住请告知我思考过程，让我知道你为什么调用某个工具"
+)
+
+for chunk in agent.stream(
+    {"messages": [{"role": "user", "content": "传智教育股价多少，并介绍一下"}]},
+    stream_mode="values"
+):
+    latest_message = chunk['messages'][-1] # 获取最新消息，最后一条
+
+    if latest_message.content:
+        print(type(latest_message).__name__, latest_message.content)
+
+    try:
+        if latest_message.tool_calls: #打印工具调用，工具名称
+            print(f"工具调用： { [tc['name'] for tc in latest_message.tool_calls]  }") # 打印工具调用，工具名称
+    except AttributeError as e: # 处理 AttributeError 异常，即 latest_message 没有 tool_calls 属性
+        pass # 什么都不做
+```
+
+| 分支 | 含义 |
+| :--- | :--- |
+| **`latest_message.content`** | 该步模型已生成的文本（可边流式边 `print`） |
+| **`latest_message.tool_calls`** | 该步模型拟调用的工具；用 `tc['name']` 打印工具名 |
+| **`try` / `except AttributeError`** | 部分消息类型无 `tool_calls` 属性时忽略，避免中断流式循环 |
