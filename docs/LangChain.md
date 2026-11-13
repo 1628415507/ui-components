@@ -1596,3 +1596,76 @@ for chunk in agent.stream(
 | **`latest_message.content`** | 该步模型已生成的文本（可边流式边 `print`） |
 | **`latest_message.tool_calls`** | 该步模型拟调用的工具；用 `tc['name']` 打印工具名 |
 | **`try` / `except AttributeError`** | 部分消息类型无 `tool_calls` 属性时忽略，避免中断流式循环 |
+
+#### 13.3.4 执行结果
+![Agent 流式输出执行结果 1](image-1.png)
+
+### 13.4 ReAct 工作范式
+
+**ReAct（Reasoning + Acting）** 是 LLM Agent 常用的**思考 + 行动**框架：像人一样「先想清问题 → 定策略 → 执行动作 → 核对结果」，用语义化的推理驱动工具调用，适合客服、报表、多步规划等任务。
+
+| 阶段 | 含义 | Agent 中的表现 |
+| :--- | :--- | :--- |
+| **思考（Reasoning）** | 分析需求、判断信息是否足够、规划下一步 | 模型在 `content` 中输出推理；决定是否发起 `tool_calls` |
+| **行动（Action）** | 按策略执行 | 调用 `tools` 中某一工具，传入参数 |
+| **观察（Observation）** | 读取行动结果、抽取有用信息 | 工具返回值写入对话轨迹（通常为 `ToolMessage`），供下一轮思考 |
+| **结束** | 信息已足、可回答用户 | 不再调用工具，输出最终 `AIMessage` |
+
+典型闭环：**思考 → 行动 → 观察 → 思考 → … → 结束**。LangChain 中经 [`create_agent`](#133-create_agent-初体验) 装配的 Agent 图，底层即按此循环运行（模型节点与工具节点交替，直至无更多 `tool_calls`）。
+
+![ReAct 推理与行动框架](img/agent-react-reasoning-acting.png)
+
+![ReAct 工作范式小结](img/agent-react-loop-summary.png)
+
+#### 13.4.1 案例：BMI 计算
+
+- 在 `system_prompt` 中**显式约束** ReAct 结构与「每轮仅调用 1 个工具」，便于观察思考、行动、观察分段；流式消费方式同 [§13.3.3](#1333-agent-流式输出-stream_modevalues)。
+
+| 约束 / 工具 | 作用 |
+| :--- | :--- |
+| **`system_prompt`** | 要求按「思考→行动→观察→再思考」叙述，并限制每轮 1 次工具调用(方便演示学习) |
+| **`get_weight` / `get_height`** | 分步获取体重（kg）、身高（cm），再推导 BMI |
+
+```python
+# 示例取自 05-Agent智能体/03ReAct案例.py
+from common.dashscope_compat import create_chat_openai
+from langchain.agents import create_agent
+from langchain_core.tools import tool
+
+# 定义工具，获取体重，返回值是整数，单位千克
+@tool(description="获取体重，返回值是整数，单位千克")
+def get_weight() -> int:
+    return 90
+
+# 定义工具，获取身高，返回值是整数，单位厘米
+@tool(description="获取身高，返回值是整数，单位厘米")
+def get_height() -> int:
+    return 172
+
+agent = create_agent(
+    model=create_chat_openai(),
+    tools=[get_weight, get_height],
+    # 为了演示方便才禁止单次调用多个工具，实际使用时可以调用多个工具
+    system_prompt="""你是严格遵循ReAct框架的智能体，必须按「思考→行动→观察→再思考」的流程解决问题，
+    且**每轮仅能思考并调用1个工具**，禁止单次调用多个工具。 
+    并告知我你的思考过程，工具的调用原因，按思考、行动、观察三个结构告知我""",
+)
+
+for chunk in agent.stream(
+    {"messages": [{"role": "user", "content": "计算我的BMI"}]},
+    stream_mode="values"
+):
+    latest_message = chunk['messages'][-1]
+
+    if latest_message.content:
+        print(type(latest_message).__name__, latest_message.content)
+
+    try:
+        if latest_message.tool_calls:
+            print(f"工具调用： { [tc['name'] for tc in latest_message.tool_calls]  }")
+    except AttributeError as e:
+        pass
+```
+#### 13.4.2 执行结果
+运行后可在控制台依次看到：模型**思考**与说明、**行动**阶段的 `工具调用`、工具返回后的**观察**与再思考，直至给出 BMI 结论。
+![Agent 流式输出执行结果 1](image-2.png)
