@@ -177,6 +177,19 @@ result = calculate_something(10, 20)
   ```
 - **`if __name__ == '__main__'`:**：确保代码块仅在**直接运行该脚本时执行，被导入时不执行。**
 
+### 7.1 包目录：`__init__.py` 与 `__pycache__`
+
+本仓库的 `common/`（如 `common/dashscope_compat.py`）是**项目内自定义包**，子目录脚本在把项目根加入 `sys.path` 后可写：
+
+```python
+from common.dashscope_compat import create_chat_openai
+```
+
+| 文件 / 目录 | 作用 | 说明 |
+| :--- | :--- | :--- |
+| **`__init__.py`** | 把所在文件夹标记为 **Python 包** | 可为空；有它才能 `import common.xxx`。逻辑可放在同目录其它 `.py` 里（本仓库 `common/__init__.py` 为空，实现在 `dashscope_compat.py`）。若希望简写导入，可在 `__init__.py` 中再导出符号。 |
+| **`__pycache__/`** | 解释器自动生成的**字节码缓存** | 首次 `import` 模块时生成 `*.pyc`，加快后续加载；**不是手写源码**，可删，运行时会重建；**不宜提交 Git**（建议在 `.gitignore` 中忽略 `__pycache__/`）。 |
+
 ---
 
 ## 8. JSON、运算与对象访问 (Data & Objects)

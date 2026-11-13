@@ -1,7 +1,7 @@
 ### [LangChain 常用语法梳理](https://www.bilibili.com/video/BV1yjz5BLEoY/?spm_id_from=333.788.player.switch&vd_source=9d75580d0b23d1137d56e03a996ac726&p=47)
 
 - 这份文档基于 当前项目目录 下的实战代码，为你梳理了 LangChain 的核心组件用法。
-- 使用前需先配置电脑的环境变量： `OPENAI_API_KEY`和`DASHSCOPE_API_KEY`（电脑需重启）
+- 使用前在 `.env` 中配置百炼兼容端点：`DASHSCOPE_KEY`（或 `DASHSCOPE_API_KEY`）、`BASE_URL`、`MODEL_CHAT` 等（亦可在系统环境变量中配置）
 ---
 ## 前置准备
 > 参考docs\index.md
@@ -50,13 +50,11 @@ print(completion.choices[0].message.content)
 ### 方式1 在系统环境变量中配置
 
 ### 方式2 env文件配置
-通常使用 `.env` 文件管理 API Key，并通过 `dotenv` 加载。
+通常使用 `.env` 文件管理 API Key，并通过 `dotenv` 加载；聊天模型统一经 [`common/dashscope_compat.py`](../common/dashscope_compat.py) 的 `create_chat_openai()` 创建。
 ```python
-from dotenv import load_dotenv
-load_dotenv() # 自动读取当前目录下的 .env 文件
-# 使用环境变量
-import os
-model = ChatTongyi(model=os.getenv("MODEL_CHAT"))
+from common.dashscope_compat import create_chat_openai
+
+model = create_chat_openai()  # 读取 MODEL_CHAT、BASE_URL、密钥
 ```
 
 ---
@@ -107,15 +105,8 @@ model = ChatTongyi(model=os.getenv("MODEL_CHAT"))
 ### 1.大语言模型 (LLM)
 > LLMs是技术范畴的统称，指基于大参数量、海量文本训练的Transformer架构模型，核心能力是理解和生成自然语言
 
-适用于简单的文本补全。
+适用于简单的文本补全。本仓库**云端百炼**不单独使用 LangChain LLM 封装，文本生成与对话统一走 [§2 聊天模型](#2-聊天模型-chat-model) 的 **OpenAI 兼容端点**（与 `01-basic/03-openai.py` 同源）。
 
-- **通义千问 (Tongyi)**：
-  LangChain 通过 `langchain_community` 提供了对通义千问的支持。
-  
-  ```python
-  from langchain_community.llms.tongyi import Tongyi
-  model = Tongyi(model="qwen-max")
-  ```
 - **Ollama (本地)**：
   
   ```python
@@ -126,10 +117,11 @@ model = ChatTongyi(model=os.getenv("MODEL_CHAT"))
 ### 2. 聊天模型 (Chat Model)
 适用于**多轮对话**（支持 System/Human/AI 消息序列）。
 
-- **通义千问 (Tongyi)**：
+- **百炼（OpenAI 兼容）**：
   ```python
-  from langchain_community.chat_models.tongyi import ChatTongyi
-  model = ChatTongyi(model="qwen3-max")
+  from common.dashscope_compat import create_chat_openai
+  
+  model = create_chat_openai()  # 或 create_chat_openai(model="qwen3-max")
   ```
 - **Ollama (本地)**：
   ```python
@@ -175,13 +167,13 @@ messages = [
 ### 3. 嵌入模型 (Embeddings)
 用于**将文本转化为向量**，常用于**向量搜索**。
 
-- **阿里云 (DashScope)**：
+- **百炼（OpenAI 兼容）**：
   ```python
-  from langchain_community.embeddings import DashScopeEmbeddings
-  # 默认模型为 text-embeddings-v1，实战推荐使用 v4
-  model = DashScopeEmbeddings(model="text-embedding-v4") 
-  ```
+  from common.dashscope_compat import create_openai_embeddings
   
+  model = create_openai_embeddings()  # 默认读取 MODEL_EMBEDDING，推荐 text-embedding-v4
+  ```
+
 - **Ollama (本地)**：
   ```python
   from langchain_ollama import OllamaEmbeddings
@@ -359,7 +351,7 @@ print(res2,"【值类型】",type(res2))  # PromptValue（如 StringPromptValue�
 
 ```python
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-from langchain_community.chat_models.tongyi import ChatTongyi
+from common.dashscope_compat import create_chat_openai
 
 chat_prompt_template = ChatPromptTemplate.from_messages(
     [
@@ -379,7 +371,7 @@ history_data = [
 # StringPromptValue    to_string()
 prompt_text = chat_prompt_template.invoke({"history": history_data}).to_string()# 传入参数history
 
-model = ChatTongyi(model="qwen-max")
+model = create_chat_openai()
 res = model.invoke(prompt_text)
 print(res.content, type(res))
 ```
@@ -1070,9 +1062,9 @@ LangChain 中常用的向量存储实现：
 
 ```python
 from langchain_core.vectorstores import InMemoryVectorStore
-from langchain_community.embeddings import DashScopeEmbeddings
+from common.dashscope_compat import create_openai_embeddings
 
-vector_store = InMemoryVectorStore(embedding=DashScopeEmbeddings())
+vector_store = InMemoryVectorStore(embedding=create_openai_embeddings())
 # add_texts 传入一个 list[str]
 vector_store.add_texts(["示例文本 A", "示例文本 B"])
 ```
@@ -1096,14 +1088,14 @@ vector_store.add_texts(["示例文本 A", "示例文本 B"])
 ```python
 from pathlib import Path
 from langchain_core.vectorstores import InMemoryVectorStore
-from langchain_community.embeddings import DashScopeEmbeddings
+from common.dashscope_compat import create_openai_embeddings
 from langchain_community.document_loaders import CSVLoader
 
 DATA_DIR = Path(__file__).resolve().parent / "data"
 # 创建vector_store：向量存储对象
 # InMemoryVectorStore：内存存储，临时的
 vector_store = InMemoryVectorStore(
-    embedding=DashScopeEmbeddings() #模型对象
+    embedding=create_openai_embeddings()
 )
 
 loader = CSVLoader(
@@ -1171,14 +1163,14 @@ pip install langchain-chroma chromadb
 ```python
 from pathlib import Path
 from langchain_chroma import Chroma
-from langchain_community.embeddings import DashScopeEmbeddings
+from common.dashscope_compat import create_openai_embeddings
 
 CHROMA_DIR = Path(__file__).resolve().parent / "chroma_db"
 
 # Chroma 向量数据库（轻量级的）
 vector_store = Chroma(
     collection_name="test",     # 当前向量存储起个名字，类似数据库的表名称
-    embedding_function=DashScopeEmbeddings(),       # 嵌入模型
+    embedding_function=create_openai_embeddings(),
     persist_directory=str(CHROMA_DIR)     # 指定数据存放的文件夹
 )
 
@@ -1248,9 +1240,10 @@ reference_text += "]"
 ```python
 from langchain_core.documents import Document
 from langchain_core.runnables import RunnablePassthrough
+from common.dashscope_compat import create_openai_embeddings
 
 # InMemoryVectorStore不是Runnable对象，不能入链
-vector_store = InMemoryVectorStore(embedding=DashScopeEmbeddings(model="text-embedding-v4"))
+vector_store = InMemoryVectorStore(embedding=create_openai_embeddings())
 # ... add_texts
 
 input_text = "怎么减肥？"
@@ -1436,3 +1429,105 @@ if uploader_file is not None:
 ### 12.4 [聊天页面开发](https://www.bilibili.com/video/BV1yjz5BLEoY/?spm_id_from=333.788.videopod.episodes&vd_source=9d75580d0b23d1137d56e03a996ac726&p=54)
 - yield 表达式
 - 聊天界面开发：04-RAG项目案例\example2\app_qa.py
+
+## 13. Agent 智能体
+
+智能体（Agent）在 LangChain 中用于让大模型语言（LLM）根据任务**自主选择并调用工具**，完成单靠生成无法解决的步骤（实时数据、计算、外部系统等）。
+
+### 13.1 架构与工作流程
+
+- 无 Agent 时，模型主要依赖训练知识作答；需要工具或实时数据时容易失败。
+- 有 Agent 时，模型充当「指挥者」：规划步骤 → 选工具 → 执行调用 → 根据结果迭代，直至给出最终回复。
+
+![Agent 在 LangChain 中的组件关系](img/agent-langchain-architecture-intro.png)
+
+| 组件 | 作用 |
+| :--- | :--- |
+| **用户需求** | 向 Agent 提交任务并接收最终回复 |
+| **Agent** | 统筹规划、工具调用与结果整合 |
+| **工具 (Tools)** | 补足模型能力（查询、计算、API 等） |
+| **记忆 (Memory)** | 保留会话或任务上下文 |
+| **规划 (Planning)** | 拆解任务、决定下一步动作 |
+
+核心特点：**目标驱动**、**可调用外部工具**、**自主决策与迭代**（根据工具返回决定是否继续调用或输出答案）。
+
+以电商商品问答为例，典型链路为：用户提问 → Agent 判断需查库 → 调用数据库工具 → 工具返回结构化数据 → Agent 组织自然语言答复。
+
+![电商问答 Agent 执行链路](img/agent-ecommerce-qa-workflow.png)
+
+### 13.2 概念小结
+
+- **Agent 智能体 = 大语言模型（大脑）+ 工具集（手脚）+ 决策逻辑（思维)**，使 LLM 从「只会回答」升级为「能执行动作、影响现实世界」的助手。
+- 外部工具让模型具备感知与作用于外界的能力；工具越丰富，Agent 可覆盖的场景（客服问答、库存管理、自动化运营等）越广。
+
+### 13.3 `create_agent` 初体验
+
+`create_agent` 用于一次性装配「聊天模型 + 工具列表 + 系统提示」。示例取自 `05-Agent智能体/01Agent智能体初体验.py`。
+
+| 参数 | 作用 |
+| :--- | :--- |
+| **`model`** | 智能体使用的**聊天模型**（大脑），推荐 `common/dashscope_compat.create_chat_openai()`（读取 `BASE_URL`、`MODEL_CHAT`、密钥） |
+| **`tools`** | 可供模型调用的工具列表（`@tool` 装饰的函数或其它 Tool 实例） |
+| **`system_prompt`** | 系统级角色与行为说明 |
+
+工具函数使用 `langchain_core.tools` 的 `@tool` 注册；`description` 会写入工具元数据，供模型选择是否调用。
+
+#### 13.3.1 `@tool` 装饰器
+
+| 参数 / 属性 | 作用 |
+| :--- | :--- |
+| **`description`** | 工具用途说明，供模型在规划阶段匹配任务 |
+| **函数 docstring** | 与 `description` 一并作为工具说明（示例中为「查询天气」） |
+
+#### 13.3.2 调用与消息
+
+`agent.invoke` 入参为包含 `messages` 的字典；每条为 `{"role": ..., "content": ...}`（本例 `role` 为 `user`，对应 [HumanMessage](#21-标准类形式)）。
+
+| 键 | 含义 |
+| :--- | :--- |
+| **`messages`** | 本轮对话消息列表 |
+| **返回值 `res["messages"]`** | 完整消息轨迹（含工具调用与模型回复），可遍历 `type(msg).__name__` 与 `msg.content` 调试 |
+
+```python
+# 示例取自 05-Agent智能体/01Agent智能体初体验.py
+# 模型装配见 common/dashscope_compat.py（兼容端点 + 环境变量）
+
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
+
+from common.dashscope_compat import create_chat_openai
+from langchain.agents import create_agent
+from langchain_core.tools import tool
+
+model = create_chat_openai()  # 读取 MODEL_CHAT、DASHSCOPE_KEY、BASE_URL
+
+
+@tool(description="查询天气")
+def get_weather() -> str:
+    return "晴天"
+
+
+agent = create_agent(
+    model=model,
+    tools=[get_weather],
+    system_prompt="你是一个聊天助手，可以回答用户问题。",
+)
+
+res = agent.invoke(
+    {
+        "messages": [
+            {"role": "user", "content": "明天深圳的天气如何？"},
+        ]
+    }
+)
+
+for msg in res["messages"]:
+    print(type(msg).__name__, msg.content)
+```
