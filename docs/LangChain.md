@@ -1469,6 +1469,7 @@ if uploader_file is not None:
 | **`model`** | 智能体使用的**聊天模型**（大脑），推荐 `common/dashscope_compat.create_chat_openai()`（读取 `BASE_URL`、`MODEL_CHAT`、密钥） |
 | **`tools`** | 可供模型调用的工具列表（`@tool` 装饰的函数或其它 Tool 实例） |
 | **`system_prompt`** | **系统级**角色与行为说明 |
+| **`middleware`** | 可选，中间件函数列表；钩子含义与示例见 [§13.5](#135-middleware-中间件) |
 
 工具函数使用 `langchain_core.tools` 的 `@tool` 注册；`description` 会写入工具元数据，供模型选择是否调用。
 
@@ -1667,5 +1668,120 @@ for chunk in agent.stream(
         pass
 ```
 #### 13.4.2 执行结果
+
 运行后可在控制台依次看到：模型**思考**与说明、**行动**阶段的 `工具调用`、工具返回后的**观察**与再思考，直至给出 BMI 结论。
-![Agent 流式输出执行结果 1](image-2.png)
+
+![ReAct BMI 案例执行结果](image-2.png)
+
+### 13.5 Middleware 中间件
+
+- 中间件用于在 Agent **每一步**前后插入自定义逻辑：日志与调试、提示词或工具选择改写、重试/降级/提前结束，以及安全与鉴权等。
+- 无中间件时为「请求 → 模型 ⇄ 工具 → 结果」；挂载中间件后，在 Agent / 模型 / 工具调用链路上增加 Hook 拦截点。
+
+| 典型场景 |
+| :--- |
+| 日志记录、链路分析与调试 |
+| 转换提示词、筛选或改写工具调用 |
+| 重试、备用模型、提前终止等控制 |
+| 安全防护、敏感信息检测等 |
+![无中间件与有中间件的 Agent 执行对比](image-3.png)
+
+LangChain 提供**内置中间件**，亦可通过装饰器定义自定义 Hook（官方列表见 [Built-in middleware](https://docs.langchain.com/oss/python/langchain/middleware/built-in)）。
+
+#### 13.5.1 Hook 类型
+
+| 类型 | 装饰器 | 拦截时机 |
+| :--- | :--- | :--- |
+| **节点式** | `@before_agent` | 整段 Agent 运行开始前 |
+| | `@after_agent` | 整段 Agent 运行结束后 |
+| | `@before_model` | 单次模型调用前 |
+| | `@after_model` | 单次模型调用后 |
+| **包裹式** | `@wrap_model_call` | 包裹每一次模型请求（可打印、改写或短路） |
+| | `@wrap_tool_call` | 包裹每一次工具执行（可打印工具名与参数） |
+
+节点式 Hook 接收 `AgentState` 与 `Runtime`，用于读写在途消息数量等状态；包裹式 Hook 接收 `request` 与 `handler`，在 `return handler(request)` 前后织入逻辑。
+
+#### 13.5.2 注册方式
+
+[`create_agent`](#133-create_agent-初体验) 增加 **`middleware`** 参数，传入由上述装饰器标记的函数列表即可（顺序即组合顺序，先定义的更靠外层）。
+
+| 参数 | 作用 |
+| :--- | :--- |
+| **`middleware`** | 中间件函数列表，与 `model`、`tools` 一并装配进 Agent 图 |
+
+示例取自 `05-Agent智能体/04middleware中间件.py`（项目根 `sys.path` 与 `create_chat_openai` 同 §13.3）。
+
+```python
+# 示例取自 05-Agent智能体/04middleware中间件.py
+
+from common.dashscope_compat import create_chat_openai
+from langchain.agents import create_agent, AgentState
+from langchain.agents.middleware import before_agent, after_agent, before_model, after_model, wrap_model_call, \
+    wrap_tool_call
+from langchain_core.tools import tool
+from langgraph.runtime import Runtime
+
+
+@tool(description="查询天气，传入城市名称字符串，返回字符串天气信息")
+def get_weather(city: str) -> str:
+    return f"{city}天气：晴天"
+
+
+"""
+1. agent执行前
+2. agent执行后
+3. model执行前
+4. model执行后
+5. 工具执行中
+6. 模型执行中
+"""
+
+# 中间件，在agent执行前调用
+@before_agent
+def log_before_agent(state: AgentState, runtime: Runtime) -> None:
+    # agent执行前会调用这个函数并传入state和runtime两个对象
+    print(f"[before agent]agent启动，并附带{len(state['messages'])}消息")
+
+
+# 中间件，在agent执行后调用
+@after_agent
+def log_after_agent(state: AgentState, runtime: Runtime) -> None:
+    print(f"[after agent]agent结束，并附带{len(state['messages'])}消息")
+
+# 中间件，在model执行前调用
+@before_model
+def log_before_model(state: AgentState, runtime: Runtime) -> None:
+    print(f"[before_model]模型即将调用，并附带{len(state['messages'])}消息")
+
+# 中间件，在model执行后调用
+@after_model
+def log_after_model(state: AgentState, runtime: Runtime) -> None:
+    print(f"[after_model]模型调用结束，并附带{len(state['messages'])}消息")
+
+# 中间件，在model执行中调用
+@wrap_model_call
+def model_call_hook(request, handler):
+    print("模型调用啦")
+    return handler(request)
+
+# 中间件，在工具执行中调用（monitor_tool：监控工具执行）
+@wrap_tool_call
+def monitor_tool(request, handler):
+    print(f"工具执行：{request.tool_call['name']}")
+    print(f"工具执行传入参数：{request.tool_call['args']}")
+
+    return handler(request)
+
+
+agent = create_agent(
+    model=create_chat_openai(),
+    tools=[get_weather],
+    # 加入中间件列表
+    middleware=[log_before_agent, log_after_agent, log_before_model, log_after_model, model_call_hook, monitor_tool]
+)
+
+res = agent.invoke({"messages": [{"role": "user", "content": "深圳今天的天气如何呀，如何穿衣"}]})
+print("**********\n", res)
+```
+
+运行 `04middleware中间件.py` 时，控制台将按 Hook 顺序打印 Agent / 模型 / 工具各阶段的日志，便于对照上图理解拦截点。
