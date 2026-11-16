@@ -97,7 +97,6 @@ model = create_chat_openai()  # 读取 MODEL_CHAT、BASE_URL、密钥
   - 余弦相似度算法：衡量两个向量的核心相似度（衡量方向相似性，剔除长度影响）
   - 越接近1，相似度越高
   - 公式
-  
     ![alt text](img/vector-cosine-similarity-formula.png)
 
 ## 模型类型与接入 (Models)
@@ -1785,3 +1784,6 @@ print("**********\n", res)
 ```
 
 运行 `04middleware中间件.py` 时，控制台将按 Hook 顺序打印 Agent / 模型 / 工具各阶段的日志，便于对照上图理解拦截点。
+ 
+ ## Agent 项目实战
+ ![alt text](image-4.png)
