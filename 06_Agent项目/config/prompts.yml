@@ -1,4 +1,3 @@
-
-main_prompt_path: prompts/main_prompt.txt
-rag_summarize_prompt_path: prompts/rag_summarize.txt
-report_prompt_path: prompts/report_prompt.txt
+main_prompt_path: prompts/main_prompt.txt # 主提示词
+rag_summarize_prompt_path: prompts/rag_summarize.txt # RAG总结提示词
+report_prompt_path: prompts/report_prompt.txt # 报告生成提示词

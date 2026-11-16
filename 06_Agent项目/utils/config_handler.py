@@ -5,28 +5,28 @@ k: v
 import yaml
 from utils.path_tool import get_abs_path
 
-
+# 1. 加载RAG的yml文件配置
 def load_rag_config(config_path: str=get_abs_path("config/rag.yml"), encoding: str="utf-8"):
     with open(config_path, "r", encoding=encoding) as f:
         return yaml.load(f, Loader=yaml.FullLoader)
 
-
+# 2. 加载Chroma的yml文件配置
 def load_chroma_config(config_path: str=get_abs_path("config/chroma.yml"), encoding: str="utf-8"):
     with open(config_path, "r", encoding=encoding) as f:
         return yaml.load(f, Loader=yaml.FullLoader)
 
-
+# 3. 加载Prompts配置
 def load_prompts_config(config_path: str=get_abs_path("config/prompts.yml"), encoding: str="utf-8"):
     with open(config_path, "r", encoding=encoding) as f:
         return yaml.load(f, Loader=yaml.FullLoader)
 
-
+# 4. 加载Agent的yml文件配置
 def load_agent_config(config_path: str=get_abs_path("config/agent.yml"), encoding: str="utf-8"):
     with open(config_path, "r", encoding=encoding) as f:
         return yaml.load(f, Loader=yaml.FullLoader)
 
-
-rag_conf = load_rag_config()
+# 5. 加载配置
+rag_conf = load_rag_config() # 加载RAG配置
 chroma_conf = load_chroma_config()
 prompts_conf = load_prompts_config()
 agent_conf = load_agent_config()
