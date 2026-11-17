@@ -1,2 +1,2 @@
-chat_model_name: qwen3-max
-embedding_model_name: text-embedding-v4
+chat_model_name: qwen3-max # 聊天模型名称
+embedding_model_name: text-embedding-v4 # 嵌入模型名称

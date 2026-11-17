@@ -1,10 +1,10 @@
 collection_name: agent
 persist_directory: chroma_db
-k: 3
+k: 3 # as_retriever()的匹配结果：每个分片返回的相似文档数量，越小越精确，越大越模糊
 data_path: data
-md5_hex_store: md5.text
-allow_knowledge_file_type: ["txt", "pdf"]
+md5_hex_store: md5.text # 存储文件的MD5值，用于去重
+allow_knowledge_file_type: ["txt", "pdf"] # 允许的文件类型
 
-chunk_size: 200
-chunk_overlap: 20
-separators: ["\n\n", "\n", ".", "!", "?", "。", "！", "？", " ", ""]
+chunk_size: 200 # 每个分片的字数
+chunk_overlap: 20 # 分片重叠字数
+separators: ["\n\n", "\n", ".", "!", "?", "。", "！", "？", " ", ""] # 分片分隔符

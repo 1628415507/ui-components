@@ -1,6 +1,6 @@
 # Python 基础语法梳理
 
-这份文档基于 当前项目目录 下的实战代码，为你梳理了其中用到的核心 Python 语法。适合不熟悉 Python 的开发者快速上手。
+> 这份文档基于 当前项目目录 下的实战代码，为你梳理了其中用到的核心 Python 语法。适合不熟悉 Python 的开发者快速上手。
 
 ---
 
@@ -69,7 +69,6 @@ count = 10             # 整数
   from datetime import datetime
   log_file = f"agent_{datetime.now().strftime('%Y%m%d')}.log"
   ```
-  典型用途：Agent 日志按天切分（与 [日志 (logging)](#9-日志-logging) 中 `FileHandler` 文件名一致）。
   
 - **字符串乘法**：用于快速生成重复字符。
   
@@ -85,14 +84,12 @@ count = 10             # 整数
   reference_text += "]"
   ```
   
-  典型用途：RAG 场景下，将向量检索返回的多个 `Document.page_content` 合并为提示词里的 `{context}` 参考资料。
-
 - **`str.endswith(后缀)`**：判断字符串是否以给定后缀结尾；传入 **元组** 时表示「匹配其中任意一个后缀」。
+  
   ```python
   if f.endswith(allowed_types):
       files.append(os.path.join(path, f))
   ```
-  典型用途：从知识库目录筛出 `.pdf`、`.txt` 等允许类型（见 [目录扫描与后缀过滤](#81-目录扫描与后缀过滤)）。
 
 ### 4.2 列表 (List)
 类似于数组，使用方括号 `[]`。
