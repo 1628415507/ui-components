@@ -6,7 +6,7 @@ import random
 from utils.config_handler import agent_conf
 from utils.path_tool import get_abs_path
 
-rag = RagSummarizeService()
+rag = RagSummarizeService() # 初始化总结服务（向量检索工具）
 
 user_ids = ["1001", "1002", "1003", "1004", "1005", "1006", "1007", "1008", "1009", "1010",]
 month_arr = ["2025-01", "2025-02", "2025-03", "2025-04", "2025-05", "2025-06",
@@ -14,12 +14,12 @@ month_arr = ["2025-01", "2025-02", "2025-03", "2025-04", "2025-05", "2025-06",
 
 external_data = {}
 
-
+# 工具1：从向量存储中检索参考资料
 @tool(description="从向量存储中检索参考资料")
 def rag_summarize(query: str) -> str:
     return rag.rag_summarize(query)
 
-
+# 工具2：获取指定城市的天气
 @tool(description="获取指定城市的天气，以消息字符串的形式返回")
 def get_weather(city: str) -> str:
     return f"城市{city}天气为晴天，气温26摄氏度，空气湿度50%，南风1级，AQI21，最近6小时降雨概率极低"
@@ -27,7 +27,7 @@ def get_weather(city: str) -> str:
 
 @tool(description="获取用户所在城市的名称，以纯字符串形式返回")
 def get_user_location() -> str:
-    return random.choice(["深圳", "合肥", "杭州"])
+    return random.choice(["深圳", "合肥", "杭州"]) # 随机返回一个城市名称
 
 
 @tool(description="获取用户的ID，以纯字符串形式返回")
@@ -39,9 +39,10 @@ def get_user_id() -> str:
 def get_current_month() -> str:
     return random.choice(month_arr)
 
-
+# 工具3：组装外部数据
 def generate_external_data():
     """
+    组装成的格式为：
     {
         "user_id": {
             "month" : {"特征": xxx, "效率": xxx, ...}
@@ -66,15 +67,16 @@ def generate_external_data():
     :return:
     """
     if not external_data:
-        external_data_path = get_abs_path(agent_conf["external_data_path"])
+        external_data_path = get_abs_path(agent_conf["external_data_path"]) # 获取外部数据文件路径
 
-        if not os.path.exists(external_data_path):
+        if not os.path.exists(external_data_path): # 如果外部数据文件不存在，则抛出异常
             raise FileNotFoundError(f"外部数据文件{external_data_path}不存在")
-
+        # 组装外部数据
         with open(external_data_path, "r", encoding="utf-8") as f:
-            for line in f.readlines()[1:]:
+            for line in f.readlines()[1:]: # 1: 跳过第一行，从第二行开始读取
                 arr: list[str] = line.strip().split(",")
 
+                # 将读取到的数据进行处理，并存储到external_data中，读取每一行的数据，分别赋值给user_id, feature, efficiency, consumables, comparison, time
                 user_id: str = arr[0].replace('"', "")
                 feature: str = arr[1].replace('"', "")
                 efficiency: str = arr[2].replace('"', "")
@@ -82,7 +84,7 @@ def generate_external_data():
                 comparison: str = arr[4].replace('"', "")
                 time: str = arr[5].replace('"', "")
 
-                if user_id not in external_data:
+                if user_id not in external_data: # 如果user_id不存在，则创建一个空字典
                     external_data[user_id] = {}
 
                 external_data[user_id][time] = {
