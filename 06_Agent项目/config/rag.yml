@@ -1,2 +1,3 @@
-chat_model_name: qwen3-max # 聊天模型名称
+# 需在百炼控制台已开通对应模型；qwen3-max 未开通时可改用 qwen-plus / qwen-max
+chat_model_name: qwen-plus
 embedding_model_name: text-embedding-v4 # 嵌入模型名称

@@ -8,7 +8,7 @@ from utils.file_handler import pdf_loader, txt_loader, listdir_with_allowed_type
 from utils.logger_handler import logger # 日志处理工具
 import os # 操作系统
 
-# 创建向量服务
+# 创建向量存储服务
 class VectorStoreService:
     # 1. 功能：初始化向量库和文本分片器
     def __init__(self):
