@@ -7,3 +7,7 @@ __pycache__/
 *$py.class
 *.pyc
 *.log
+
+# Chroma 向量库与本地索引状态（运行后生成，可重建）
+**/chroma_db/
+**/md5.text

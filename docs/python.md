@@ -16,20 +16,27 @@
 """
 ```
 
-## 2. 导入模块 (Import)
-Python 通过 `import` 关键字来使用外部库或内置功能。
+## 2. 导入、模块与包 (Import & Modules)
+Python 通过 `import` 使用**标准库**、**第三方库**与**项目内包**（`utils`、`common` 等）。
 
 ```python
-import os              # 导入 os 模块（用于操作环境变量等）
+import os              # 标准库：环境变量、路径等
 import hashlib         # 标准库：文件摘要（如 MD5）
-import json            # 导入 json 模块（用于处理 JSON 数据）
+import json            # 标准库：JSON 读写
 import logging         # 标准库：分级日志
-from datetime import datetime  # 从 datetime 包只导入 datetime 类
-from openai import OpenAI  # 从 openai 库中只导入 OpenAI 这个类
-from dotenv import load_dotenv  # 从 .env 文件加载环境变量（AI 项目常用）
-from utils.path_tool import get_abs_path  # 项目内包：工程相对路径
-from utils.logger_handler import logger  # 项目内包：默认日志器（见 §9）
+from datetime import datetime  # 从包中只导入符号：datetime 类
+from openai import OpenAI      # 第三方库：只导入 OpenAI 类
+from dotenv import load_dotenv # 第三方：从 .env 加载配置（见 §2.1）
+from utils.path_tool import get_abs_path       # 项目内包（见 §2.3）
+from utils.logger_handler import logger        # 项目内包：默认日志器（见 §9）
+from common.dashscope_compat import create_chat_openai  # 顶层 common 包（见 §2.3）
 ```
+
+| 写法 | 含义 |
+|------|------|
+| `import os` | 导入整个模块，调用时写 `os.getenv(...)` |
+| `from pkg import symbol` | 只导入模块内的类/函数，直接写 `symbol(...)` |
+| `from utils.path_tool import get_abs_path` | 从项目包子模块导入；运行脚本时需把**工程根**加入 `sys.path` |
 
 ### 2.1 环境变量 (.env)
 - AI 项目通常把 API Key、模型名等敏感配置放在项目根目录的 `.env` 文件中，代码里用 `load_dotenv()` 加载后再读取。
@@ -43,6 +50,25 @@ model_name = os.getenv("MODEL_CHAT")  # 按名称读取；未设置时返回 Non
 ```
 
 典型用途：切换不同环境的模型配置，避免把密钥硬编码进源码。
+
+### 2.2 别名与脚本入口
+- **`as` 别名**：简化长模块名。
+  ```python
+  import numpy as np  # 之后用 np.sqrt() 代替 numpy.sqrt()
+  ```
+  
+- **`if __name__ == '__main__'`**：块内代码**仅在直接运行该 `.py` 时执行**；
+
+  被 `import` 时不执行（便于模块里写本地试跑，见 [§9 日志示例](#9-日志-logging)）。
+
+### 2.3 包目录：`__init__.py` 与 `__pycache__`
+
+本仓库 `common/`（如 `common/dashscope_compat.py`）是**项目内自定义包**：
+
+| 文件 / 目录 | 作用 | 说明 |
+| :--- | :--- | :--- |
+| **`__init__.py`** | 把所在文件夹标记为 **Python 包** | 可为空；有它才能 `import common.xxx`。逻辑可放在同目录其它 `.py` 里（本仓库 `common/__init__.py` 为空，实现在 `dashscope_compat.py`）。<br/>若希望简写导入，可在 `__init__.py` 中再导出符号。 |
+| **`__pycache__/`** | 解释器自动生成的**字节码缓存** | 首次 `import` 模块时生成 `*.pyc`，加快后续加载；**不是手写源码**，可删，运行时会重建；<br/>**不宜提交 Git**（建议在 `.gitignore` 中忽略 `__pycache__/`）。 |
 
 ## 3. 变量与赋值 (Variables)
 Python 是动态类型语言，**不需要声明类型**。
@@ -79,8 +105,8 @@ count = 10             # 整数
 - **循环拼接 (`+=`)**：在循环中逐段追加字符串，适合把多个片段拼成一段文本。
   ```python
   reference_text = "["
-  for doc in result:
-      reference_text += doc.page_content
+  for paragraph in paragraphs:
+      reference_text += paragraph
   reference_text += "]"
   ```
   
@@ -104,17 +130,31 @@ count = 10             # 整数
 - **遍历键值对**：`for key, value in data.items():`
 
 ### 4.4 元组 (Tuple)
-使用小括号 `()`，只读，它是**不可变**的。
+使用小括号 `()`，**只读**，它是**不可变**的。
 - **示例**：`("句子1", "句子2")`
 - **类型注解** `tuple[str]`：表示「元素均为 `str` 的元组」，常用于后缀白名单等入参（详见 [目录扫描与后缀过滤](#81-目录扫描与后缀过滤)）。
 - **从列表构造**：`tuple(files)` 把可变列表固化为只读元组再返回。
 
 ---
 
-## 5. 控制流 (Control Flow)
+## 5. JSON、运算与对象访问 (Data & Objects)
+
+在 [§4.3 字典](#43-字典-dictionary) 之外，AI 项目里还常见 JSON 序列化、简单运算，以及大模型 API / 流式返回时的对象判断与取值：
+
+| 用法 | 说明 |
+| --- | --- |
+| `json.dumps(obj, ensure_ascii=False)` | 将 Python 对象转成 JSON 字符串；<br>`ensure_ascii=False` 保证中文不乱码。 |
+| `json.loads(json_str)` | 将 JSON 字符串转回 Python 对象。 |
+| **数学运算** | `**` 表示幂运算（如 `x**2` 是平方），`+=` 是累加。 |
+| `hasattr(obj, "attr")` | 检查对象是否有某个属性；流式分块里判断 `delta.content` 等（见 [§6.1 条件](#61-条件判断-if)）。 |
+| `None` | Python 的空值（类似于 JS 的 `null`）。 |
+
+---
+
+## 6. 控制流 (Control Flow)
 Python 严格依靠 **缩进** 来表示代码块（通常是 4 个空格）。
 
-### 5.1 条件判断 (If)
+### 6.1 条件判断 (If)
 ```python
 if hasattr(delta, "content") and delta.content:
     # 缩进部分是满足条件时执行的代码
@@ -127,7 +167,7 @@ else:
     pass
 ```
 
-### 5.2 循环 (For)
+### 6.2 循环 (For)
 Python 的 `for` 循环通常用于**遍历列表**、字典或生成器。
 ```python
 # 遍历列表
@@ -140,11 +180,12 @@ for chunk in completion:
     pass
 ```
 
-### 5.3 异常处理与 `with` 打开文件
+### 6.3 异常处理与 `with` 打开文件
 
 | 名称 | 作用 | 典型用法 |
 | --- | --- | --- |
 | `try` / `except` | 捕获运行期错误 | `except Exception as e:` 后 `str(e)` 写入 [日志](#9-日志-logging) |
+| `raise ValueError("msg")` | **主动抛出**异常，中断当前流程 | 参数或状态不合法时抛出，由调用方或上层 `try/except` 处理 |
 | `with open(...)` | 上下文管理器，退出块时自动关闭文件 | `with open(filepath, "rb") as f:` |
 | `open(..., "rb")` | 以**二进制**读模式打开（摘要、PDF 等） | 与分块 `read` 配合，避免整文件进内存 |
 
@@ -162,9 +203,9 @@ for chunk in completion:
         return None
 ```
 
-更完整的分块摘要流程见 [二进制分片读与 MD5](#11-二进制分片读与-md5)。
+更完整的分块摘要流程见 [二进制分片读与 MD5](#10-二进制分片读与-md5)。
 
-### 5.4 海象运算符 `:=`
+### 6.4 海象运算符 `:=`
 
 在 **表达式** 中赋值并复用，常用于 `while` 条件里「读一块、判非空、循环」。
 
@@ -173,19 +214,19 @@ while chunk := f.read(chunk_size):
     md5_obj.update(chunk)
 ```
 
-等价于先 `chunk = f.read(...)` 再 `while chunk:`。典型用途：大文件 MD5、流式处理（与 [§5.2 循环](#52-循环-for) 中的 `for chunk in ...` 生成器遍历对比理解）。
+等价于先 `chunk = f.read(...)` 再 `while chunk:`。典型用途：大文件 MD5、流式处理（与 [§6.2 循环](#62-循环-for) 中的 `for chunk in ...` 生成器遍历对比理解）。
 
 ---
 
-## 6. 函数与自定义逻辑 (Functions)
+## 7. 函数与自定义逻辑 (Functions)
+### 7.1 函数定义与函数说明
 - Python 使用 `def` 关键字定义函数。
-
-- 补充：`"""文档说明"""` 只有紧贴在 `def` / `class` **下一行**时才是 **docstring**；
-  写在函数之间的三引号字符串只是被创建后丢弃的常量，不会成为函数说明。
+- `Docstring`（文档字符串）是写在 `def` 或 `class` **紧跟的下一行** 里的字符串，用来描述这个函数或类做什么、参数和返回值等。它是 Python 官方约定的**「内嵌文档」**，不是普通注释。
+  `"""文档说明"""` 只有紧贴在 `def` / `class` **下一行**时才是 **docstring**；写在函数之间的三引号字符串只是被创建后丢弃的常量，不会成为函数说明。
 
 ```python
 def calculate_something(a, b):
-    """这是函数文档字符串 (docstring)"""
+    """这是函数说明 (docstring)"""
     if a > b:
         return a + b
     return a * b
@@ -194,38 +235,43 @@ def calculate_something(a, b):
 result = calculate_something(10, 20)
 ```
 
-### 6.2 类型注解 (Type Hints)
-在参数和返回值上标注类型，IDE 与静态检查更易读；**运行时不强制校验**，仍按动态类型执行。
+### 7.2 类型注解 (Type Hints)
+在**参数和返回值**上标注类型，IDE 与静态检查更易读；**运行时不强制校验**，仍按动态类型执行。
 
 ```python
 def get_abs_path(relative_path: str) -> str:
     return os.path.join(project_root, relative_path)
 ```
 
-- `relative_path: str`：入参期望为字符串。
-- `-> str`：表示函数返回字符串。
-- `-> list[Document]`：表示返回 `Document` 对象列表（LangChain 文档加载，见 [LangChain 文档加载](#12-langchain-文档加载)）。
+| 写法 | 含义 |
+|------|------|
+| `relative_path: str` | 入参期望为字符串。 |
+| `-> str` | 表示函数返回字符串。 |
+| `-> list[str]` | 表示返回字符串列表（如枚举路径后返回多个文件名）。 |
+| `-> tuple[str, ...]` | 返回不可变元组，见 [§4.4 元组](#44-元组-tuple)。 |
 - **默认参数**、**`None` 默认**与 `-> logging.Logger` 的完整示例见 [日志 (logging)](#9-日志-logging)。
 
 典型用途：Agent 工具函数（如统一路径解析、日志初始化）签名一目了然，便于团队协作与补全。
 
 - **副作用 + 原样返回**：函数可以先做打印等调试操作，再把入参返回，供后续步骤继续使用。
+  
+  典型用途：在多步处理链中插入调试步骤，打印中间结果后原样返回，不中断后续步骤。
+  
   ```python
-  def print_prompt(prompt):
-      print(prompt.to_string())
+  def debug_peek(value):
+      print(repr(value))
       print("=" * 20)
-      return prompt  # 不改变数据，只「看一眼」后继续往下传
+      return value  # 不改变数据，只「看一眼」后继续往下传
   ```
-  典型用途：在 LangChain LCEL 管道（`A | B | C`）中插入调试步骤，打印中间提示词而不中断链路。
 
-### 6.1 常用内置函数与技巧
-- **print("内容", end="", flush=True)**：
+### 7.3 常用内置函数与技巧
+- `print("内容", end="", flush=True)`：
 
   | 参数 | 说明 |
   | --- | --- |
   | `end=""` | 打印后不换行（默认是 `\n`）。<br>在流式输出（Stream）中非常常用，让字符逐个水平排列。 |
   | `flush=True` | 立即刷新缓冲区，将内容输出到屏幕。<br/>在流式输出中，若不设置此参数，内容可能会被**缓存**而无法实时显示。 |
-- **zip(list1, list2)**：同时遍历**两个列表**。
+- `zip(list1, list2)`：同时遍历**两个列表**。
   
   ```python
   for a, b in zip(vec_a, vec_b):
@@ -234,32 +280,7 @@ def get_abs_path(relative_path: str) -> str:
     # vec_a[2],vec_b[2]
       dot_sum += a * b
   ```
-- **len(obj)**：获取列表或字符串的长度。
-- **raise ValueError("msg")**：手动抛出异常。
-
----
-
-## 7. 模块与包 (Modules)
-除了基础的 `import`，还有一些常用模式：
-
-- **as 关键字 (别名)**：简化长模块名。
-  ```python
-  import numpy as np  # 之后可以用 np.sqrt() 代替 numpy.sqrt()
-  ```
-- **`if __name__ == '__main__'`:**：确保代码块仅在**直接运行该脚本时执行，被导入时不执行。**
-
-### 7.1 包目录：`__init__.py` 与 `__pycache__`
-
-本仓库的 `common/`（如 `common/dashscope_compat.py`）是**项目内自定义包**，子目录脚本在把项目根加入 `sys.path` 后可写：
-
-```python
-from common.dashscope_compat import create_chat_openai
-```
-
-| 文件 / 目录 | 作用 | 说明 |
-| :--- | :--- | :--- |
-| **`__init__.py`** | 把所在文件夹标记为 **Python 包** | 可为空；有它才能 `import common.xxx`。逻辑可放在同目录其它 `.py` 里（本仓库 `common/__init__.py` 为空，实现在 `dashscope_compat.py`）。若希望简写导入，可在 `__init__.py` 中再导出符号。 |
-| **`__pycache__/`** | 解释器自动生成的**字节码缓存** | 首次 `import` 模块时生成 `*.pyc`，加快后续加载；**不是手写源码**，可删，运行时会重建；**不宜提交 Git**（建议在 `.gitignore` 中忽略 `__pycache__/`）。 |
+- `len(obj)`：获取列表或字符串的长度。
 
 ---
 
@@ -273,33 +294,37 @@ Agent 工程里配置、日志、向量库文件等路径应相对「工程根�
 | `os.path.abspath(path)` | 转为绝对路径。 |
 | `os.path.dirname(path)` | 取路径中的**目录部分**（向上一级目录用对该路径再 `dirname` 一次）。 |
 | `os.path.join(a, b, ...)` | 按系统规则拼接路径，自动处理分隔符。 |
-| `os.path.exists(path)` | 路径是否存在。 |
-| `os.path.isfile(path)` | 是否为普通文件。 |
-| `os.path.isdir(path)` | 是否为目录。 |
-| `os.listdir(path)` | 列出目录下条目名（不含父路径）。 |
+| `os.path.exists(path)` | 路径是否存在 |
+| `os.path.isfile(path)` | 是否为普通文件 |
+| `os.path.isdir(path)` | 是否为目录 |
+| `os.listdir(path)` | 列出目录下的文件名 |
+| `os.makedirs(path, exist_ok=True)` | 递归创建目录；`exist_ok=True` 时目录已存在不抛异常<br>（如 `LOG_ROOT = get_abs_path("logs")` 后先建目录再写日志） |
 
 ### 8.1 目录扫描与后缀过滤
 
-路径判断与遍历依赖上表中的 `isdir`、`listdir`、`join`；后缀匹配用 [§4.1 `endswith`](#41-字符串-string)。错误分支通过 [日志](#9-日志-logging) 的 `logger.error` 记录。
+- 路径判断与遍历依赖上表中的 `isdir`、`listdir`、`join`；后缀匹配用 [§4.1 `endswith`](#41-字符串-string)。错误分支通过 [日志](#9-日志-logging) 的 `logger.error` 记录。
+- 典型用途：RAG 知识库目录枚举待嵌入的 PDF/TXT。
 
 ```python
 # 06_Agent项目/utils/file_handler.py
 
-def listdir_with_allowed_type(path: str, allowed_types: tuple[str]):        # 返回文件夹内的文件列表（允许的文件后缀）
+# 返回文件夹内的文件列表（允许的文件后缀）
+def listdir_with_allowed_type(path: str, allowed_types: tuple[str]):       
     files = []
 
     if not os.path.isdir(path): # isdir：判断路径是否是文件夹
         logger.error(f"[listdir_with_allowed_type]{path}不是文件夹")
         return allowed_types
 
-    for f in os.listdir(path):
+    for f in os.listdir(path): # 变量文件夹下的文件
         if f.endswith(allowed_types): # endswith：判断文件后缀是否是允许的文件后缀
             files.append(os.path.join(path, f)) # join：将路径和文件名拼接起来
 
     return tuple(files) # tuple：将列表转换为元组，转为元组后，不能修改，只能读取
 ```
 
-典型用途：RAG 知识库目录枚举待嵌入的 PDF/TXT。
+- 典型用途：`get_abs_path("logs")` 与上表 `os.makedirs(..., exist_ok=True)` 供 [日志 (logging)](#9-日志-logging) 模块落盘使用。
+
 
 ```python
 import os
@@ -310,16 +335,10 @@ def get_project_root() -> str:
   current_dir = os.path.dirname(current_file)
   return os.path.dirname(current_dir)
 
+# `get_abs_path("config/...")` 加载提示词配置；
 def get_abs_path(relative_path: str) -> str:
   return os.path.join(get_project_root(), relative_path)
 
-# 其它模块中：LOG_ROOT = get_abs_path("logs")
-```
-
-典型用途：`get_abs_path("config/...")` 加载提示词配置；`get_abs_path("logs")` 与 `os.makedirs(..., exist_ok=True)` 供 [日志 (logging)](#9-日志-logging) 模块落盘使用。
-
-```python
-os.makedirs(LOG_ROOT, exist_ok=True)  # 目录已存在时不抛异常
 ```
 
 ---
@@ -335,9 +354,13 @@ Agent 工程用标准库 **logging** 同时输出到控制台与按日文件；�
 | `Formatter` | 单行格式模板 | `logging.Formatter('%(asctime)s - %(name)s - ...')` |
 | `level` | 过滤阈值（越低越详细） | `DEBUG` < `INFO` < `WARNING` < `ERROR`；Logger 与每个 Handler 可设不同级别 |
 
-实现上为每个 `name` 配置一个 `Logger`，挂载控制台与文件两个 Handler；同一 `name` 再次调用 `get_logger` 时若已有 Handler 则直接返回，避免重复输出。模块 `import` 时执行 `logger = get_logger()`，其它文件可直接 `from utils.logger_handler import logger`。
+- 实现上为每个 `name` 配置一个 `Logger`，挂载控制台与文件两个 Handler；
 
-**导入与目录**（与 [§6.2 默认参数](#62-类型注解-type-hints) 中的 `log_file=None`、`if not log_file:` 配合）：
+  同一 `name` 再次调用 `get_logger` 时若已有 Handler 则直接返回，避免重复输出。
+
+  模块 `import` 时执行 `logger = get_logger()`，其它文件可直接 `from utils.logger_handler import logger`。
+
+**导入与目录**（与 [§7.2 默认参数](#72-类型注解-type-hints) 中的 `log_file=None`、`if not log_file:` 配合）：
 
 ```python
 # 06_Agent项目/utils/logger_handler.py
@@ -399,14 +422,13 @@ def get_logger(
     return logger # 返回日志器
 ```
 
-**模块级默认实例与本地试跑**（参见 [§7 `if __name__`](#7-模块与包-modules)）：
+**模块级默认实例与本地试跑**（参见 [§2.2 `if __name__`](#22-别名与脚本入口)）：
 
 ```python
 # 06_Agent项目/utils/logger_handler.py
 
 # 快捷获取日志器
 logger = get_logger()
-
 
 if __name__ == '__main__':
     logger.info("信息日志")
@@ -419,23 +441,9 @@ if __name__ == '__main__':
 
 ---
 
-## 10. JSON、运算与对象访问 (Data & Objects)
+## 10. 二进制分片读与 MD5
 
-AI 项目中常见的 JSON 转换、简单运算，以及调用大模型 API / 流式返回时的对象判断与取值：
-
-| 用法 | 说明 |
-| --- | --- |
-| `json.dumps(obj, ensure_ascii=False)` | 将 Python 对象转成 JSON 字符串；`ensure_ascii=False` 保证中文不乱码。 |
-| `json.loads(json_str)` | 将 JSON 字符串转回 Python 对象。 |
-| **数学运算** | `**` 表示幂运算（如 `x**2` 是平方），`+=` 是累加。 |
-| `hasattr(obj, "attr")` | 检查对象是否有某个属性。在处理大模型流式返回时很有用。 |
-| `None` | Python 的空值（类似于 JS 的 `null`）。 |
-
----
-
-## 11. 二进制分片读与 MD5
-
-Agent / RAG 侧对知识库文件做指纹、去重或变更检测时，用 `hashlib` 对本地文件增量计算摘要；读文件方式与 [§5.3 `with` / `rb`](#53-异常处理与-with-打开文件) 一致。
+Agent / RAG 侧对知识库文件做指纹、去重或变更检测时，用 `hashlib` 对本地文件增量计算摘要；读文件方式与 [§6.3 `with` / `rb`](#63-异常处理与-with-打开文件) 一致。
 
 | 名称 | 作用 | 典型用法 |
 | --- | --- | --- |
@@ -463,37 +471,11 @@ def get_file_md5_hex(filepath: str):     # 获取文件的md5的十六进制字�
     chunk_size = 4096       # 4KB分片，避免文件过大爆内存
 ```
 
-`while chunk := f.read(chunk_size)` 与 `try/except` 片段见 [§5.3](#53-异常处理与-with-打开文件)、[§5.4](#54-海象运算符-)。
+`while chunk := f.read(chunk_size)` 与 `try/except` 片段见 [§6.3](#63-异常处理与-with-打开文件)、[§6.4](#64-海象运算符-)。
 
 典型用途：知识库增量更新前比对文件 MD5，跳过未变更文档。
 
 ---
 
-## 12. LangChain 文档加载
-
-在 Python 侧通过 `langchain_community.document_loaders` 把磁盘文件解析为 `langchain_core.documents.Document` 列表，供切块与向量化。返回类型写法见 [§6.2](#62-类型注解-type-hints) 的 `list[Document]`。
-
-| 名称 | 作用 | 典型用法 |
-| --- | --- | --- |
-| `PyPDFLoader` | 加载 PDF | `.load()` 得到 `list[Document]` |
-| `TextLoader` | 加载纯文本 | 指定 `encoding="utf-8"` |
-| `.load()` | 执行解析 | 链式：`PyPDFLoader(path).load()` |
-
-```python
-# 06_Agent项目/utils/file_handler.py
-
-from langchain_core.documents import Document
-from langchain_community.document_loaders import PyPDFLoader, TextLoader
-
-def pdf_loader(filepath: str, passwd=None) -> list[Document]:
-    return PyPDFLoader(filepath, passwd).load()
-
-def txt_loader(filepath: str) -> list[Document]:
-    return TextLoader(filepath, encoding="utf-8").load()
-```
-
-典型用途：RAG 管线入口，与 [§8.1 目录扫描](#81-目录扫描与后缀过滤) 得到的绝对路径衔接。
-
----
-
-希望这份梳理能帮你快速看懂现有的代码！若有某一行不理解，可以直接对照源文件提问。
+希望这份梳理能帮你快速看懂现有的代码！若有某一行不理解，可以直接对照源文件提问。  
+第三方 AI 框架说明见 [LangChain.md](LangChain.md)。
