@@ -17,7 +17,7 @@ def _ensure_env() -> None:
         load_dotenv()
         _env_loaded = True
 
-
+# 获取阿里云百炼 API 密钥
 def dashscope_api_key() -> str:
     _ensure_env()
     key = os.getenv("DASHSCOPE_API_KEY") or os.getenv("DASHSCOPE_KEY")
@@ -26,11 +26,12 @@ def dashscope_api_key() -> str:
     return key
 
 
+# 获取阿里云百炼 base_url
 def dashscope_base_url() -> str:
     _ensure_env()
     return os.getenv("BASE_URL", DEFAULT_BASE_URL)
 
-
+# 创建聊天模型
 def create_chat_openai(
     model: Optional[str] = None,
     **kwargs: Any,
@@ -43,7 +44,7 @@ def create_chat_openai(
         **kwargs,
     )
 
-
+# 创建向量化模型
 def create_openai_embeddings(
     model: Optional[str] = None,
     **kwargs: Any,

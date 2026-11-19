@@ -6,7 +6,6 @@ https://gemini.google.com/
 > 课程： <https://www.bilibili.com/video/BV1yjz5BLEoY?spm_id_from=333.788.player.switch&vd_source=9d75580d0b23d1137d56e03a996ac726&p=2>
 > 配套资料：<https://pan.baidu.com/s/1kQ-Q7UFWuHEbawQ4SStNSQ?pwd=1234>
 > API： <https://bailian.console.aliyun.com/cn-beijing/?tab=model#/api-key>
-![alt text](img/ollama-intro-slide.png)
 ------------------------------
 
 ## 01 ApiKey调用
@@ -16,32 +15,7 @@ https://gemini.google.com/
 
 ------------------------------
 
-## [02 Ollama](img/https://www.bilibili.com/video/BV1yjz5BLEoY?spm_id_from=333.788.player.switch&vd_source=9d75580d0b23d1137d56e03a996ac726&p=5)
-
-### Ollama简介
-
-- 开源软件，支持在本地运行模型
-![alt text](img/ollama-intro-slide.png)
-![alt text](img/ollama-download-mascot.png)
-
-- 蒸馏模型，参数量越大，效果越好，但是也更吃电脑性能（性能支持越好，回答问题的速度越快）
-![alt text](img/ollama-model-size-performance-1.png)
-![alt text](img/ollama-model-size-performance-2.png)
-
-### 本地如何使用Ollama
-
-- 启动Ollama
-- 调整本地配置文件的`base_url`和`model`
-
-------------------------------
-
 ## 03 [OpenAI库的基础使用](img/https://www.bilibili.com/video/BV1yjz5BLEoY?spm_id_from=333.788.player.switch&vd_source=9d75580d0b23d1137d56e03a996ac726&p=8)
-
-### 常见命令
-
-1. 查看当前安装的模型名称：`ollama list`
-2. 删除问题模型：`ollama rm <模型名称>`
-3. 重新下载模型：`ollama pull <模型名称>`
 
 - 回复越多，消耗的tokens越多
 ![alt text](img/openai-completion-tokens-demo-1.png)
@@ -96,21 +70,18 @@ https://gemini.google.com/
 ![alt text](img/langchain-framework-modules-3.png)
 ![alt text](img/langchain-framework-modules-4.png)
 ### 安装
-- 安装  `pip install langchain langchain-community langchain-ollama langchain-chroma dashscope chromadb  bs4 jq`(代理到阿里云： `-i https://pypi.tuna.tingh.ua.edu.cn/simple`)
+- 安装  `pip install langchain langchain-community langchain-chroma dashscope chromadb  bs4 jq`(代理到清华： `-i https://pypi.tuna.tsinghua.edu.cn/simple`)；本地 Ollama 与依赖见 [LangChain.md · Ollama](LangChain.md#23-ollama-本地运行)
 ![alt text](img/langchain-pip-install-dependencies.png)
 ### RAG
 - 检索增强生成技术
 ![alt text](img/rag-retrieval-augmented-intro.png)
 
 ## LangChain
-- 可以在本地配置调用ollama
+
+> 语法与本地/云端模型接入见 [LangChain.md](LangChain.md)。
+
 ### 流式输出
-![alt text](img/image-20.png)
 
-### 聊天模型（HumanMessage）
-![alt text](img/langchain-human-message-chat.png)
-
-![alt text](img/langchain-api-tongyi-ollama-imports.png)
 
 ## 通用提示词模板
 ![alt text](img/langchain-prompt-template-generic.png)
