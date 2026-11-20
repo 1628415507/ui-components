@@ -1,14 +1,17 @@
-from langchain_community.chat_models.tongyi import ChatTongyi
-from langchain_core.prompts import PromptTemplate, ChatPromptTemplate, MessagesPlaceholder
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from common.dashscope_compat import create_chat_openai
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables.history import RunnableWithMessageHistory
 from langchain_core.chat_history import InMemoryChatMessageHistory
-import os
-from dotenv import load_dotenv
 
-load_dotenv()
-
-model = ChatTongyi(model=os.getenv("MODEL_CHAT"))
+model = create_chat_openai()
 # prompt = PromptTemplate.from_template(
 #     "你需要根据会话历史回应用户问题。对话历史：{chat_history}，用户提问：{input}，请回答"
 # )

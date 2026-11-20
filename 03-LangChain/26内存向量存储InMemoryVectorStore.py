@@ -18,7 +18,7 @@ loader = CSVLoader(
 )
 
 documents = loader.load()
-# print(documents[0])
+print(documents)
 
 # id1 id2 id3 id4 ...
 # 向量存储的 新增、删除、检索
@@ -32,8 +32,7 @@ vector_store.delete(["id1", "id2"])
 
 # 检索 返回类型list[Document]
 result = vector_store.similarity_search(
-    "Python是不是简单易学",
-    # "瑞达法",
+    "Python是不是简单易学",  # "瑞达法",
     3       # 检索的结果要几个
 )
 

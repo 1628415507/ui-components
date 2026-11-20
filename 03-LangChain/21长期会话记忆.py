@@ -16,14 +16,13 @@ load_dotenv()
 # messages_from_dict：[字典、字典...]  -> [消息、消息...]
 # AIMessage、HumanMessage、SystemMessage 都是BaseMessage的子类
 
-
+# 长期会话记忆：文件持久化
 class FileChatMessageHistory(BaseChatMessageHistory):
     # 初始化
     def __init__(self, session_id, storage_path):
         self.session_id = session_id        # 会话id
         self.storage_path = storage_path    # 不同会话id的存储文件，所在的文件夹路径
-        # 完整的文件路径
-        self.file_path = os.path.join(self.storage_path, self.session_id)
+        self.file_path = os.path.join(self.storage_path, self.session_id) # 完整的文件路径
 
         # 确保文件夹是存在的,未存在则创建
         os.makedirs(os.path.dirname(self.file_path), exist_ok=True)
@@ -59,6 +58,7 @@ class FileChatMessageHistory(BaseChatMessageHistory):
         except FileNotFoundError: # 没有文件
             return []
 
+    # 清空消息列表
     def clear(self) -> None:
         with open(self.file_path, "w", encoding="utf-8") as f:
             json.dump([], f)

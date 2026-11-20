@@ -28,12 +28,12 @@ agent = create_agent(
 
 for chunk in agent.stream(
     {"messages": [{"role": "user", "content": "传智教育股价多少，并介绍一下"}]},
-    stream_mode="values"
+    stream_mode="values" # 流式输出，values 是返回值，messages 是消息
 ):
     latest_message = chunk['messages'][-1] # 获取最新消息，最后一条
 
     if latest_message.content:
-        print(type(latest_message).__name__, latest_message.content)
+        print("【",type(latest_message).__name__,"】", latest_message.content)
 
     try:
         if latest_message.tool_calls: #打印工具调用，工具名称

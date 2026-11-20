@@ -22,5 +22,5 @@ split_docs = splitter.split_documents(docs)
 print(len(split_docs))
 for doc in split_docs:
     print("="*20)
-    print(doc)
+    print(doc) # 切割的文本块
     print("="*20)
